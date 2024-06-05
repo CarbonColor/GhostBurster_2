@@ -26,4 +26,16 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+protected:
+	//スポットライトコンポーネント
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	class USpotLightComponent* SpotLight;
+
+	//モーションコントローラーコンポーネント
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	class UMotionControllerComponent* MotionController;
+
+	//懐中電灯のON/OFFを切り替える処理
+	void ToggleFlashLight();
+
 };
