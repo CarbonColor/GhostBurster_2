@@ -31,4 +31,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+private:
+	//™•Ï”éŒ¾
+	int HP = 100;	//‘Ì—Í
 };

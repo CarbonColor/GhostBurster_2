@@ -37,5 +37,10 @@ void ANormalEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	//HP‚ª0‚É‚È‚Á‚½‚çÁ–Å‚³‚¹‚é
+	if (HP <= 0)
+	{
+		this->Destroy();
+	}
 }
 
