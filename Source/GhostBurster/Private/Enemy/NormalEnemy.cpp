@@ -2,6 +2,7 @@
 
 
 #include "Enemy/NormalEnemy.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 // Sets default values
 ANormalEnemy::ANormalEnemy()
@@ -37,10 +38,39 @@ void ANormalEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	MoveCount++;
+
 	//HPが0になったら消滅させる
-	if (HP <= 0)
+	EnemyDead();
+
+	//出現してから5秒たったら攻撃させる
+	Attack();
+}
+
+//☆追加関数
+//HPが0になったら消滅させる
+void ANormalEnemy::EnemyDead()
+{
+	if (status.HP <= 0)
 	{
 		this->Destroy();
+		return;
 	}
 }
 
+//敵の攻撃処理
+void ANormalEnemy::Attack()
+{
+	if (MoveCount >= Gamefps * 5) //フレーム数が60固定でない場合、変更
+	{
+		MoveCount = 0;
+
+		//攻撃する
+	}
+}
+
+//ダメージを受ける処理、引数でもらった攻撃力分体力を減らす
+void ANormalEnemy::Damage(float damage)
+{
+	status.HP -= damage;
+}
