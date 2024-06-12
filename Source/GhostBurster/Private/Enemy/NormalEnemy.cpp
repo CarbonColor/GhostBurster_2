@@ -54,6 +54,8 @@ void ANormalEnemy::EnemyDead()
 	if (status.HP <= 0)
 	{
 		this->Destroy();
+		//イベントに対して死亡通知を送る
+
 		return;
 	}
 }
