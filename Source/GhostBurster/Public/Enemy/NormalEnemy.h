@@ -31,7 +31,30 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	//追加変数・関数
 private:
+	//☆構造体
+	//ステータス
+	struct Status
+	{
+		float HP = 1;	//ゴーストの体力
+	};
+	Status status;
+
 	//☆変数宣言
-	int HP = 100;	//体力
+	int MoveCount = 0;		//ゴーストの行動制御用のカウント
+	int Gamefps = 60;	//ゲームのfps数値を設定
+
+	//☆関数宣言
+	//HPが0になったら消滅させる
+	void EnemyDead();
+
+public:
+	//☆関数宣言
+	//出現してから5秒たったら攻撃させる
+	void Attack();
+
+	//ダメージを受ける処理、引数でもらった攻撃力分体力を減らす
+	void Damage(float damage);
+
 };
