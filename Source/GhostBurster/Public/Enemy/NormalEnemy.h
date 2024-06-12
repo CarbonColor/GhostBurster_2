@@ -37,7 +37,7 @@ private:
 	//ステータス
 	struct Status
 	{
-		float HP = 1;	//ゴーストの体力
+		float HP = 100;	//ゴーストの体力
 	};
 	Status status;
 
