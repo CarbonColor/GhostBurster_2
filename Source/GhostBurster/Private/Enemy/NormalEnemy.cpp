@@ -40,35 +40,79 @@ void ANormalEnemy::Tick(float DeltaTime)
 
 	MoveCount++;
 
-	//HPが0になったら消滅させる
-	EnemyDead();
-
-	//出現してから5秒たったら攻撃させる
-	Attack();
+	//エネミーの状態判断
+	Think();
+	//状態に基づいた動き
+	Move();
 }
 
 //☆追加関数
+//エネミーの状態判断
+void ANormalEnemy::Think()
+{
+	State nowState = state;
+	switch (nowState)
+	{
+	case State::Stand:	//立っている
+		if (MoveCount >= 60 * 5 * Gamefps / 60) { nowState = State::Attack; }
+		if (status.HP <= 0) { nowState = State::Die; }
+		break;
+
+	case State::Move:	//動く
+		if (MoveCount >= 60 * 5 * Gamefps / 60) { nowState = State::Attack; }
+		if (status.HP <= 0) { nowState = State::Die; }
+		break;
+
+	case State::Attack:	//攻撃
+		if (MoveCount >= 30 * Gamefps / 60) { nowState = State::Stand; }
+		if (status.HP <= 0) { nowState = State::Die; }
+		break;
+	}
+
+	UpdateState(nowState);
+}
+
+//状態の更新
+void ANormalEnemy::UpdateState(State nowState)
+{
+	if (nowState != state)
+	{
+		state = nowState;
+		MoveCount = 0;
+	}
+}
+
+//状態に基づいた動きをする
+void ANormalEnemy::Move()
+{
+	switch (state)
+	{
+	case State::Stand:	//立っている		
+		break;
+
+	case State::Move:	//動く
+		break;
+
+	case State::Attack:	//攻撃
+		if (MoveCount == 15 * Gamefps / 60) //15の部分は攻撃モーションに合わせて変更する
+		{
+			//攻撃する
+		}
+		break;
+
+	case State::Die:
+		EnemyDead();
+		break;
+	}
+}
+
 //HPが0になったら消滅させる
 void ANormalEnemy::EnemyDead()
 {
-	if (status.HP <= 0)
-	{
 		this->Destroy();
 		//イベントに対して死亡通知を送る
 
 		return;
-	}
-}
-
-//敵の攻撃処理
-void ANormalEnemy::Attack()
-{
-	if (MoveCount >= Gamefps * 5) //フレーム数が60固定でない場合、変更
-	{
-		MoveCount = 0;
-
-		//攻撃する
-	}
 }
 
 //ダメージを受ける処理、引数でもらった攻撃力分体力を減らす
