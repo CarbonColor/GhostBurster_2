@@ -4,7 +4,7 @@
 #include "Player/VRPlayer.h"
 #include "Components/SpotLightComponent.h"
 #include "Components/InputComponent.h"
-#include "MotionControllerComponent.h"
+//#include "MotionControllerComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Engine/World.h"
@@ -59,16 +59,19 @@ void AVRPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 	//コントローラーのAボタンにライトのON/OFF操作をバインド
 	PlayerInputComponent->BindAction("ToggleFlashLight", IE_Pressed, this, &AVRPlayer::ToggleFlashLight);
+
 	
 	//デバッグ
 	if (PlayerInputComponent->GetNumActionBindings() > 0)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Bindings found"));
+		UE_LOG(LogTemp, Warning, TEXT("Bindings found %d"), PlayerInputComponent->GetNumActionBindings());
 	}
 	else
 	{
 		UE_LOG(LogTemp, Error, TEXT("No bindings found"));
 	}
+
+	
 }
 
 void AVRPlayer::ToggleFlashLight()
