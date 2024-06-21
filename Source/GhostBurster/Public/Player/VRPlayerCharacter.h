@@ -9,6 +9,8 @@
 class USpotLightComponent;
 class UInputAction;
 class UInputMappingContext;
+class UMotionControllerComponent;
+
 
 UCLASS()
 class GHOSTBURSTER_API AVRPlayerCharacter : public APawn
@@ -23,9 +25,12 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	//メソッド
+	//ライトのON/OFFを切り替えるメソッド
 	UFUNCTION()
-		void ToggleFlashlight(const FInputActionValue& value);
+	void ToggleFlashlight(const FInputActionValue& value);
+
+
+
 
 public:	
 	// Called every frame
@@ -36,18 +41,27 @@ public:
 
 	// Input Action
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-		UInputAction* IA_Flashlight_OnOff;
+	TObjectPtr<UInputAction> IA_Flashlight_OnOff;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-		UInputMappingContext* IMC_Flashlight;
+	TObjectPtr<UInputMappingContext> IMC_Flashlight;
+
+	// Motion Controller
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UMotionControllerComponent> MotionController_Right;
+
+	//ライトのコリジョン(コーン型)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Collision")
+	TObjectPtr<UStaticMeshComponent> LightCollision;
+
 
 private:
 	//コンポーネント
 	UPROPERTY(VisibleAnywhere)
-		USceneComponent* VRRoot;
+	TObjectPtr<USceneComponent> VRRoot;
 
 	UPROPERTY(VisibleAnywhere)
-		USpotLightComponent* Flashlight;
+	TObjectPtr<USpotLightComponent> Flashlight;
 
 
 

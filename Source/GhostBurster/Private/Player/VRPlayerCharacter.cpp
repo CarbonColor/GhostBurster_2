@@ -5,6 +5,7 @@
 #include "Components/SpotLightComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "MotionControllerComponent.h"
 #include "InputAction.h"
 #include "InputMappingContext.h"
 
@@ -16,12 +17,32 @@ AVRPlayerCharacter::AVRPlayerCharacter()
 
 	//VRRootコンポーネントを作る
 	VRRoot = CreateDefaultSubobject<USceneComponent>(TEXT("VRRoot"));
+	//Rootコンポーネントに設定
 	RootComponent = VRRoot;
 
-	//スポットライトコンポーネント
+	//モーションコントローラーコンポーネント(右手)を作る
+	MotionController_Right = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("MotionController_Right"));
+	//VRRootコンポーネントにアタッチする
+	MotionController_Right->SetupAttachment(VRRoot);
+
+	//スポットライトコンポーネントを作る
 	Flashlight = CreateDefaultSubobject<USpotLightComponent>(TEXT("Flashlight"));
-	Flashlight->SetupAttachment(VRRoot);
+	//右手にアタッチする
+	Flashlight->SetupAttachment(MotionController_Right);
+	//光を消す
 	Flashlight->ToggleVisibility(false);
+
+	//スタティックメッシュコンポーネントを作る
+	LightCollision = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LightCollision"));
+	//当たり判定用のメッシュを読み込んで LightCollision に設定する
+	UStaticMesh* Mesh = LoadObject<UStaticMesh>(NULL, TEXT("/Game/_TeamFolder/Player/SM_Cone"), NULL, LOAD_None, NULL);
+	LightCollision->SetStaticMesh(Mesh);
+	//ライトにアタッチする
+	LightCollision->SetupAttachment(Flashlight);
+	//メッシュを見えないようにさせる
+	//LightCollision->ToggleVisibility(false);
+	
+	
 }
 
 // Called when the game starts or when spawned
