@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
+#include "Flashlight_Enumeration.h"
 #include "VRPlayerCharacter.generated.h"
 
 class USpotLightComponent;
@@ -29,7 +30,9 @@ protected:
 	UFUNCTION()
 	void ToggleFlashlight(const FInputActionValue& value);
 
-
+	//ライトの色を切り替えるメソッド
+	UFUNCTION()
+	void ChangeColorFlashlight(const FInputActionValue& value);
 
 
 public:	
@@ -44,6 +47,9 @@ public:
 	TObjectPtr<UInputAction> IA_Flashlight_OnOff;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> IA_Flashlight_ChangeColor;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputMappingContext> IMC_Flashlight;
 
 	// Motion Controller
@@ -54,16 +60,25 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Collision")
 	TObjectPtr<UStaticMeshComponent> LightCollision;
 
+	//ライトのコリジョンとの当たり判定
+	UFUNCTION()
+	void OnConeBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
 
 private:
-	//コンポーネント
+	//シーンコンポーネント
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USceneComponent> VRRoot;
 
+	//スポットライトコンポーネント
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USpotLightComponent> Flashlight;
 
+	//ライトの色を設定するメソッド
+	UFUNCTION()
+	void SettingFlashlightColor();
 
-
+	//ライトの色を保持する変数
+	EFlashlight_Color Flashlight_Color;
 
 };
