@@ -51,7 +51,7 @@ AVRPlayerCharacter::AVRPlayerCharacter()
 	//ライトにアタッチする
 	LightCollision->SetupAttachment(Flashlight);
 	//メッシュを見えないようにさせる
-	LightCollision->SetVisibility(false);
+	LightCollision->SetVisibility(true);
 	//位置・サイズ・向きの調整をする
 	LightCollision->SetRelativeLocation(FVector(400.0f, 0.0f, 0.0f));
 	LightCollision->SetRelativeRotation(FRotator(90.0f, 0.0f, 0.0f));	//※ FRotator は (Y, Z, X) の順
@@ -68,6 +68,15 @@ AVRPlayerCharacter::AVRPlayerCharacter()
 	DamageCount = 0;
 	//無敵状態をfalseにする
 	DamageNow = false;
+
+	//Tickを止める
+	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bStartWithTickEnabled = false;
+
+	//--------------------------------------------------------------------------------
+	RightHandMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DebugHand_R"));
+	RightHandMesh->SetupAttachment(MotionController_Right);
+	//--------------------------------------------------------------------------------
 
 }
 
@@ -98,18 +107,18 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	//ダメージを与える処理
-	for (AActor* Enemy : OverlappingEnemies)
-	{
-		if (Enemy && Enemy->GetClass()->ImplementsInterface(UDamageInterface::StaticClass()))
-		{
-			IDamageInterface* DamageInterface = Cast<IDamageInterface>(Enemy);
-			if (DamageInterface)
-			{
-				DamageInterface->RecieveEnemyDamage(Attack);
-			}
-		}
-	}
+	////ダメージを与える処理
+	//for (AActor* Enemy : OverlappingEnemies)
+	//{
+	//	if (Enemy && Enemy->GetClass()->ImplementsInterface(UDamageInterface::StaticClass()))
+	//	{
+	//		IDamageInterface* DamageInterface = Cast<IDamageInterface>(Enemy);
+	//		if (DamageInterface)
+	//		{
+	//			DamageInterface->RecieveEnemyDamage(Attack);
+	//		}
+	//	}
+	//}
 }
 
 // Called to bind functionality to input
@@ -121,7 +130,6 @@ void AVRPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	//{
 	//	EnhancedInputComponent->BindAction(IA_Flashlight_OnOff, ETriggerEvent::Triggered, this, &AVRPlayerCharacter::ToggleFlashlight);
 	//}
-
 }
 
 void AVRPlayerCharacter::ToggleFlashlight(const FInputActionValue& value)

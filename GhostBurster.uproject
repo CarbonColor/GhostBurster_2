@@ -30,6 +30,16 @@
 				"Win64",
 				"Android"
 			]
+		},
+		{
+			"Name": "OpenXR",
+			"Enabled": true,
+			"SupportedTargetPlatforms": [
+				"Win64",
+				"Linux",
+				"Android",
+				"VisionOS"
+			]
 		}
 	],
 	"TargetPlatforms": [
