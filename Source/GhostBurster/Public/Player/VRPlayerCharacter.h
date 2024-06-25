@@ -34,10 +34,6 @@ protected:
 	UFUNCTION()
 	void ChangeColorFlashlight(const FInputActionValue& value);
 
-	//無敵状態タイマーが終わった時の処理
-	UFUNCTION()
-	void EndTimeHandle();
-
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -108,8 +104,4 @@ private:
 
 	//無敵状態
 	bool DamageNow;
-
-	//無敵状態を終えるためのタイマーハンドル
-	FTimerHandle TimerHandle;
-
 };
