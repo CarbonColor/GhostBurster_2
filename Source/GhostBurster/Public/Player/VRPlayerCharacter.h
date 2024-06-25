@@ -14,7 +14,7 @@ class UInputMappingContext;
 class UMotionControllerComponent;
 
 UCLASS()
-class GHOSTBURSTER_API AVRPlayerCharacter : public APawn
+class GHOSTBURSTER_API AVRPlayerCharacter : public APawn, public IDamageInterface
 {
 	GENERATED_BODY()
 
@@ -36,7 +36,7 @@ protected:
 
 	//無敵状態タイマーが終わった時の処理
 	UFUNCTION()
-	void EndTimeHangle();
+	void EndTimeHandle();
 
 public:	
 	// Called every frame
@@ -69,8 +69,8 @@ public:
 
 	void OnConeEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
-	////オバケからの攻撃(インターフェース)
-	//virtual void RecievePlayerDamage() override;
+	//オバケからの攻撃(インターフェース)
+	virtual void RecievePlayerDamage() override;
 
 private:
 	//シーンコンポーネント

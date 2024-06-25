@@ -110,9 +110,6 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
 			}
 		}
 	}
-
-
-
 }
 
 // Called to bind functionality to input
@@ -217,21 +214,24 @@ void AVRPlayerCharacter::OnConeEndOverlap(UPrimitiveComponent* OverlappedComp, A
 	}
 }
 
-//void AVRPlayerCharacter::RecievePlayerDamage()
-//{
-//	if (DamageNow == false)
-//	{
-//		//ƒ_ƒ[ƒW‰ñ”‚ð‘‚â‚·
-//		DamageCount++;
-//		//–³“Gó‘Ô‚É‚·‚é
-//		DamageNow = true;
-//		//5•bŒã‚É–³“Gó‘Ô‚ªÁ‚¦‚é‚æ‚¤‚ÉƒZƒbƒg‚·‚é
-//		FTimerManager& TimerManager = GetWorldTimerManager();
-//		TimerManager.SetTimer(TimerHandle, this, &AVRPlayerCharacter::EndTimeHangle, 5.0f, false);
-//	}
-//}
+void AVRPlayerCharacter::RecievePlayerDamage()
+{
+	if (DamageNow == false)
+	{
+		//ƒ_ƒ[ƒW‰ñ”‚ð‘‚â‚·
+		DamageCount++;
+		//–³“Gó‘Ô‚É‚·‚é
+		DamageNow = true;
+		//5•bŒã‚É–³“Gó‘Ô‚ªÁ‚¦‚é‚æ‚¤‚ÉƒZƒbƒg‚·‚é
+		FTimerManager& TimerManager = GetWorldTimerManager();
+		TimerManager.SetTimer(TimerHandle, this, &AVRPlayerCharacter::EndTimeHandle, 5.0f, false);
 
-void AVRPlayerCharacter::EndTimeHangle()
+		GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Green, TEXT("Player Damage"));
+	}
+}
+
+void AVRPlayerCharacter::EndTimeHandle()
 {
 	DamageNow = false;
+	GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Green, TEXT("End of InvincibleTime"));
 }
