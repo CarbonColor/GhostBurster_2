@@ -8,6 +8,8 @@
 #include "MotionControllerComponent.h"
 #include "InputAction.h"
 #include "InputMappingContext.h"
+#include "Enemy/NormalEnemy.h"
+#include "TimerManager.h"
 
 // Sets default values
 AVRPlayerCharacter::AVRPlayerCharacter()
@@ -40,8 +42,6 @@ AVRPlayerCharacter::AVRPlayerCharacter()
 	Flashlight->SetAttenuationRadius(800.0f);
 	Flashlight->SetOuterConeAngle(25.0f);
 
-	//ライトの色を設定する
-	Flashlight_Color = EFlashlight_Color::White;
 
 	//スタティックメッシュコンポーネントを作る
 	LightCollision = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LightCollision"));
@@ -58,6 +58,16 @@ AVRPlayerCharacter::AVRPlayerCharacter()
 	LightCollision->SetRelativeScale3D(FVector(8.0f, 8.0f, 8.0f));
 	//当たり判定のメソッドをバインド
 	LightCollision->OnComponentBeginOverlap.AddDynamic(this, &AVRPlayerCharacter::OnConeBeginOverlap);
+	LightCollision->OnComponentEndOverlap.AddDynamic(this, &AVRPlayerCharacter::OnConeEndOverlap);
+
+	//ライトの色を設定する
+	Flashlight_Color = EFlashlight_Color::White;
+	//攻撃力を設定する
+	Attack = 1;
+	//ダメージカウントを初期化する
+	DamageCount = 0;
+	//無敵状態をfalseにする
+	DamageNow = false;
 
 }
 
@@ -80,7 +90,6 @@ void AVRPlayerCharacter::BeginPlay()
 			EnhancedInputComponent->BindAction(IA_Flashlight_OnOff, ETriggerEvent::Triggered, this, &AVRPlayerCharacter::ToggleFlashlight);
 			EnhancedInputComponent->BindAction(IA_Flashlight_ChangeColor, ETriggerEvent::Triggered, this, &AVRPlayerCharacter::ChangeColorFlashlight);
 		}
-
 	}
 }
 
@@ -88,6 +97,21 @@ void AVRPlayerCharacter::BeginPlay()
 void AVRPlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	//ダメージを与える処理
+	for (AActor* Enemy : OverlappingEnemies)
+	{
+		if (Enemy && Enemy->GetClass()->ImplementsInterface(UDamageInterface::StaticClass()))
+		{
+			IDamageInterface* DamageInterface = Cast<IDamageInterface>(Enemy);
+			if (DamageInterface)
+			{
+				DamageInterface->RecieveEnemyDamage(Attack);
+			}
+		}
+	}
+
+
 
 }
 
@@ -109,7 +133,7 @@ void AVRPlayerCharacter::ToggleFlashlight(const FInputActionValue& value)
 
 	if (bIsPressed)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Cyan, TEXT("Light ON/OFF"));
+		GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, TEXT("Light ON/OFF"));
 		Flashlight->ToggleVisibility();
 	}
 }
@@ -142,7 +166,7 @@ void AVRPlayerCharacter::ChangeColorFlashlight(const FInputActionValue& value)
 		//ライトの色を変更
 		SettingFlashlightColor();
 
-		GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Cyan, TEXT("Light ChangeColor"));
+		GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, TEXT("Light ChangeColor"));
 	}
 }
 
@@ -171,5 +195,43 @@ void AVRPlayerCharacter::SettingFlashlightColor()
 
 void AVRPlayerCharacter::OnConeBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Cyan, TEXT("Light Overlap"));
+	GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Light BeginOverlap Called"));
+	
+	//接触したアクターがオバケかどうか判定する
+	if (const ANormalEnemy* enemy = Cast<ANormalEnemy>(OtherActor))
+	{
+		OverlappingEnemies.Add(OtherActor);
+		GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Enemy is Overlapping"));
+	}
+}
+
+void AVRPlayerCharacter::OnConeEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Light EndOverlap Called"));
+
+	//オバケがコリジョンから抜けたかどうか判定する
+	if (const ANormalEnemy* enemy = Cast<ANormalEnemy>(OtherActor))
+	{
+		OverlappingEnemies.Remove(OtherActor);
+		GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Enemy is not Overlapping"));
+	}
+}
+
+//void AVRPlayerCharacter::RecievePlayerDamage()
+//{
+//	if (DamageNow == false)
+//	{
+//		//ダメージ回数を増やす
+//		DamageCount++;
+//		//無敵状態にする
+//		DamageNow = true;
+//		//5秒後に無敵状態が消えるようにセットする
+//		FTimerManager& TimerManager = GetWorldTimerManager();
+//		TimerManager.SetTimer(TimerHandle, this, &AVRPlayerCharacter::EndTimeHangle, 5.0f, false);
+//	}
+//}
+
+void AVRPlayerCharacter::EndTimeHangle()
+{
+	DamageNow = false;
 }
