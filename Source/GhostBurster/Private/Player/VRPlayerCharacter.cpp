@@ -46,8 +46,8 @@ AVRPlayerCharacter::AVRPlayerCharacter()
 	//スタティックメッシュコンポーネントを作る
 	LightCollision = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LightCollision"));
 	//当たり判定用のメッシュを読み込んで LightCollision に設定する
-	UStaticMesh* Mesh = LoadObject<UStaticMesh>(NULL, TEXT("/Game/_TeamFolder/Player/SM_Cone"), NULL, LOAD_None, NULL);
-	LightCollision->SetStaticMesh(Mesh);
+	UStaticMesh* ConeMesh = LoadObject<UStaticMesh>(NULL, TEXT("/Game/_TeamFolder/Player/SM_Cone"), NULL, LOAD_None, NULL);
+	LightCollision->SetStaticMesh(ConeMesh);
 	//ライトにアタッチする
 	LightCollision->SetupAttachment(Flashlight);
 	//メッシュを見えないようにさせる
@@ -76,6 +76,8 @@ AVRPlayerCharacter::AVRPlayerCharacter()
 	//--------------------------------------------------------------------------------
 	RightHandMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DebugHand_R"));
 	RightHandMesh->SetupAttachment(MotionController_Right);
+	UStaticMesh* Mesh = LoadObject<UStaticMesh>(NULL, TEXT("/Engine/BasicShapes/Cube1"), NULL, LOAD_None, NULL);
+	RightHandMesh->SetStaticMesh(Mesh);
 	//--------------------------------------------------------------------------------
 
 }
