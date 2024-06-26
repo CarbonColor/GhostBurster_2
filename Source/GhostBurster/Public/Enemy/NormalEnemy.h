@@ -36,7 +36,7 @@ private:
 public:
 	//™•Ï”éŒ¾
 	//SceneComponent‚Ì•Ï”éŒ¾
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<USceneComponent> DefaultSceneRoot;
 
 	//StaticMeshComponent‚Ì•Ï”éŒ¾
