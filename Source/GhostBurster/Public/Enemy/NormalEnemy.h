@@ -3,25 +3,18 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "Enemy/Enemys.h"
+#include "Components/SphereComponent.h"
 #include "NormalEnemy.generated.h"
 
 UCLASS()
-class GHOSTBURSTER_API ANormalEnemy : public AActor
+class GHOSTBURSTER_API ANormalEnemy : public AEnemys
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
 	ANormalEnemy();
-
-	//SceneComponentの変数宣言
-	UPROPERTY(EditAnywhere)
-	TObjectPtr<USceneComponent> DefaultSceneRoot;
-
-	//StaticMeshComponentの変数宣言
-	UPROPERTY(EditAnywhere)
-	TObjectPtr<UStaticMeshComponent> GhostMesh;
 
 protected:
 	// Called when the game starts or when spawned
@@ -33,43 +26,28 @@ public:
 
 	//追加変数・関数
 private:
-	//☆構造体
-	//ステータス
-	struct Status
-	{
-		float HP = 100;	//ゴーストの体力
-	};
-	Status status;
-
-	enum class State
-	{
-		Stand,
-		Move,
-		Attack,
-		Die,
-	};
-	State state = State::Stand;
-
-	//☆変数宣言
-	int MoveCount = 0;		//ゴーストの行動制御用のカウント
-	int Gamefps = 60;	//ゲームのfps数値を設定
-
 	//☆関数宣言
 	//エネミーの状態判断
-	void Think();
-
-	//状態の更新
-	void UpdateState(State nowState);
+	virtual void Think() override;
 
 	//状態に基づいた動きをする
-	void Move();
-	
-	//HPが0になったら消滅させる
-	void EnemyDead();
+	virtual void Move() override;
 
 public:
+	//☆変数宣言
+	//SceneComponentの変数宣言
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<USceneComponent> DefaultSceneRoot;
+
+	//StaticMeshComponentの変数宣言
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<UStaticMeshComponent> GhostMesh;
+
+	//コリジョンの変数宣言
+	UPROPERTY(EditAnywhere)
+	USphereComponent* GhostCollision;
+
 	//☆関数宣言
 	//ダメージを受ける処理、引数でもらった攻撃力分体力を減らす
-	void Damage(float damage);
-
+	virtual void RecieveEnemyDamage(int DamageAmount) override;
 };

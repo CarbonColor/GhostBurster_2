@@ -24,6 +24,17 @@ ANormalEnemy::ANormalEnemy()
 	GhostMesh->SetStaticMesh(GMesh);
 	//StaticMeshComponentをRootComponentにアタッチする
 	GhostMesh->SetupAttachment(RootComponent);
+
+	//☆マテリアル
+	//マテリアルをロードしてGhostMeshに設定する
+	UMaterial* Material = LoadObject<UMaterial>(NULL, TEXT("/Game/_TeamFolder/Enemy/White"), NULL, LOAD_None, NULL);
+	GhostMesh->SetMaterial(0, Material);
+
+	//☆コリジョン
+	//スフィアコリジョンの作成
+	GhostCollision = CreateDefaultSubobject<USphereComponent>(TEXT("GhostCollision"));
+	//GhostCollisionをルートコンポーネントにアタッチする
+	GhostCollision->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned
@@ -31,12 +42,18 @@ void ANormalEnemy::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	//白い敵の設定
+	this->status.HP = 100;
+	this->EColor = EnemyColor::White;
 }
 
 // Called every frame
 void ANormalEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	//現在のFPSを取得
+	Gamefps = GetWorldFPS();
 
 	MoveCount++;
 
@@ -51,6 +68,7 @@ void ANormalEnemy::Tick(float DeltaTime)
 void ANormalEnemy::Think()
 {
 	State nowState = state;
+
 	switch (nowState)
 	{
 	case State::Stand:	//立っている
@@ -72,16 +90,6 @@ void ANormalEnemy::Think()
 	UpdateState(nowState);
 }
 
-//状態の更新
-void ANormalEnemy::UpdateState(State nowState)
-{
-	if (nowState != state)
-	{
-		state = nowState;
-		MoveCount = 0;
-	}
-}
-
 //状態に基づいた動きをする
 void ANormalEnemy::Move()
 {
@@ -97,6 +105,7 @@ void ANormalEnemy::Move()
 		if (MoveCount == 15 * Gamefps / 60) //15の部分は攻撃モーションに合わせて変更する
 		{
 			//攻撃する
+			UKismetSystemLibrary::PrintString(this, TEXT("WhiteEnemy Attack!"), true, true, FColor::White, 2.f, TEXT("None"));
 		}
 		break;
 
@@ -106,17 +115,8 @@ void ANormalEnemy::Move()
 	}
 }
 
-//HPが0になったら消滅させる
-void ANormalEnemy::EnemyDead()
-{
-		this->Destroy();
-		//イベントに対して死亡通知を送る
-
-		return;
-}
-
 //ダメージを受ける処理、引数でもらった攻撃力分体力を減らす
-void ANormalEnemy::Damage(float damage)
+void ANormalEnemy::RecieveEnemyDamage(int DamageAmount)
 {
-	status.HP -= damage;
+	status.HP -= DamageAmount;
 }
