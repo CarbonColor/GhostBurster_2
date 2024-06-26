@@ -64,15 +64,18 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     DamageCount = 0;
 
     // Tick‚ðŽ~‚ß‚é
-    PrimaryActorTick.bCanEverTick = false;
-    PrimaryActorTick.bStartWithTickEnabled = false;
+    //PrimaryActorTick.bCanEverTick = false;
+    //PrimaryActorTick.bStartWithTickEnabled = false;
+    PrimaryActorTick.bCanEverTick = true;
+    PrimaryActorTick.bStartWithTickEnabled = true;
 
-    // --------------------------------------------------------------------------------
-    RightHandMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DebugHand_R"));
-    RightHandMesh->SetupAttachment(MotionController_Right);
-    UStaticMesh* Mesh = LoadObject<UStaticMesh>(NULL, TEXT("/Engine/BasicShapes/Cube1"), NULL, LOAD_None, NULL);
-    RightHandMesh->SetStaticMesh(Mesh);
-    // --------------------------------------------------------------------------------
+
+    //// --------------------------------------------------------------------------------
+    //RightHandMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DebugHand_R"));
+    //RightHandMesh->SetupAttachment(MotionController_Right);
+    //UStaticMesh* Mesh = LoadObject<UStaticMesh>(NULL, TEXT("/Engine/BasicShapes/Cube1"), NULL, LOAD_None, NULL);
+    //RightHandMesh->SetStaticMesh(Mesh);
+    //// --------------------------------------------------------------------------------
 
 }
 
@@ -118,18 +121,18 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
-    //// ƒ_ƒ[ƒW‚ð—^‚¦‚éˆ—
-    // for (AActor* Enemy : OverlappingEnemies)
-    // {
-    //     if (Enemy && Enemy->GetClass()->ImplementsInterface(UDamageInterface::StaticClass()))
-    //     {
-    //         IDamageInterface* DamageInterface = Cast<IDamageInterface>(Enemy);
-    //         if (DamageInterface)
-    //         {
-    //             DamageInterface->RecieveEnemyDamage(Attack);
-    //         }
-    //     }
-    // }
+    // ƒ_ƒ[ƒW‚ð—^‚¦‚éˆ—
+     for (AActor* Enemy : OverlappingEnemies)
+     {
+         if (Enemy && Enemy->GetClass()->ImplementsInterface(UDamageInterface::StaticClass()))
+         {
+             IDamageInterface* DamageInterface = Cast<IDamageInterface>(Enemy);
+             if (DamageInterface)
+             {
+                 DamageInterface->RecieveEnemyDamage(Attack);
+             }
+         }
+     }
 }
 
 // Called to bind functionality to input
@@ -257,3 +260,4 @@ void AVRPlayerCharacter::RecievePlayerDamage()
     //     DamageNow = true;
     // }
 }
+
