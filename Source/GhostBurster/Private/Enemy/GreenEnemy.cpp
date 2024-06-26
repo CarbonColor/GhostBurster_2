@@ -2,6 +2,7 @@
 
 
 #include "Enemy/GreenEnemy.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 AGreenEnemy::AGreenEnemy()
 {
@@ -32,6 +33,15 @@ AGreenEnemy::AGreenEnemy()
 	GhostCollision = CreateDefaultSubobject<USphereComponent>(TEXT("GhostCollision"));
 	//GhostCollisionをルートコンポーネントにアタッチする
 	GhostCollision->SetupAttachment(RootComponent);
+}
+
+void AGreenEnemy::BeginPlay()
+{
+	Super::BeginPlay();
+
+	//緑の敵の設定
+	this->status.HP = 100;
+	this->EColor = EnemyColor::Green;
 }
 
 void AGreenEnemy::Tick(float DeltaTime)
@@ -86,6 +96,7 @@ void AGreenEnemy::Move()
 		if (MoveCount == 15 * Gamefps / 60) //15の部分は攻撃モーションに合わせて変更する
 		{
 			//攻撃する
+			UKismetSystemLibrary::PrintString(this, TEXT("GreenEnemy Attack!"), true, true, FColor::White, 2.f, TEXT("None"));
 		}
 		break;
 

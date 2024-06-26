@@ -23,10 +23,12 @@ protected:
 	//ステータス
 	struct Status
 	{
-		float HP = 100;	//ゴーストの体力
+		float HP = 1;	//ゴーストの体力
 	};
 	Status status;
 
+	//☆列挙型
+	//敵の状態
 	enum class State
 	{
 		Stand,
@@ -35,6 +37,16 @@ protected:
 		Die,
 	};
 	State state = State::Stand;
+
+	//敵の色情報
+	enum class EnemyColor : uint8
+	{
+		White = 0,
+		Green = 1,
+		Red	  = 2,
+		Blue  = 3,
+	};
+	EnemyColor EColor = EnemyColor::White;
 
 	//☆変数宣言
 	int MoveCount = 0;	//ゴーストの行動制御用のカウント

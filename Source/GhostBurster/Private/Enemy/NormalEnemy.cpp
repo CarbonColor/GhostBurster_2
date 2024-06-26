@@ -2,6 +2,7 @@
 
 
 #include "Enemy/NormalEnemy.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 // Sets default values
 ANormalEnemy::ANormalEnemy()
@@ -41,6 +42,9 @@ void ANormalEnemy::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	//”’‚¢“G‚Ìİ’è
+	this->status.HP = 100;
+	this->EColor = EnemyColor::White;
 }
 
 // Called every frame
@@ -97,6 +101,7 @@ void ANormalEnemy::Move()
 		if (MoveCount == 15 * Gamefps / 60) //15‚Ì•”•ª‚ÍUŒ‚ƒ‚[ƒVƒ‡ƒ“‚É‡‚í‚¹‚Ä•ÏX‚·‚é
 		{
 			//UŒ‚‚·‚é
+			UKismetSystemLibrary::PrintString(this, TEXT("WhiteEnemy Attack!"), true, true, FColor::White, 2.f, TEXT("None"));
 		}
 		break;
 

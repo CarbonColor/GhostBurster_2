@@ -22,6 +22,9 @@ class GHOSTBURSTER_API AGreenEnemy : public AEnemys
 	//状態に基づいた動きをする
 	virtual void Move() override;
 
+protected:
+	virtual void BeginPlay() override;
+
 public:
 	//コンストラクタ
 	AGreenEnemy();

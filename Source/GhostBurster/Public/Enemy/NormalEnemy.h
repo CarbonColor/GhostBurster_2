@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Enemys.h"
+#include "Enemy/Enemys.h"
 #include "Components/SphereComponent.h"
 #include "NormalEnemy.generated.h"
 
