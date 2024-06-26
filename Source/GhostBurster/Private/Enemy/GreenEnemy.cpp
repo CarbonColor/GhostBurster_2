@@ -48,6 +48,9 @@ void AGreenEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	//現在のFPSを取得
+	Gamefps = GetWorldFPS();
+
 	MoveCount++;
 
 	//エネミーの状態判断
@@ -96,7 +99,7 @@ void AGreenEnemy::Move()
 		if (MoveCount == 15 * Gamefps / 60) //15の部分は攻撃モーションに合わせて変更する
 		{
 			//攻撃する
-			UKismetSystemLibrary::PrintString(this, TEXT("GreenEnemy Attack!"), true, true, FColor::White, 2.f, TEXT("None"));
+			UKismetSystemLibrary::PrintString(this, TEXT("GreenEnemy Attack!"), true, true, FColor::Green, 2.f, TEXT("None"));
 		}
 		break;
 

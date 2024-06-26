@@ -52,6 +52,9 @@ void ANormalEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	//現在のFPSを取得
+	Gamefps = GetWorldFPS();
+
 	MoveCount++;
 
 	//エネミーの状態判断
@@ -65,6 +68,7 @@ void ANormalEnemy::Tick(float DeltaTime)
 void ANormalEnemy::Think()
 {
 	State nowState = state;
+
 	switch (nowState)
 	{
 	case State::Stand:	//立っている

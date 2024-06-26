@@ -65,6 +65,9 @@ protected:
 	//HP‚ª0‚É‚È‚Á‚½‚çÁ–Å‚³‚¹‚é
 	void EnemyDead();
 
+	//Œ»İ‚ÌFPS‚ğæ“¾‚·‚é
+	float GetWorldFPS();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
