@@ -7,7 +7,7 @@
 #include "MotionControllerComponent.h"
 #include "InputAction.h"
 #include "InputMappingContext.h"
-#include "Enemy/NormalEnemy.h"
+#include "Enemy/Enemys.h"
 
 // Sets default values
 AVRPlayerCharacter::AVRPlayerCharacter()
@@ -35,7 +35,7 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     // 光を消す
     Flashlight->SetVisibility(true);
     // 光の強さ・範囲の調整をする
-    Flashlight->SetIntensity(6250.0f);  // Unitless状態での数値
+    Flashlight->SetIntensity(9375.0f);  // Unitless状態での数値
     Flashlight->SetAttenuationRadius(800.0f);
     Flashlight->SetOuterConeAngle(25.0f);
 
@@ -51,7 +51,7 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     // 位置・サイズ・向きの調整をする
     LightCollision->SetRelativeLocation(FVector(400.0f, 0.0f, 0.0f));
     LightCollision->SetRelativeRotation(FRotator(90.0f, 0.0f, 0.0f));  // ※ FRotator は (Y, Z, X) の順
-    LightCollision->SetRelativeScale3D(FVector(8.0f, 8.0f, 8.0f));
+    LightCollision->SetRelativeScale3D(FVector(12.0f, 12.0f, 12.0f));
     // 当たり判定のメソッドをバインド
     LightCollision->OnComponentBeginOverlap.AddDynamic(this, &AVRPlayerCharacter::OnConeBeginOverlap);
     LightCollision->OnComponentEndOverlap.AddDynamic(this, &AVRPlayerCharacter::OnConeEndOverlap);
@@ -75,6 +75,7 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     //RightHandMesh->SetupAttachment(MotionController_Right);
     //UStaticMesh* Mesh = LoadObject<UStaticMesh>(NULL, TEXT("/Engine/BasicShapes/Cube1"), NULL, LOAD_None, NULL);
     //RightHandMesh->SetStaticMesh(Mesh);
+    //Flashlight->SetLightColor(FColor::Red);
     //// --------------------------------------------------------------------------------
 
 }
@@ -130,6 +131,8 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
              if (DamageInterface)
              {
                  DamageInterface->RecieveEnemyDamage(Attack);
+                 GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, TEXT("Enemy Damage"));
+                 OverlappingEnemies.Remove(Enemy);
              }
          }
      }
@@ -227,10 +230,10 @@ void AVRPlayerCharacter::SettingFlashlightColor()
 
 void AVRPlayerCharacter::OnConeBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-    GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Light BeginOverlap Called"));
+    //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Light BeginOverlap Called"));
 
     // 接触したアクターがオバケかどうか判定する
-    if (const ANormalEnemy* enemy = Cast<ANormalEnemy>(OtherActor))
+    if (const AEnemys* enemy = Cast<AEnemys>(OtherActor))
     {
         OverlappingEnemies.Add(OtherActor);
         GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Enemy is Overlapping"));
@@ -241,12 +244,12 @@ void AVRPlayerCharacter::OnConeEndOverlap(UPrimitiveComponent* OverlappedComp, A
 {
     GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Light EndOverlap Called"));
 
-    // オバケがコリジョンから抜けたかどうか判定する
-    if (const ANormalEnemy* enemy = Cast<ANormalEnemy>(OtherActor))
-    {
-        OverlappingEnemies.Remove(OtherActor);
-        GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Enemy is not Overlapping"));
-    }
+    //// オバケがコリジョンから抜けたかどうか判定する
+    //if (const AEnemys* enemy = Cast<AEnemys>(OtherActor))
+    //{
+    //    OverlappingEnemies.Remove(OtherActor);
+    //    GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Enemy is not Overlapping"));
+    //}
 }
 
 void AVRPlayerCharacter::RecievePlayerDamage()
