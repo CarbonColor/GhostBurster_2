@@ -1,44 +1,32 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Enemy/NormalEnemy.h"
+#include "Enemy/GreenEnemy.h"
 
-// Sets default values
-ANormalEnemy::ANormalEnemy()
+AGreenEnemy::AGreenEnemy()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
-
-	//☆SceneComponent
-	//SceneComponentの作成
+	//☆シーンコンポーネント
+	//シーンコンポーネントの作成
 	DefaultSceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
-	//SceneComponentをRootComponentに設定
+	//シーンコンポーネントをルートコンポーネントに設定する
 	RootComponent = DefaultSceneRoot;
 
-	//☆StaticMeshComponent
-	//StaticMeshComponentの作成
-	GhostMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Ghost"));
-	//StaticMeshをロードしてStaticMeshComponentのStaticMeshに設定する
-	UStaticMesh* GMesh = LoadObject<UStaticMesh>(NULL, TEXT("/Engine/BasicShapes/Sphere"), NULL, LOAD_None, NULL);
-	GhostMesh->SetStaticMesh(GMesh);
-	//StaticMeshComponentをRootComponentにアタッチする
+	//☆スタティックメッシュ
+	//スタティックメッシュの作成
+	GhostMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("GreenGhost"));
+	//スタティックメッシュをロードしてGhostMeshにロードしたスタティックメッシュを設定する
+	UStaticMesh* GreenGMesh = LoadObject<UStaticMesh>(NULL, TEXT("/Engine/BasicShapes/Sphere"), NULL, LOAD_None, NULL);
+	GhostMesh->SetStaticMesh(GreenGMesh);
+	//GhostMeshをルートコンポーネントにアタッチする
 	GhostMesh->SetupAttachment(RootComponent);
 
 	//☆マテリアル
 	//マテリアルをロードしてGhostMeshに設定する
-	UMaterial* Material = LoadObject<UMaterial>(NULL, TEXT("/Game/_TeamFolder/Enemy/White"), NULL, LOAD_None, NULL);
+	UMaterial* Material = LoadObject<UMaterial>(NULL, TEXT("/Game/_Teamfolder/Enemy/Green"), NULL, LOAD_None, NULL);
 	GhostMesh->SetMaterial(0, Material);
 }
 
-// Called when the game starts or when spawned
-void ANormalEnemy::BeginPlay()
-{
-	Super::BeginPlay();
-	
-}
-
-// Called every frame
-void ANormalEnemy::Tick(float DeltaTime)
+void AGreenEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
@@ -50,9 +38,8 @@ void ANormalEnemy::Tick(float DeltaTime)
 	Move();
 }
 
-//☆追加関数
 //エネミーの状態判断
-void ANormalEnemy::Think()
+void AGreenEnemy::Think()
 {
 	State nowState = state;
 	switch (nowState)
@@ -77,7 +64,7 @@ void ANormalEnemy::Think()
 }
 
 //状態に基づいた動きをする
-void ANormalEnemy::Move()
+void AGreenEnemy::Move()
 {
 	switch (state)
 	{
@@ -101,7 +88,7 @@ void ANormalEnemy::Move()
 }
 
 //ダメージを受ける処理、引数でもらった攻撃力分体力を減らす
-void ANormalEnemy::Damage(float damage)
+void AGreenEnemy::Damage(float damage)
 {
 	status.HP -= damage;
 }
