@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Enemy/Enemys.h"
+#include "Components/SphereComponent.h"
 #include "GreenEnemy.generated.h"
 
 /**
@@ -36,6 +37,10 @@ public:
 	//StaticMeshComponentの変数宣言
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UStaticMeshComponent> GhostMesh;
+
+	//コリジョンの変数宣言
+	UPROPERTY(EditAnywhere)
+	USphereComponent* GhostCollision;
 
 	//☆関数宣言
 	//ダメージを受ける処理、引数でもらった攻撃力分体力を減らす

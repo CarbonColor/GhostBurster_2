@@ -28,6 +28,12 @@ ANormalEnemy::ANormalEnemy()
 	//マテリアルをロードしてGhostMeshに設定する
 	UMaterial* Material = LoadObject<UMaterial>(NULL, TEXT("/Game/_TeamFolder/Enemy/White"), NULL, LOAD_None, NULL);
 	GhostMesh->SetMaterial(0, Material);
+
+	//☆コリジョン
+	//スフィアコリジョンの作成
+	GhostCollision = CreateDefaultSubobject<USphereComponent>(TEXT("GhostCollision"));
+	//GhostCollisionをルートコンポーネントにアタッチする
+	GhostCollision->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned

@@ -5,6 +5,8 @@
 
 AGreenEnemy::AGreenEnemy()
 {
+	PrimaryActorTick.bCanEverTick = true;
+
 	//☆シーンコンポーネント
 	//シーンコンポーネントの作成
 	DefaultSceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
@@ -24,6 +26,12 @@ AGreenEnemy::AGreenEnemy()
 	//マテリアルをロードしてGhostMeshに設定する
 	UMaterial* Material = LoadObject<UMaterial>(NULL, TEXT("/Game/_Teamfolder/Enemy/Green"), NULL, LOAD_None, NULL);
 	GhostMesh->SetMaterial(0, Material);
+
+	//☆コリジョン
+	//スフィアコリジョンの作成
+	GhostCollision = CreateDefaultSubobject<USphereComponent>(TEXT("GhostCollision"));
+	//GhostCollisionをルートコンポーネントにアタッチする
+	GhostCollision->SetupAttachment(RootComponent);
 }
 
 void AGreenEnemy::Tick(float DeltaTime)
