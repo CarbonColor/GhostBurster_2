@@ -24,9 +24,9 @@ class GHOSTBURSTER_API IDamageInterface
 public:
 
 	//オバケが受けるダメージ
-	virtual void RecieveEnemyDamage(int DamageAmount);
+	virtual void RecieveEnemyDamage(int DamageAmount) PURE_VIRTUAL(IDamageInterface::ReceiveEnemyDamage, );
 
 	//プレイヤーが受けるダメージ
-	virtual void RecievePlayerDamage();
+	virtual void RecievePlayerDamage() PURE_VIRTUAL(IDamageInterface::RecievePlayerDamage, );
 
 };
