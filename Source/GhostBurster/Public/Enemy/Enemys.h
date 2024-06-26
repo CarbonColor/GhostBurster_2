@@ -7,7 +7,7 @@
 #include "Interface/DamageInterface.h"
 #include "Enemys.generated.h"
 
-UCLASS()
+UCLASS(Abstract)
 class GHOSTBURSTER_API AEnemys : public AActor, public IDamageInterface
 {
 	GENERATED_BODY()
