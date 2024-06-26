@@ -47,5 +47,5 @@ public:
 
 	//☆関数宣言
 	//ダメージを受ける処理、引数でもらった攻撃力分体力を減らす
-	virtual void Damage(float damage) override;
+	virtual void RecieveEnemyDamage(int DamageAmount) override;
 };

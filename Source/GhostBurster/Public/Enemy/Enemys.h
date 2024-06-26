@@ -4,10 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Interface/DamageInterface.h"
 #include "Enemys.generated.h"
 
 UCLASS()
-class GHOSTBURSTER_API AEnemys : public AActor
+class GHOSTBURSTER_API AEnemys : public AActor, public IDamageInterface
 {
 	GENERATED_BODY()
 	
@@ -72,7 +73,4 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	//☆関数宣言
-	//ダメージを受ける処理、引数でもらった攻撃力分体力を減らす
-	virtual void Damage(float damage) PURE_VIRTUAL(AEnemys::Damage, );
 };

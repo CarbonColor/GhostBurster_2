@@ -110,7 +110,7 @@ void AGreenEnemy::Move()
 }
 
 //ダメージを受ける処理、引数でもらった攻撃力分体力を減らす
-void AGreenEnemy::Damage(float damage)
+void AGreenEnemy::RecieveEnemyDamage(int DamageAmount)
 {
-	status.HP -= damage;
+	status.HP -= DamageAmount;
 }

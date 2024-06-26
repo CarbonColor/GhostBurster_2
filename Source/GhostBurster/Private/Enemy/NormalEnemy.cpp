@@ -116,7 +116,7 @@ void ANormalEnemy::Move()
 }
 
 //ダメージを受ける処理、引数でもらった攻撃力分体力を減らす
-void ANormalEnemy::Damage(float damage)
+void ANormalEnemy::RecieveEnemyDamage(int DamageAmount)
 {
-	status.HP -= damage;
+	status.HP -= DamageAmount;
 }
