@@ -5,18 +5,18 @@
 #include "CoreMinimal.h"
 #include "Enemy/Enemys.h"
 #include "Components/SphereComponent.h"
-#include "GreenEnemy.generated.h"
+#include "RedEnemy.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class GHOSTBURSTER_API AGreenEnemy : public AEnemys
+class GHOSTBURSTER_API ARedEnemy : public AEnemys
 {
 	GENERATED_BODY()
 	
 	//☆関数宣言
-	//エネミーの状態判断
+//エネミーの状態判断
 	virtual void Think() override;
 
 	//状態に基づいた動きをする
@@ -27,7 +27,7 @@ protected:
 
 public:
 	//コンストラクタ
-	AGreenEnemy();
+	ARedEnemy();
 
 	//Tick
 	virtual void Tick(float DeltaTime) override;

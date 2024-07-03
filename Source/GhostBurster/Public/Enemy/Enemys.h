@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Interface/DamageInterface.h"
+
 #include "Enemys.generated.h"
 
 UCLASS(Abstract)
@@ -39,15 +40,14 @@ protected:
 	};
 	State state = State::Stand;
 
-	//敵の色情報
 	enum class EnemyColor : uint8
 	{
 		White = 0,
 		Green = 1,
-		Red	  = 2,
-		Blue  = 3,
+		Red = 2,
+		Blue = 3,
 	};
-	EnemyColor EColor = EnemyColor::White;
+	EnemyColor enemyColor = EnemyColor::White;
 
 	//☆変数宣言
 	int MoveCount = 0;	//ゴーストの行動制御用のカウント

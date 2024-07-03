@@ -44,7 +44,7 @@ void ANormalEnemy::BeginPlay()
 	
 	//”’‚¢“G‚ÌÝ’è
 	this->status.HP = 100;
-	this->EColor = EnemyColor::White;
+	this->enemyColor = EnemyColor::White;
 }
 
 // Called every frame
@@ -116,7 +116,10 @@ void ANormalEnemy::Move()
 }
 
 //ƒ_ƒ[ƒW‚ðŽó‚¯‚éˆ—Aˆø”‚Å‚à‚ç‚Á‚½UŒ‚—Í•ª‘Ì—Í‚ðŒ¸‚ç‚·
-void ANormalEnemy::RecieveEnemyDamage(int DamageAmount)
+void ANormalEnemy::RecieveEnemyDamage(int DamageAmount, EFlashlight_Color Color)
 {
-	status.HP -= DamageAmount;
+	if ((int)Color == (int)this->enemyColor)
+	{
+		status.HP -= DamageAmount;
+	}
 }
