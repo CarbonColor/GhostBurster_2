@@ -63,11 +63,12 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     // ダメージカウントを初期化する
     DamageCount = 0;
 
-    // Tickを止める
+    //// Tickを止める
     //PrimaryActorTick.bCanEverTick = false;
     //PrimaryActorTick.bStartWithTickEnabled = false;
-    PrimaryActorTick.bCanEverTick = true;
-    PrimaryActorTick.bStartWithTickEnabled = true;
+    //// Tickを始める
+    //PrimaryActorTick.bCanEverTick = true;
+    //PrimaryActorTick.bStartWithTickEnabled = true;
 
 
     //// --------------------------------------------------------------------------------
@@ -130,9 +131,9 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
              IDamageInterface* DamageInterface = Cast<IDamageInterface>(Enemy);
              if (DamageInterface)
              {
-                 DamageInterface->RecieveEnemyDamage(Attack);
-                 GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, TEXT("Enemy Damage"));
-                 OverlappingEnemies.Remove(Enemy);
+                 DamageInterface->RecieveEnemyDamage(Attack, Flashlight_Color);
+                 //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, TEXT("Enemy Damage"));
+                 //OverlappingEnemies.Remove(Enemy);
              }
          }
      }
@@ -233,11 +234,13 @@ void AVRPlayerCharacter::OnConeBeginOverlap(UPrimitiveComponent* OverlappedComp,
     //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Light BeginOverlap Called"));
 
     // 接触したアクターがオバケかどうか判定する
-    if (const AEnemys* enemy = Cast<AEnemys>(OtherActor))
+    if (const AEnemys* Enemy = Cast<AEnemys>(OtherActor))
     {
         OverlappingEnemies.Add(OtherActor);
         GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Enemy is Overlapping"));
     }
+    //// 接触したアクターが宝箱かどうか判定する
+    //if (const ATreasure* Treasure = Case<ATrea
 }
 
 void AVRPlayerCharacter::OnConeEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
