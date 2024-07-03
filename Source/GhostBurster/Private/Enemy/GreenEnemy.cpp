@@ -41,7 +41,7 @@ void AGreenEnemy::BeginPlay()
 
 	//—Î‚Ì“G‚ÌÝ’è
 	this->status.HP = 100;
-	this->EnemyColor = EFlashlight_Color::Green;
+	this->enemyColor = EnemyColor::Green;
 }
 
 void AGreenEnemy::Tick(float DeltaTime)
@@ -110,7 +110,10 @@ void AGreenEnemy::Move()
 }
 
 //ƒ_ƒ[ƒW‚ðŽó‚¯‚éˆ—Aˆø”‚Å‚à‚ç‚Á‚½UŒ‚—Í•ª‘Ì—Í‚ðŒ¸‚ç‚·
-void AGreenEnemy::RecieveEnemyDamage(int DamageAmount)
+void AGreenEnemy::RecieveEnemyDamage(int DamageAmount, EFlashlight_Color Color)
 {
-	status.HP -= DamageAmount;
+	if ((int)Color == (int)this->enemyColor)
+	{
+		status.HP -= DamageAmount;
+	}
 }
