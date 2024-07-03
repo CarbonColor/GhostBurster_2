@@ -7,6 +7,7 @@
 #include "MotionControllerComponent.h"
 #include "InputAction.h"
 #include "InputMappingContext.h"
+#include "Kismet/KismetStringLibrary.h"
 #include "Enemy/Enemys.h"
 
 // Sets default values
@@ -58,17 +59,23 @@ AVRPlayerCharacter::AVRPlayerCharacter()
 
     // ライトの色を設定する
     Flashlight_Color = EFlashlight_Color::White;
+    // バッテリーの初期値
+    Battery = MaxBattery;
+    //ライトのON/OFF切り替えを可能の状態にする
+    CanToggleLight = true;
     // 攻撃力を設定する
     Attack = 1;
     // ダメージカウントを初期化する
     DamageCount = 0;
+    // 無敵時間の初期化
+    DamageNow = false;
 
     //// Tickを止める
     //PrimaryActorTick.bCanEverTick = false;
     //PrimaryActorTick.bStartWithTickEnabled = false;
-    //// Tickを始める
-    //PrimaryActorTick.bCanEverTick = true;
-    //PrimaryActorTick.bStartWithTickEnabled = true;
+    // Tickを始める
+    PrimaryActorTick.bCanEverTick = true;
+    PrimaryActorTick.bStartWithTickEnabled = true;
 
 
     //// --------------------------------------------------------------------------------
@@ -79,6 +86,13 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     //Flashlight->SetLightColor(FColor::Red);
     //// --------------------------------------------------------------------------------
 
+    //Hapticフィードバックのエフェクトを初期化
+    //static ConstructorHelpers::FObjectFinder<UHapticFeedbackEffect_Base>HapticEffectObject(TEXT("/Game/_TeamFolder/Player/Input/EnemyDamage"));
+    //if (HapticEffectObject.Succeeded())
+    //{
+    //    HapticEffect = HapticEffectObject.Object;
+    //    GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Emerald, TEXT("HapticEffect Initialize"));
+    //}
 }
 
 // Called when the game starts or when spawned
@@ -124,19 +138,57 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
     Super::Tick(DeltaTime);
 
     // ダメージを与える処理
-     for (AActor* Enemy : OverlappingEnemies)
-     {
-         if (Enemy && Enemy->GetClass()->ImplementsInterface(UDamageInterface::StaticClass()))
-         {
-             IDamageInterface* DamageInterface = Cast<IDamageInterface>(Enemy);
-             if (DamageInterface)
-             {
-                 DamageInterface->RecieveEnemyDamage(Attack, Flashlight_Color);
-                 //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, TEXT("Enemy Damage"));
-                 //OverlappingEnemies.Remove(Enemy);
-             }
-         }
-     }
+    for (AActor* Enemy : OverlappingEnemies)
+    {
+        if (Enemy && Enemy->GetClass()->ImplementsInterface(UDamageInterface::StaticClass()))
+        {
+            IDamageInterface* DamageInterface = Cast<IDamageInterface>(Enemy);
+            if (DamageInterface)
+            {
+                DamageInterface->RecieveEnemyDamage(Attack, Flashlight_Color);
+                //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, TEXT("Enemy Damage"));
+                //OverlappingEnemies.Remove(Enemy);
+            }
+        }
+    }
+
+    //振動の停止
+    if (OverlappingEnemies.Num() == 0)
+    {
+        StopHapticFeedback();
+    }
+
+    // バッテリー操作
+    if (Flashlight->GetVisibleFlag())    //ライトON
+    {
+        Battery--;
+        //バッテリーが切れたら
+        if (Battery <= 0)
+        {
+            //ライトを切り替える(OFF化)
+            Flashlight->SetVisibility(false);
+            //充電切れ直後はライトをつけられない
+            CanToggleLight = false;
+            GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Silver, TEXT("Battery is empty! You can't use Flashlight!"));
+        }
+    }
+    else if (Flashlight->GetVisibleFlag() == false && Battery < MaxBattery) //ライトOFF
+    {
+        Battery++;
+        //ライトがつけられないとき、バッテリーが満タンになったら
+        if (CanToggleLight == false && Battery >= MaxBattery)
+        {
+            //ライトがつけられるようになる
+            CanToggleLight = true;
+            GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Silver, TEXT("Battery is fill! You can't use Flashlight!"));
+        }
+    }
+    if (PreBattery != Battery)
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Cyan, UKismetStringLibrary::Conv_IntToString(Battery));
+    }
+    PreBattery = Battery;
+
 }
 
 // Called to bind functionality to input
@@ -164,22 +216,25 @@ void AVRPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
     }
 }
 
+//ライトのON/OFFメソッド
 void AVRPlayerCharacter::ToggleFlashlight(const FInputActionValue& value)
 {
     bool bIsPressed = value.Get<bool>();
 
-    if (bIsPressed)
+    if (bIsPressed && CanToggleLight)
     {
         GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, TEXT("Light ON/OFF"));
         Flashlight->ToggleVisibility();
     }
 }
 
+//ライトの色を切り替えるメソッド
 void AVRPlayerCharacter::ChangeColorFlashlight(const FInputActionValue& value)
 {
     bool bIsPressed = value.Get<bool>();
 
-    if (bIsPressed)
+    // ライトがついているときは変更可能にする
+    if (bIsPressed && Flashlight->GetVisibleFlag())
     {
         // ライトの色を保持する変数を変更
         switch (Flashlight_Color)
@@ -207,6 +262,7 @@ void AVRPlayerCharacter::ChangeColorFlashlight(const FInputActionValue& value)
     }
 }
 
+//ライトの色を変えるメソッド
 void AVRPlayerCharacter::SettingFlashlightColor()
 {
     switch (Flashlight_Color)
@@ -229,6 +285,7 @@ void AVRPlayerCharacter::SettingFlashlightColor()
     }
 }
 
+//当たり判定のメソッド
 void AVRPlayerCharacter::OnConeBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
     //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Light BeginOverlap Called"));
@@ -236,34 +293,66 @@ void AVRPlayerCharacter::OnConeBeginOverlap(UPrimitiveComponent* OverlappedComp,
     // 接触したアクターがオバケかどうか判定する
     if (const AEnemys* Enemy = Cast<AEnemys>(OtherActor))
     {
+        //振動の開始
+        if (OverlappingEnemies.Num() == 0)
+        {
+            StartHapticFeedback();
+        }
         OverlappingEnemies.Add(OtherActor);
-        GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Enemy is Overlapping"));
+        //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Enemy is Overlapping"));
     }
     //// 接触したアクターが宝箱かどうか判定する
     //if (const ATreasure* Treasure = Case<ATrea
 }
-
 void AVRPlayerCharacter::OnConeEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-    GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Light EndOverlap Called"));
+    //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Light EndOverlap Called"));
 
-    //// オバケがコリジョンから抜けたかどうか判定する
-    //if (const AEnemys* enemy = Cast<AEnemys>(OtherActor))
-    //{
-    //    OverlappingEnemies.Remove(OtherActor);
-    //    GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Enemy is not Overlapping"));
-    //}
+    // オバケがコリジョンから抜けたかどうか判定する
+    if (const AEnemys* enemy = Cast<AEnemys>(OtherActor))
+    {
+        OverlappingEnemies.Remove(OtherActor);
+        //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Enemy is not Overlapping"));
+        
+        //振動の停止
+        if (OverlappingEnemies.Num() == 0)
+        {
+            StopHapticFeedback();
+        }
+    }
 }
 
+//オバケからの攻撃を受けた時のメソッド
 void AVRPlayerCharacter::RecievePlayerDamage()
 {
     DamageCount++;
-    // if (DamageNow == false)
-    // {
-    //     // ダメージ回数を増やす
-    //     DamageCount++;
-    //     // 無敵状態にする
-    //     DamageNow = true;
-    // }
+     if (DamageNow == false)
+     {
+         // ダメージ回数を増やす
+         DamageCount++;
+         // 無敵状態にする
+         DamageNow = true;
+         //無敵時間の設定
+
+     }
 }
 
+//無敵時間のメソッド
+
+
+//振動を開始する関数
+void AVRPlayerCharacter::StartHapticFeedback()
+{
+    if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
+    {
+        PlayerController->PlayHapticEffect(HapticEffect, EControllerHand::Right, 1.0f, true);
+    }
+}
+// 振動を停止する関数
+void AVRPlayerCharacter::StopHapticFeedback()
+{
+    if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
+    {
+        PlayerController->StopHapticEffect(EControllerHand::Right);
+    }
+}
