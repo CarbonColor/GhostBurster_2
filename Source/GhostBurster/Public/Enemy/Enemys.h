@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Interface/DamageInterface.h"
+#include "Player/Flashlight_Enumeration.h"
+
 #include "Enemys.generated.h"
 
 UCLASS(Abstract)
@@ -39,19 +41,10 @@ protected:
 	};
 	State state = State::Stand;
 
-	//敵の色情報
-	enum class EnemyColor : uint8
-	{
-		White = 0,
-		Green = 1,
-		Red	  = 2,
-		Blue  = 3,
-	};
-	EnemyColor EColor = EnemyColor::White;
-
 	//☆変数宣言
 	int MoveCount = 0;	//ゴーストの行動制御用のカウント
 	int Gamefps = 60;	//ゲームのfps数値を設定
+	EFlashlight_Color EnemyColor;
 
 	//☆関数宣言
 	//エネミーの状態判断

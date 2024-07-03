@@ -41,7 +41,7 @@ void AGreenEnemy::BeginPlay()
 
 	//—Î‚Ì“G‚ÌÝ’è
 	this->status.HP = 100;
-	this->EColor = EnemyColor::Green;
+	this->EnemyColor = EFlashlight_Color::Green;
 }
 
 void AGreenEnemy::Tick(float DeltaTime)
