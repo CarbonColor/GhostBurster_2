@@ -13,6 +13,7 @@ class UInputAction;
 class UInputMappingContext;
 class UMotionControllerComponent;
 class UHapticFeedbackEffect_Base;
+class APlayerSplinePath;
 
 UCLASS()
 class GHOSTBURSTER_API AVRPlayerCharacter : public APawn, public IDamageInterface
@@ -48,6 +49,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 		TObjectPtr<UInputAction> IA_Flashlight_ChangeColor;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+		TObjectPtr<UInputAction> IA_DebugTest;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 		TObjectPtr<UInputMappingContext> IMC_Flashlight;
@@ -100,6 +104,9 @@ private:
 	//ライトの色を設定するメソッド
 	UFUNCTION()
 	void SettingFlashlightColor();
+
+	//スプライン経路を管理するアクター
+	TObjectPtr<APlayerSplinePath> SplinePathActor;
 
 	//ライト内(コーンのコリジョン)に入っているオバケを格納するリスト
 	TSet<AActor*> OverlappingEnemies;
