@@ -9,6 +9,8 @@
 #include "InputMappingContext.h"
 #include "Kismet/KismetStringLibrary.h"
 #include "Enemy/Enemys.h"
+#include "Player/PlayerSplinePath.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AVRPlayerCharacter::AVRPlayerCharacter()
@@ -36,8 +38,8 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     // 光を消す
     Flashlight->SetVisibility(true);
     // 光の強さ・範囲の調整をする
-    Flashlight->SetIntensity(9375.0f);  // Unitless状態での数値
-    Flashlight->SetAttenuationRadius(800.0f);
+    Flashlight->SetIntensity(20000.0f);  // Unitless状態での数値
+    Flashlight->SetAttenuationRadius(1500.0f);
     Flashlight->SetOuterConeAngle(25.0f);
 
     // スタティックメッシュコンポーネントを作る
@@ -50,9 +52,9 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     // メッシュを見えないようにさせる
     LightCollision->SetVisibility(false);
     // 位置・サイズ・向きの調整をする
-    LightCollision->SetRelativeLocation(FVector(400.0f, 0.0f, 0.0f));
+    LightCollision->SetRelativeLocation(FVector(700.0f, 0.0f, 0.0f));
     LightCollision->SetRelativeRotation(FRotator(90.0f, 0.0f, 0.0f));  // ※ FRotator は (Y, Z, X) の順
-    LightCollision->SetRelativeScale3D(FVector(12.0f, 12.0f, 12.0f));
+    LightCollision->SetRelativeScale3D(FVector(12.5f, 12.5f, 12.5f));
     // 当たり判定のメソッドをバインド
     LightCollision->OnComponentBeginOverlap.AddDynamic(this, &AVRPlayerCharacter::OnConeBeginOverlap);
     LightCollision->OnComponentEndOverlap.AddDynamic(this, &AVRPlayerCharacter::OnConeEndOverlap);
@@ -87,18 +89,27 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     //// --------------------------------------------------------------------------------
 
     //Hapticフィードバックのエフェクトを初期化
-    //static ConstructorHelpers::FObjectFinder<UHapticFeedbackEffect_Base>HapticEffectObject(TEXT("/Game/_TeamFolder/Player/Input/EnemyDamage"));
-    //if (HapticEffectObject.Succeeded())
-    //{
-    //    HapticEffect = HapticEffectObject.Object;
-    //    GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Emerald, TEXT("HapticEffect Initialize"));
-    //}
+    static ConstructorHelpers::FObjectFinder<UHapticFeedbackEffect_Base>HapticEffectObject(TEXT("/Game/_TeamFolder/Player/Input/EnemyDamage"));
+    if (HapticEffectObject.Succeeded())
+    {
+        HapticEffect = HapticEffectObject.Object;
+        GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Emerald, TEXT("HapticEffect Initialize"));
+    }
 }
 
 // Called when the game starts or when spawned
 void AVRPlayerCharacter::BeginPlay()
 {
     Super::BeginPlay();
+
+    //SplinePathActorを取得して設定する
+    TArray<AActor*> FoundActors;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerSplinePath::StaticClass(), FoundActors);
+    if (FoundActors.Num() > 0)
+    {
+        SplinePathActor = Cast<APlayerSplinePath>(FoundActors[0]);
+    }
+
 
     // Enhanced Input setup
     if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
@@ -183,10 +194,10 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
             GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Silver, TEXT("Battery is fill! You can't use Flashlight!"));
         }
     }
-    if (PreBattery != Battery)
-    {
-        GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Cyan, UKismetStringLibrary::Conv_IntToString(Battery));
-    }
+    //if (PreBattery != Battery)
+    //{
+    //    GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Cyan, UKismetStringLibrary::Conv_IntToString(Battery));
+    //}
     PreBattery = Battery;
 
 }
@@ -208,6 +219,9 @@ void AVRPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
             EnhancedInputComponent->BindAction(IA_Flashlight_OnOff, ETriggerEvent::Triggered, this, &AVRPlayerCharacter::ToggleFlashlight);
             EnhancedInputComponent->BindAction(IA_Flashlight_ChangeColor, ETriggerEvent::Triggered, this, &AVRPlayerCharacter::ChangeColorFlashlight);
             GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, TEXT("Binding InputAction"));
+
+            //テスト用
+            EnhancedInputComponent->BindAction(IA_DebugTest, ETriggerEvent::Triggered, this, &AVRPlayerCharacter::StartHapticFeedback);
         }
     }
     else
@@ -345,7 +359,9 @@ void AVRPlayerCharacter::StartHapticFeedback()
 {
     if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
     {
-        PlayerController->PlayHapticEffect(HapticEffect, EControllerHand::Right, 1.0f, true);
+        PlayerController->PlayHapticEffect(HapticEffect, EControllerHand::Right, 1.0f, false);
+
+        GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, TEXT("Device Vibration"));
     }
 }
 // 振動を停止する関数
@@ -356,3 +372,5 @@ void AVRPlayerCharacter::StopHapticFeedback()
         PlayerController->StopHapticEffect(EControllerHand::Right);
     }
 }
+
+
