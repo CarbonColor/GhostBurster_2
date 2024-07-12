@@ -79,22 +79,13 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     PrimaryActorTick.bCanEverTick = true;
     PrimaryActorTick.bStartWithTickEnabled = true;
 
-
-    //// --------------------------------------------------------------------------------
-    //RightHandMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DebugHand_R"));
-    //RightHandMesh->SetupAttachment(MotionController_Right);
-    //UStaticMesh* Mesh = LoadObject<UStaticMesh>(NULL, TEXT("/Engine/BasicShapes/Cube1"), NULL, LOAD_None, NULL);
-    //RightHandMesh->SetStaticMesh(Mesh);
-    //Flashlight->SetLightColor(FColor::Red);
-    //// --------------------------------------------------------------------------------
-
     //Hapticフィードバックのエフェクトを初期化
-    static ConstructorHelpers::FObjectFinder<UHapticFeedbackEffect_Base>HapticEffectObject(TEXT("/Game/_TeamFolder/Player/Input/EnemyDamage"));
-    if (HapticEffectObject.Succeeded())
-    {
-        HapticEffect = HapticEffectObject.Object;
-        GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Emerald, TEXT("HapticEffect Initialize"));
-    }
+    //static ConstructorHelpers::FObjectFinder<UHapticFeedbackEffect_Base>HapticEffectObject(TEXT("/Game/_TeamFolder/Player/Input/EnemyDamage"));
+    //if (HapticEffectObject.Succeeded())
+    //{
+    //    HapticEffect = HapticEffectObject.Object;
+    //    GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Emerald, TEXT("HapticEffect Initialize"));
+    //}
 }
 
 // Called when the game starts or when spawned
@@ -200,6 +191,14 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
     //}
     PreBattery = Battery;
 
+    //PlayerSplinePathに沿って移動
+    if (SplinePathActor)
+    {
+        FVector NewLocation = SplinePathActor->GetLocationAtCurrentDistance();
+        SetActorLocation(NewLocation);
+    }
+
+
 }
 
 // Called to bind functionality to input
@@ -239,6 +238,10 @@ void AVRPlayerCharacter::ToggleFlashlight(const FInputActionValue& value)
     {
         GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, TEXT("Light ON/OFF"));
         Flashlight->ToggleVisibility();
+    }
+    else if (CanToggleLight == false)
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Silver, TEXT("Battery is Charging! Wait until the battery is full."));
     }
 }
 

@@ -28,7 +28,10 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spline", meta = (AllowPrivateAccess = "true"))
 		TObjectPtr<USplineComponent> SplineComponent;
 
+	//経路上の現在地を0～1で表す
 	float CurrentSplineDistance;
+	//移動速度
+	UPROPERTY(EditAnywhere, Category = "Speed")
 	float MovementSpeed;
 
 public:
