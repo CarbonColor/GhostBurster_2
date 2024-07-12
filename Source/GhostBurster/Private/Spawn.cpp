@@ -1,17 +1,17 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Spawn.h"
-#include "Enemy.h" 
+#include "Enemy/Enemys.h" 
 
 // Sets default values
 ASpawn::ASpawn()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	static ConstructorHelpers::FClassFinder<AEnemy> EnemyClassFinder(TEXT("/Game/EnemyBP"));
-	DefaultEnemyClass = EnemyClassFinder.Class;
+	static ConstructorHelpers::FClassFinder<AEnemys> EnemyClassFinder(TEXT("/Game/EnemyBP"));
+	//DefaultEnemyClass = EnemyClassFinder.Class;
 }
 
-void ASpawner::BeginPlay()
+void ASpawn::BeginPlay()
 {
     Super::BeginPlay();
 
@@ -19,7 +19,7 @@ void ASpawner::BeginPlay()
     OnSpawn.Broadcast();
 }
 
-void ASpawner::SpawnEnemies(FVector SpawnLocation, FRotator SpawnRotation, int32 NumEnemies)
+void ASpawn::SpawnEnemies(FVector SpawnLocation, FRotator SpawnRotation, int32 NumEnemies)
 {
     UWorld* World = GetWorld();
     if (World)
@@ -30,7 +30,7 @@ void ASpawner::SpawnEnemies(FVector SpawnLocation, FRotator SpawnRotation, int32
             FVector AdjustedSpawnLocation = SpawnLocation + FVector(0.f, 0.f, i * 100.f); // 例として高さを100.fずつ増やす
 
             // Enemyをスポーンさせる処理
-            AEnemy* NewEnemy = World->SpawnActor<AEnemy>(AEnemy::StaticClass(), AdjustedSpawnLocation, SpawnRotation);
+            AEnemys* NewEnemy = World->SpawnActor<AEnemys>(AEnemys::StaticClass(), AdjustedSpawnLocation, SpawnRotation);
             if (NewEnemy)
             {
                 // スポーン成功時の追加処理

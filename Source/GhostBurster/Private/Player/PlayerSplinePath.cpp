@@ -1,6 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "Player/PlayerSplinePath.h"
 #include "Components/SplineComponent.h"
 #include "Player/VRPlayerCharacter.h"
@@ -9,23 +8,21 @@
 // Sets default values
 APlayerSplinePath::APlayerSplinePath()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	//スプラインコンポーネントの作成
+	// スプラインコンポーネントの作成
 	SplineComponent = CreateDefaultSubobject<USplineComponent>(TEXT("SplineComponent"));
 	RootComponent = SplineComponent;
 
-	//スプライン経路の現在地の初期化
-	CurrentSplineDistance = 0.0f;	//スプラインが始まってからの距離　0が始点位置になる
-	MovementSpeed = 100.0f;	//移動速度　あとで酔わない程度に変更する
+	// スプライン経路の現在地の初期化
+	CurrentSplineDistance = 0.0f; // スプラインが始まってからの距離。0が始点位置になる
+	MovementSpeed = 100.0f; // 移動速度。あとで酔わない程度に変更する
 }
 
 // Called when the game starts or when spawned
 void APlayerSplinePath::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 // Called every frame
@@ -48,7 +45,7 @@ void APlayerSplinePath::StopMovement()
 
 void APlayerSplinePath::ResumeMovement()
 {
-	MovementSpeed = 100.0f;
+	MovementSpeed = 100.0f; // 初期値に設定
 }
 
 FVector APlayerSplinePath::GetLocationAtCurrentDistance() const
@@ -62,7 +59,7 @@ void APlayerSplinePath::MoveAlongSpline(float DeltaTime)
 	{
 		CurrentSplineDistance += MovementSpeed * DeltaTime;
 		FVector NewLocation = SplineComponent->GetLocationAtDistanceAlongSpline(CurrentSplineDistance, ESplineCoordinateSpace::World);
-	
+
 		// VRPlayerCharacter を新しい位置に移動
 		if (AVRPlayerCharacter* PlayerCharacter = Cast<AVRPlayerCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0)))
 		{

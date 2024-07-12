@@ -73,13 +73,6 @@ public:
 	//オバケからの攻撃(インターフェース)
 	virtual void RecievePlayerDamage() override;
 
-	//--------------------------------------------------------------------------------
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Debug")
-		TObjectPtr<UStaticMeshComponent> RightHandMesh;
-
-	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Debug")
-	//	TObjectPtr<UStaticMeshComponent> LeftHandMesh;
-	//--------------------------------------------------------------------------------
 
 	//Haptic Feedback Effect(コントローラーの振動)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Haptics")

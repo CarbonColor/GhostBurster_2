@@ -1,3 +1,7 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "EnemySpawn11.generated.h"
@@ -21,8 +25,8 @@ protected:
     void HandleSpawnEvent();
 
 private:
-    UFUNCTION()
-    void HandleEnemySpawn();
+    //UFUNCTION()
+    //void HandleEnemySpawn();
 
     void SpawnEnemies(FVector SpawnLocation, FRotator SpawnRotation, int32 NumEnemies);
     void HandleOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
