@@ -32,19 +32,6 @@ public:
 	//Tick
 	virtual void Tick(float DeltaTime) override;
 
-	//☆変数宣言
-	//SceneComponentの変数宣言
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<USceneComponent> DefaultSceneRoot;
-
-	//StaticMeshComponentの変数宣言
-	UPROPERTY(EditAnywhere)
-	TObjectPtr<UStaticMeshComponent> GhostMesh;
-
-	//コリジョンの変数宣言
-	UPROPERTY(EditAnywhere)
-	USphereComponent* BossCollision;
-
 	//☆関数宣言
 	//ダメージを受ける処理、引数でもらった攻撃力分体力を減らす
 	virtual void RecieveEnemyDamage(int DamageAmount, EFlashlight_Color Color) override;

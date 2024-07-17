@@ -43,7 +43,7 @@ void ANormalEnemy::BeginPlay()
 	Super::BeginPlay();
 	
 	//”’‚¢“G‚ÌÝ’è
-	this->status.HP = 100;
+	this->Status.HP = 100;
 	this->enemyColor = EnemyColor::White;
 }
 
@@ -73,17 +73,17 @@ void ANormalEnemy::Think()
 	{
 	case State::Stand:	//—§‚Á‚Ä‚¢‚é
 		if (MoveCount >= 60 * 5 * Gamefps / 60) { nowState = State::Attack; }
-		if (status.HP <= 0) { nowState = State::Die; }
+		if (Status.HP <= 0) { nowState = State::Die; }
 		break;
 
 	case State::Move:	//“®‚­
 		if (MoveCount >= 60 * 5 * Gamefps / 60) { nowState = State::Attack; }
-		if (status.HP <= 0) { nowState = State::Die; }
+		if (Status.HP <= 0) { nowState = State::Die; }
 		break;
 
 	case State::Attack:	//UŒ‚
-		if (MoveCount >= 30 * Gamefps / 60) { nowState = State::Stand; }
-		if (status.HP <= 0) { nowState = State::Die; }
+		if (MoveCount >= AttackUpToTime * Gamefps / 60) { nowState = State::Stand; }
+		if (Status.HP <= 0) { nowState = State::Die; }
 		break;
 	}
 
@@ -120,6 +120,6 @@ void ANormalEnemy::RecieveEnemyDamage(int DamageAmount, EFlashlight_Color Color)
 {
 	if ((int)Color == (int)this->enemyColor)
 	{
-		status.HP -= DamageAmount;
+		Status.HP -= DamageAmount;
 	}
 }

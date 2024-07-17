@@ -31,9 +31,9 @@ ABossEnemy::ABossEnemy()
 
 	//☆コリジョン
 	//スフィアコリジョンの作成
-	BossCollision = CreateDefaultSubobject<USphereComponent>(TEXT("BossCollision"));
+	GhostCollision = CreateDefaultSubobject<USphereComponent>(TEXT("BossCollision"));
 	//GhostCollisionをルートコンポーネントにアタッチする
-	BossCollision->SetupAttachment(RootComponent);
+	GhostCollision->SetupAttachment(RootComponent);
 
 }
 
@@ -42,7 +42,7 @@ void ABossEnemy::BeginPlay()
 	Super::BeginPlay();
 
 	//緑の敵の設定
-	this->status.HP = 300;
+	this->Status.HP = 300;
 	this->enemyColor = EnemyColor::White;
 }
 
@@ -69,17 +69,17 @@ void ABossEnemy::Think()
 	{
 	case State::Stand:	//立っている
 		if (MoveCount >= 60 * 5 * Gamefps / 60) { nowState = State::Attack; }
-		if (status.HP <= 0) { nowState = State::Die; }
+		if (Status.HP <= 0) { nowState = State::Die; }
 		break;
 
 	case State::Move:	//動く
 		if (MoveCount >= 60 * 5 * Gamefps / 60) { nowState = State::Attack; }
-		if (status.HP <= 0) { nowState = State::Die; }
+		if (Status.HP <= 0) { nowState = State::Die; }
 		break;
 
 	case State::Attack:	//攻撃
-		if (MoveCount >= 30 * Gamefps / 60) { nowState = State::Stand; }
-		if (status.HP <= 0) { nowState = State::Die; }
+		if (MoveCount >= AttackUpToTime * Gamefps / 60) { nowState = State::Stand; }
+		if (Status.HP <= 0) { nowState = State::Die; }
 		break;
 	}
 
@@ -117,6 +117,6 @@ void ABossEnemy::RecieveEnemyDamage(int DamageAmount, EFlashlight_Color Color)
 	//ライトの色と敵の色が一致したときだけダメージを受ける
 	if ((int)Color == (int)this->enemyColor)
 	{
-		status.HP -= DamageAmount;
+		Status.HP -= DamageAmount;
 	}
 }
