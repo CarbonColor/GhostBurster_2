@@ -59,8 +59,8 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     LightCollision->SetupAttachment(Flashlight);
     // メッシュを見えないようにさせる
     LightCollision->SetVisibility(false);
-    ////コリジョンのプリセットを設定
-    //LightCollision->SetCollisionProfileName(TEXT("BlockAllDynamic"));
+    //コリジョンのプリセットを設定
+    LightCollision->SetCollisionProfileName(TEXT("BlockAllDynamic"));
     // 位置・サイズ・向きの調整をする
     LightCollision->SetRelativeLocation(FVector(700.0f, 0.0f, 0.0f));
     LightCollision->SetRelativeRotation(FRotator(90.0f, 0.0f, 0.0f));  // ※ FRotator は (Y, Z, X) の順
@@ -82,12 +82,12 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     // 無敵時間の初期化
     DamageNow = false;
 
-    // Tickを止める
-    PrimaryActorTick.bCanEverTick = false;
-    PrimaryActorTick.bStartWithTickEnabled = false;
-    //// Tickを始める
-    //PrimaryActorTick.bCanEverTick = true;
-    //PrimaryActorTick.bStartWithTickEnabled = true;
+    //// Tickを止める
+    //PrimaryActorTick.bCanEverTick = false;
+    //PrimaryActorTick.bStartWithTickEnabled = false;
+    // Tickを始める
+    PrimaryActorTick.bCanEverTick = true;
+    PrimaryActorTick.bStartWithTickEnabled = true;
 
     ////Hapticフィードバックのエフェクトを初期化
     //static ConstructorHelpers::FObjectFinder<UHapticFeedbackEffect_Base>HapticEffectObject(TEXT("/Game/_TeamFolder/Player/Input/EnemyDamage"));
@@ -254,16 +254,16 @@ void AVRPlayerCharacter::ToggleFlashlight(const FInputActionValue& value)
         GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Silver, TEXT("Battery is Charging! Wait until the battery is full."));
     }
 
-    ////ライトの変更後、OFFの状態ならコーンコリジョンのプリセットを NoCollision にする
-    //if (Flashlight->GetVisibleFlag() == false)
-    //{
-    //    LightCollision->SetCollisionProfileName(TEXT("NoCollision"));
-    //}
-    ////ONの状態ならコーンコリジョンのプリセットを BlockAllDynamic にする
-    //else
-    //{
-    //    LightCollision->SetCollisionProfileName(TEXT("BlockAllDynamic"));
-    //}
+    //ライトの変更後、OFFの状態ならコーンコリジョンのプリセットを NoCollision にする
+    if (Flashlight->GetVisibleFlag() == false)
+    {
+        LightCollision->SetCollisionProfileName(TEXT("NoCollision"));
+    }
+    //ONの状態ならコーンコリジョンのプリセットを BlockAllDynamic にする
+    else
+    {
+        LightCollision->SetCollisionProfileName(TEXT("BlockAllDynamic"));
+    }
 
 }
 
