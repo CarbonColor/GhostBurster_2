@@ -43,7 +43,14 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     Flashlight->SetAttenuationRadius(1500.0f);
     Flashlight->SetOuterConeAngle(25.0f);
 
-    // スタティックメッシュコンポーネントを作る
+    //ボックスコリジョンを作る
+    PlayerCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("PlayerCollision"));
+    //ライトにアタッチしてみる
+    PlayerCollision->SetupAttachment(VRRoot);
+    PlayerCollision->SetBoxExtent(FVector(-50.0f, 0.0f, 50.0f));
+    PlayerCollision->SetCollisionProfileName("PlayerTrigger");
+
+    // スタティックメッシュコンポーネント(ライトコリジョン)を作る
     LightCollision = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LightCollision"));
     // 当たり判定用のメッシュを読み込んで LightCollision に設定する
     UStaticMesh* ConeMesh = LoadObject<UStaticMesh>(NULL, TEXT("/Game/_TeamFolder/Player/SM_Cone"), NULL, LOAD_None, NULL);
@@ -73,20 +80,20 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     // 無敵時間の初期化
     DamageNow = false;
 
-    //// Tickを止める
-    //PrimaryActorTick.bCanEverTick = false;
-    //PrimaryActorTick.bStartWithTickEnabled = false;
-    // Tickを始める
-    PrimaryActorTick.bCanEverTick = true;
-    PrimaryActorTick.bStartWithTickEnabled = true;
+    // Tickを止める
+    PrimaryActorTick.bCanEverTick = false;
+    PrimaryActorTick.bStartWithTickEnabled = false;
+    //// Tickを始める
+    //PrimaryActorTick.bCanEverTick = true;
+    //PrimaryActorTick.bStartWithTickEnabled = true;
 
-    //Hapticフィードバックのエフェクトを初期化
-    static ConstructorHelpers::FObjectFinder<UHapticFeedbackEffect_Base>HapticEffectObject(TEXT("/Game/_TeamFolder/Player/Input/EnemyDamage"));
-    if (HapticEffectObject.Succeeded())
-    {
-        HapticEffect = HapticEffectObject.Object;
-        GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Emerald, TEXT("HapticEffect Initialize"));
-    }
+    ////Hapticフィードバックのエフェクトを初期化
+    //static ConstructorHelpers::FObjectFinder<UHapticFeedbackEffect_Base>HapticEffectObject(TEXT("/Game/_TeamFolder/Player/Input/EnemyDamage"));
+    //if (HapticEffectObject.Succeeded())
+    //{
+    //    HapticEffect = HapticEffectObject.Object;
+    //    GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Emerald, TEXT("HapticEffect Initialize"));
+    //}
 }
 
 // Called when the game starts or when spawned
