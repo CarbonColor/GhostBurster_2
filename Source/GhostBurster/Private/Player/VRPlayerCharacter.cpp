@@ -11,6 +11,7 @@
 #include "Enemy/Enemys.h"
 #include "Player/PlayerSplinePath.h"
 #include "Kismet/GameplayStatics.h"
+#include "Haptics/HapticFeedbackEffect_Base.h"
 
 // Sets default values
 AVRPlayerCharacter::AVRPlayerCharacter()
@@ -42,7 +43,14 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     Flashlight->SetAttenuationRadius(1500.0f);
     Flashlight->SetOuterConeAngle(25.0f);
 
-    // スタティックメッシュコンポーネントを作る
+    //ボックスコリジョンを作る
+    PlayerCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("PlayerCollision"));
+    //ライトにアタッチしてみる
+    PlayerCollision->SetupAttachment(VRRoot);
+    PlayerCollision->SetBoxExtent(FVector(-50.0f, 0.0f, 50.0f));
+    PlayerCollision->SetCollisionProfileName("PlayerTrigger");
+
+    // スタティックメッシュコンポーネント(ライトコリジョン)を作る
     LightCollision = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LightCollision"));
     // 当たり判定用のメッシュを読み込んで LightCollision に設定する
     UStaticMesh* ConeMesh = LoadObject<UStaticMesh>(NULL, TEXT("/Game/_TeamFolder/Player/SM_Cone"), NULL, LOAD_None, NULL);
@@ -72,14 +80,14 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     // 無敵時間の初期化
     DamageNow = false;
 
-    //// Tickを止める
-    //PrimaryActorTick.bCanEverTick = false;
-    //PrimaryActorTick.bStartWithTickEnabled = false;
-    // Tickを始める
-    PrimaryActorTick.bCanEverTick = true;
-    PrimaryActorTick.bStartWithTickEnabled = true;
+    // Tickを止める
+    PrimaryActorTick.bCanEverTick = false;
+    PrimaryActorTick.bStartWithTickEnabled = false;
+    //// Tickを始める
+    //PrimaryActorTick.bCanEverTick = true;
+    //PrimaryActorTick.bStartWithTickEnabled = true;
 
-    //Hapticフィードバックのエフェクトを初期化
+    ////Hapticフィードバックのエフェクトを初期化
     //static ConstructorHelpers::FObjectFinder<UHapticFeedbackEffect_Base>HapticEffectObject(TEXT("/Game/_TeamFolder/Player/Input/EnemyDamage"));
     //if (HapticEffectObject.Succeeded())
     //{
@@ -318,8 +326,11 @@ void AVRPlayerCharacter::OnConeBeginOverlap(UPrimitiveComponent* OverlappedComp,
         OverlappingEnemies.Add(OtherActor);
         //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Enemy is Overlapping"));
     }
-    //// 接触したアクターが宝箱かどうか判定する
-    //if (const ATreasure* Treasure = Case<ATrea
+
+    // 接触したアクターが宝箱かどうか判定する
+
+
+
 }
 void AVRPlayerCharacter::OnConeEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
@@ -362,7 +373,7 @@ void AVRPlayerCharacter::StartHapticFeedback()
 {
     if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
     {
-        PlayerController->PlayHapticEffect(HapticEffect, EControllerHand::Right, 1.0f, false);
+        PlayerController->PlayHapticEffect(HapticEffect, EControllerHand::Right, 1.0f, true);
 
         GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, TEXT("Device Vibration"));
     }
