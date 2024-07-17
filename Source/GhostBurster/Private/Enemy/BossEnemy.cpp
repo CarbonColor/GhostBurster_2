@@ -78,7 +78,7 @@ void ABossEnemy::Think()
 		break;
 
 	case State::Attack:	//UŒ‚
-		if (MoveCount >= 30 * Gamefps / 60) { nowState = State::Stand; }
+		if (MoveCount >= AttackUpToTime * Gamefps / 60) { nowState = State::Stand; }
 		if (Status.HP <= 0) { nowState = State::Die; }
 		break;
 	}
