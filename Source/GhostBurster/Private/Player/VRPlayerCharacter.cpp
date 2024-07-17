@@ -11,6 +11,7 @@
 #include "Enemy/Enemys.h"
 #include "Player/PlayerSplinePath.h"
 #include "Kismet/GameplayStatics.h"
+#include "Haptics/HapticFeedbackEffect_Base.h"
 
 // Sets default values
 AVRPlayerCharacter::AVRPlayerCharacter()
@@ -80,12 +81,12 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     PrimaryActorTick.bStartWithTickEnabled = true;
 
     //Hapticフィードバックのエフェクトを初期化
-    //static ConstructorHelpers::FObjectFinder<UHapticFeedbackEffect_Base>HapticEffectObject(TEXT("/Game/_TeamFolder/Player/Input/EnemyDamage"));
-    //if (HapticEffectObject.Succeeded())
-    //{
-    //    HapticEffect = HapticEffectObject.Object;
-    //    GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Emerald, TEXT("HapticEffect Initialize"));
-    //}
+    static ConstructorHelpers::FObjectFinder<UHapticFeedbackEffect_Base>HapticEffectObject(TEXT("/Game/_TeamFolder/Player/Input/EnemyDamage"));
+    if (HapticEffectObject.Succeeded())
+    {
+        HapticEffect = HapticEffectObject.Object;
+        GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Emerald, TEXT("HapticEffect Initialize"));
+    }
 }
 
 // Called when the game starts or when spawned
@@ -318,8 +319,11 @@ void AVRPlayerCharacter::OnConeBeginOverlap(UPrimitiveComponent* OverlappedComp,
         OverlappingEnemies.Add(OtherActor);
         //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Enemy is Overlapping"));
     }
-    //// 接触したアクターが宝箱かどうか判定する
-    //if (const ATreasure* Treasure = Case<ATrea
+
+    // 接触したアクターが宝箱かどうか判定する
+
+
+
 }
 void AVRPlayerCharacter::OnConeEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
@@ -362,7 +366,7 @@ void AVRPlayerCharacter::StartHapticFeedback()
 {
     if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
     {
-        PlayerController->PlayHapticEffect(HapticEffect, EControllerHand::Right, 1.0f, false);
+        PlayerController->PlayHapticEffect(HapticEffect, EControllerHand::Right, 1.0f, true);
 
         GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, TEXT("Device Vibration"));
     }
