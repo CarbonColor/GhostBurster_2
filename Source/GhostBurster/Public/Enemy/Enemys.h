@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Interface/DamageInterface.h"
+#include "Components/SphereComponent.h"
 
 #include "Enemys.generated.h"
 
@@ -23,12 +24,20 @@ protected:
 
 	//☆構造体
 	//ステータス
-	struct Status
+	struct FStatus
 	{
 		float HP = 1;	//ゴーストの体力
 	};
-	Status status;
+	FStatus Status;
 
+	//座標
+	struct FPosition
+	{
+		float GoalX = 0;
+		float GoalY = 0;
+		float GoalZ = 0;
+	};
+	FPosition Position;
 	//☆列挙型
 	//敵の状態
 	enum class State
@@ -50,8 +59,22 @@ protected:
 	EnemyColor enemyColor = EnemyColor::White;
 
 	//☆変数宣言
-	int MoveCount = 0;	//ゴーストの行動制御用のカウント
-	int Gamefps = 60;	//ゲームのfps数値を設定
+	//SceneComponentの変数宣言
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<USceneComponent> DefaultSceneRoot;
+
+	//StaticMeshComponentの変数宣言
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<UStaticMeshComponent> GhostMesh;
+
+	//コリジョンの変数宣言
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<USphereComponent> GhostCollision;
+
+	int MoveCount = 0;			//ゴーストの行動制御用のカウント
+	int Gamefps = 60;			//ゲームのfps数値を設定
+	int AttackUpToTime = 15;	//ゴーストの攻撃までの時間
+	int MoveTime = 0;			//ゴーストの移動にかかる時間
 
 	//☆関数宣言
 	//エネミーの状態判断
@@ -73,4 +96,12 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	//Setter関数
+	void SetHP(float HPValue);									//HPの設定用関数
+	void SetAttackUpToTime(int SetTime);						//攻撃までの時間設定用関数
+	void SetGoalPosition(float SetX, float SetY, float SetZ);	//目標座標の設定用関数
+	void SetMoveTime(int SetTime);								//移動時間の設定用
+
+	UFUNCTION(BlueprintCallable, Category = "Enemy")
+	void SetInitialData(float HP, int AttackUpToTimeValue, float GoalX, float GoalY, float GoalZ, int MoveTimeValue); //生成されたときの設定用関数
 };
