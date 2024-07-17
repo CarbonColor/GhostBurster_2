@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
 #include "Flashlight_Enumeration.h"
+#include "Components/BoxComponent.h"
 #include "Interface/DamageInterface.h"
 #include "VRPlayerCharacter.generated.h"
 
@@ -59,6 +60,10 @@ public:
 	// Motion Controller
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 		TObjectPtr<UMotionControllerComponent> MotionController_Right;
+
+	//プレイヤーのコリジョン(キューブ型)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Collision")
+		TObjectPtr<UBoxComponent> PlayerCollision;
 
 	//ライトのコリジョン(コーン型)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Collision")
