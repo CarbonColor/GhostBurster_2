@@ -59,6 +59,8 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     LightCollision->SetupAttachment(Flashlight);
     // メッシュを見えないようにさせる
     LightCollision->SetVisibility(false);
+    ////コリジョンのプリセットを設定
+    //LightCollision->SetCollisionProfileName(TEXT("BlockAllDynamic"));
     // 位置・サイズ・向きの調整をする
     LightCollision->SetRelativeLocation(FVector(700.0f, 0.0f, 0.0f));
     LightCollision->SetRelativeRotation(FRotator(90.0f, 0.0f, 0.0f));  // ※ FRotator は (Y, Z, X) の順
@@ -251,6 +253,18 @@ void AVRPlayerCharacter::ToggleFlashlight(const FInputActionValue& value)
     {
         GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Silver, TEXT("Battery is Charging! Wait until the battery is full."));
     }
+
+    ////ライトの変更後、OFFの状態ならコーンコリジョンのプリセットを NoCollision にする
+    //if (Flashlight->GetVisibleFlag() == false)
+    //{
+    //    LightCollision->SetCollisionProfileName(TEXT("NoCollision"));
+    //}
+    ////ONの状態ならコーンコリジョンのプリセットを BlockAllDynamic にする
+    //else
+    //{
+    //    LightCollision->SetCollisionProfileName(TEXT("BlockAllDynamic"));
+    //}
+
 }
 
 //ライトの色を切り替えるメソッド
