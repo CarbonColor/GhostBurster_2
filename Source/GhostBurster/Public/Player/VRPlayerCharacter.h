@@ -6,6 +6,7 @@
 #include "GameFramework/Pawn.h"
 #include "Flashlight_Enumeration.h"
 #include "Components/BoxComponent.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "Interface/DamageInterface.h"
 #include "VRPlayerCharacter.generated.h"
 
@@ -37,6 +38,14 @@ protected:
 	UFUNCTION()
 		void ChangeColorFlashlight(const FInputActionValue& value);
 
+	////ハンドトラッキングのセットアップ
+	//UFUNCTION()
+	//	void SetupHandTracking();
+
+	////ハンドトラッキングのアップデート
+	//UFUNCTION()
+	//	void UpdateHandPose();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -60,6 +69,13 @@ public:
 	// Motion Controller
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 		TObjectPtr<UMotionControllerComponent> MotionController_Right;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+		TObjectPtr<UMotionControllerComponent> MotionController_Left;
+
+	//左手のメッシュ
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh")
+		TObjectPtr<USkeletalMeshComponent> HandMesh_Left;
 
 	//プレイヤーのコリジョン(キューブ型)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Collision")
