@@ -39,8 +39,10 @@ void AEnemys::UpdateState(State nowState)
 //HP‚ª0‚É‚È‚Á‚½‚çÁ–Å‚³‚¹‚é
 void AEnemys::EnemyDead()
 {
-	this->Destroy();
 	//ƒCƒxƒ“ƒg‚É€–S’Ê’m‚ğ‘—‚é
+
+	//“G‚ğÁ–Å‚³‚¹‚é
+	this->Destroy();
 
 	return;
 }
