@@ -11,6 +11,7 @@
 #include "Enemy/Enemys.h"
 #include "Player/PlayerSplinePath.h"
 #include "Kismet/GameplayStatics.h"
+#include "Components/InputComponent.h"
 #include "Haptics/HapticFeedbackEffect_Base.h"
 
 // Sets default values
@@ -179,6 +180,8 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
         {
             //ライトを切り替える(OFF化)
             Flashlight->SetVisibility(false);
+            //ライトの当たり判定を無効化
+            LightCollision->SetCollisionProfileName("NoCollision");
             //充電切れ直後はライトをつけられない
             CanToggleLight = false;
             GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Silver, TEXT("Battery is empty! You can't use Flashlight!"));
@@ -248,6 +251,17 @@ void AVRPlayerCharacter::ToggleFlashlight(const FInputActionValue& value)
     {
         GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, TEXT("Light ON/OFF"));
         Flashlight->ToggleVisibility();
+        //ライトの電源変更後、ONになったなら
+        if (Flashlight->GetVisibleFlag())
+        {
+            //ライトの当たり判定を有効化
+            LightCollision->SetCollisionProfileName(TEXT("BlockAllDynamic"));
+        }
+        else
+        {
+            //ライトの当たり判定を無効化
+            LightCollision->SetCollisionProfileName("NoCollision");
+        }
     }
     else if (CanToggleLight == false)
     {
