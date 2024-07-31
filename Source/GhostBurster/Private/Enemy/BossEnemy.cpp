@@ -1,11 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Enemy/GreenEnemy.h"
+#include "Enemy/BossEnemy.h"
 #include "Kismet/KismetSystemLibrary.h"
 
-AGreenEnemy::AGreenEnemy()
+ABossEnemy::ABossEnemy()
 {
+	//Tickを有効にする
 	PrimaryActorTick.bCanEverTick = true;
 
 	//☆シーンコンポーネント
@@ -25,26 +26,27 @@ AGreenEnemy::AGreenEnemy()
 
 	//☆マテリアル
 	//マテリアルをロードしてGhostMeshに設定する
-	UMaterial* Material = LoadObject<UMaterial>(NULL, TEXT("/Game/_Teamfolder/Enemy/Green"), NULL, LOAD_None, NULL);
+	UMaterial* Material = LoadObject<UMaterial>(NULL, TEXT("/Game/_Teamfolder/Enemy/Boss"), NULL, LOAD_None, NULL);
 	GhostMesh->SetMaterial(0, Material);
 
 	//☆コリジョン
 	//スフィアコリジョンの作成
-	GhostCollision = CreateDefaultSubobject<USphereComponent>(TEXT("GhostCollision"));
+	GhostCollision = CreateDefaultSubobject<USphereComponent>(TEXT("BossCollision"));
 	//GhostCollisionをルートコンポーネントにアタッチする
 	GhostCollision->SetupAttachment(RootComponent);
+
 }
 
-void AGreenEnemy::BeginPlay()
+void ABossEnemy::BeginPlay()
 {
 	Super::BeginPlay();
 
 	//緑の敵の設定
-	this->Status.HP = 100;
-	this->enemyColor = EnemyColor::Green;
+	this->Status.HP = 300;
+	this->enemyColor = EnemyColor::White;
 }
 
-void AGreenEnemy::Tick(float DeltaTime)
+void ABossEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
@@ -60,7 +62,7 @@ void AGreenEnemy::Tick(float DeltaTime)
 }
 
 //エネミーの状態判断
-void AGreenEnemy::Think()
+void ABossEnemy::Think()
 {
 	State nowState = state;
 	switch (nowState)
@@ -85,7 +87,7 @@ void AGreenEnemy::Think()
 }
 
 //状態に基づいた動きをする
-void AGreenEnemy::Move()
+void ABossEnemy::Move()
 {
 	switch (state)
 	{
@@ -99,7 +101,7 @@ void AGreenEnemy::Move()
 		if (MoveCount == 15 * Gamefps / 60) //15の部分は攻撃モーションに合わせて変更する
 		{
 			//攻撃する
-			UKismetSystemLibrary::PrintString(this, TEXT("GreenEnemy Attack!"), true, true, FColor::Green, 2.f, TEXT("None"));
+			UKismetSystemLibrary::PrintString(this, TEXT("BossEnemy Attack!"), true, true, FColor::Yellow, 2.f, TEXT("None"));
 		}
 		break;
 
@@ -110,8 +112,9 @@ void AGreenEnemy::Move()
 }
 
 //ダメージを受ける処理、引数でもらった攻撃力分体力を減らす
-void AGreenEnemy::RecieveEnemyDamage(int DamageAmount, EFlashlight_Color Color)
+void ABossEnemy::RecieveEnemyDamage(int DamageAmount, EFlashlight_Color Color)
 {
+	//ライトの色と敵の色が一致したときだけダメージを受ける
 	if ((int)Color == (int)this->enemyColor)
 	{
 		Status.HP -= DamageAmount;

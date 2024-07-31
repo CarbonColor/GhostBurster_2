@@ -39,8 +39,10 @@ void AEnemys::UpdateState(State nowState)
 //HPが0になったら消滅させる
 void AEnemys::EnemyDead()
 {
-	this->Destroy();
 	//イベントに死亡通知を送る
+
+	//敵を消滅させる
+	this->Destroy();
 
 	return;
 }
@@ -64,4 +66,39 @@ float AEnemys::GetWorldFPS()
 	float FPS = 1.f / DeltaTime;
 
 	return FPS;
+}
+
+//HPの設定用関数
+void AEnemys::SetHP(float HPValue)
+{
+	this->Status.HP = HPValue;
+}
+
+//攻撃までの時間設定用関数
+void AEnemys::SetAttackUpToTime(int SetTime)
+{
+	this->AttackUpToTime = SetTime;
+}
+
+//目標座標の設定用関数
+void AEnemys::SetGoalPosition(float SetX, float SetY, float SetZ)
+{
+	this->Position.GoalX = SetX;
+	this->Position.GoalY = SetY;
+	this->Position.GoalZ = SetZ;
+}
+
+//移動時間の設定用
+void AEnemys::SetMoveTime(int SetTime)
+{
+	this->MoveTime = SetTime;
+}
+
+//生成されたときの設定用関数
+void AEnemys::SetInitialData(float HP, int AttackUpToTimeValue, float GoalX, float GoalY, float GoalZ, int MoveTimeValue)
+{
+	this->SetHP(HP);
+	this->SetAttackUpToTime(AttackUpToTimeValue);
+	this->SetGoalPosition(GoalX, GoalY, GoalZ);
+	this->SetMoveTime(MoveTimeValue);
 }

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
+#include "Player/Flashlight_Enumeration.h"
 #include "DamageInterface.generated.h"
 
 // This class does not need to be modified.
@@ -24,9 +25,9 @@ class GHOSTBURSTER_API IDamageInterface
 public:
 
 	//オバケが受けるダメージ
-	virtual void RecieveEnemyDamage(int DamageAmount);
+	virtual void RecieveEnemyDamage(int DamageAmount, EFlashlight_Color Color) PURE_VIRTUAL(IDamageInterface::ReceiveEnemyDamage, );
 
 	//プレイヤーが受けるダメージ
-	virtual void RecievePlayerDamage();
+	virtual void RecievePlayerDamage() PURE_VIRTUAL(IDamageInterface::RecievePlayerDamage, );
 
 };

@@ -4,14 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "Enemy/Enemys.h"
+#include "Components/SphereComponent.h"
+#include "BossEnemy.generated.h"
 
-#include "NormalEnemy.generated.h"
-
+/**
+ * 
+ */
 UCLASS()
-class GHOSTBURSTER_API ANormalEnemy : public AEnemys
+class GHOSTBURSTER_API ABossEnemy : public AEnemys
 {
 	GENERATED_BODY()
-
+	
 	//☆関数宣言
 	//エネミーの状態判断
 	virtual void Think() override;
@@ -20,14 +23,13 @@ class GHOSTBURSTER_API ANormalEnemy : public AEnemys
 	virtual void Move() override;
 
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
+public:
 	//コンストラクタ
-	ANormalEnemy();
+	ABossEnemy();
 
-	// Called every frame
+	//Tick
 	virtual void Tick(float DeltaTime) override;
 
 	//☆関数宣言

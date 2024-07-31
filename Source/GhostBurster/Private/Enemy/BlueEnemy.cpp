@@ -1,10 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Enemy/GreenEnemy.h"
+#include "Enemy/BlueEnemy.h"
 #include "Kismet/KismetSystemLibrary.h"
 
-AGreenEnemy::AGreenEnemy()
+ABlueEnemy::ABlueEnemy()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -25,7 +25,7 @@ AGreenEnemy::AGreenEnemy()
 
 	//☆マテリアル
 	//マテリアルをロードしてGhostMeshに設定する
-	UMaterial* Material = LoadObject<UMaterial>(NULL, TEXT("/Game/_Teamfolder/Enemy/Green"), NULL, LOAD_None, NULL);
+	UMaterial* Material = LoadObject<UMaterial>(NULL, TEXT("/Game/_Teamfolder/Enemy/Blue"), NULL, LOAD_None, NULL);
 	GhostMesh->SetMaterial(0, Material);
 
 	//☆コリジョン
@@ -35,16 +35,16 @@ AGreenEnemy::AGreenEnemy()
 	GhostCollision->SetupAttachment(RootComponent);
 }
 
-void AGreenEnemy::BeginPlay()
+void ABlueEnemy::BeginPlay()
 {
 	Super::BeginPlay();
 
 	//緑の敵の設定
 	this->Status.HP = 100;
-	this->enemyColor = EnemyColor::Green;
+	this->enemyColor = EnemyColor::Blue;
 }
 
-void AGreenEnemy::Tick(float DeltaTime)
+void ABlueEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
@@ -60,7 +60,7 @@ void AGreenEnemy::Tick(float DeltaTime)
 }
 
 //エネミーの状態判断
-void AGreenEnemy::Think()
+void ABlueEnemy::Think()
 {
 	State nowState = state;
 	switch (nowState)
@@ -85,7 +85,7 @@ void AGreenEnemy::Think()
 }
 
 //状態に基づいた動きをする
-void AGreenEnemy::Move()
+void ABlueEnemy::Move()
 {
 	switch (state)
 	{
@@ -99,7 +99,7 @@ void AGreenEnemy::Move()
 		if (MoveCount == 15 * Gamefps / 60) //15の部分は攻撃モーションに合わせて変更する
 		{
 			//攻撃する
-			UKismetSystemLibrary::PrintString(this, TEXT("GreenEnemy Attack!"), true, true, FColor::Green, 2.f, TEXT("None"));
+			UKismetSystemLibrary::PrintString(this, TEXT("BlueEnemy Attack!"), true, true, FColor::Blue, 2.f, TEXT("None"));
 		}
 		break;
 
@@ -110,7 +110,7 @@ void AGreenEnemy::Move()
 }
 
 //ダメージを受ける処理、引数でもらった攻撃力分体力を減らす
-void AGreenEnemy::RecieveEnemyDamage(int DamageAmount, EFlashlight_Color Color)
+void ABlueEnemy::RecieveEnemyDamage(int DamageAmount, EFlashlight_Color Color)
 {
 	if ((int)Color == (int)this->enemyColor)
 	{
