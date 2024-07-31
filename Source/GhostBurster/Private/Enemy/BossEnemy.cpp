@@ -50,6 +50,13 @@ void ABossEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	TickProcess();
+}
+
+//™’Ç‰ÁŠÖ”
+//Tick‚Å‚Ìˆ—
+void ABossEnemy::TickProcess()
+{
 	//Œ»İ‚ÌFPS‚ğæ“¾
 	Gamefps = GetWorldFPS();
 

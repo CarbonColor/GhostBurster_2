@@ -16,7 +16,10 @@ class GHOSTBURSTER_API ABlueEnemy : public AEnemys
 	GENERATED_BODY()
 	
 	//☆関数宣言
-//エネミーの状態判断
+	//Tickでの処理
+	virtual void TickProcess() override;
+	
+	//エネミーの状態判断
 	virtual void Think() override;
 
 	//状態に基づいた動きをする

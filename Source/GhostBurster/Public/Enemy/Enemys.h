@@ -79,6 +79,9 @@ protected:
 	int MoveTime = 0;			//ゴーストの移動にかかる時間
 
 	//☆関数宣言
+	//Tickでの処理
+	virtual void TickProcess() PURE_VIRTUAL(AEnemys::TickProcess, );
+
 	//エネミーの状態判断
 	virtual void Think() PURE_VIRTUAL(AEnemys::Think, );
 

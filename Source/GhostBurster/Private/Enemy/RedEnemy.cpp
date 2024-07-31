@@ -48,6 +48,13 @@ void ARedEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	TickProcess();
+}
+
+//™’Ç‰ÁŠÖ”
+//Tick‚Å‚Ìˆ—
+void ARedEnemy::TickProcess()
+{
 	//Œ»İ‚ÌFPS‚ğæ“¾
 	Gamefps = GetWorldFPS();
 

@@ -52,6 +52,13 @@ void ANormalEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	TickProcess();
+}
+
+//☆追加関数
+// Tickでの処理
+void ANormalEnemy::TickProcess()
+{
 	//現在のFPSを取得
 	Gamefps = GetWorldFPS();
 
@@ -63,7 +70,6 @@ void ANormalEnemy::Tick(float DeltaTime)
 	Move();
 }
 
-//☆追加関数
 //エネミーの状態判断
 void ANormalEnemy::Think()
 {
