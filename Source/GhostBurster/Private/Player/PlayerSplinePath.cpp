@@ -16,7 +16,7 @@ APlayerSplinePath::APlayerSplinePath()
 
 	// スプライン経路の現在地の初期化
 	CurrentSplineDistance = 0.0f; // スプラインが始まってからの距離。0が始点位置になる
-	MovementSpeed = 100.0f; // 移動速度。あとで酔わない程度に変更する
+	MovementSpeed = 300.0f; // 移動速度。あとで酔わない程度に変更する
 }
 
 // Called when the game starts or when spawned
@@ -43,9 +43,9 @@ void APlayerSplinePath::StopMovement()
 	MovementSpeed = 0.0f;
 }
 
-void APlayerSplinePath::ResumeMovement()
+void APlayerSplinePath::StartMovement()
 {
-	MovementSpeed = 100.0f; // 初期値に設定
+	MovementSpeed = 300.0f; // 初期値に設定
 }
 
 FVector APlayerSplinePath::GetLocationAtCurrentDistance() const
