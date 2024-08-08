@@ -80,15 +80,17 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     Attack = 1;
     // ダメージカウントを初期化する
     DamageCount = 0;
+    //ステージ番号を初期化する
+    StageNumber = 1;
     // 無敵時間の初期化
     DamageNow = false;
 
-    //// Tickを止める
-    //PrimaryActorTick.bCanEverTick = false;
-    //PrimaryActorTick.bStartWithTickEnabled = false;
-    // Tickを始める
-    PrimaryActorTick.bCanEverTick = true;
-    PrimaryActorTick.bStartWithTickEnabled = true;
+    ////// Tickを止める
+    ////PrimaryActorTick.bCanEverTick = false;
+    ////PrimaryActorTick.bStartWithTickEnabled = false;
+    //// Tickを始める
+    //PrimaryActorTick.bCanEverTick = true;
+    //PrimaryActorTick.bStartWithTickEnabled = true;
 
     ////Hapticフィードバックのエフェクトを初期化
     //static ConstructorHelpers::FObjectFinder<UHapticFeedbackEffect_Base>HapticEffectObject(TEXT("/Game/_TeamFolder/Player/Input/EnemyDamage"));
@@ -413,6 +415,17 @@ void AVRPlayerCharacter::StopHapticFeedback()
     {
         PlayerController->StopHapticEffect(EControllerHand::Right);
     }
+}
+
+//ステージ番号を進める関数
+void AVRPlayerCharacter::NextStage()
+{
+    StageNumber++;
+}
+
+int AVRPlayerCharacter::GetStageNumber()
+{
+    return StageNumber;
 }
 
 

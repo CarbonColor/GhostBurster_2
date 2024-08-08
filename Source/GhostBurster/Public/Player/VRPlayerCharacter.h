@@ -105,6 +105,14 @@ public:
 	UFUNCTION()
 		void StopHapticFeedback();
 
+	//ステージ番号を増やす
+	UFUNCTION(BlueprintCallable, Category = "Stage")
+		void NextStage();
+
+	//ステージ番号を取得する
+	UFUNCTION(BlueprintCallable, Category = "Stage")
+		int GetStageNumber();
+
 
 private:
 	//シーンコンポーネント
@@ -148,4 +156,7 @@ private:
 
 	//デバッグ用
 	int PreBattery;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Stage", meta = (AllowPrivateAccess = "true"))
+		int StageNumber;
 };

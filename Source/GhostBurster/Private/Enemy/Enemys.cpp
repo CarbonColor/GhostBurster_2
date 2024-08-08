@@ -3,6 +3,8 @@
 
 #include "Enemy/Enemys.h"
 #include "Engine/World.h"
+#include "Player/VRPlayerCharacter.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AEnemys::AEnemys()
@@ -39,7 +41,34 @@ void AEnemys::UpdateState(State nowState)
 //HPが0になったら消滅させる
 void AEnemys::EnemyDead()
 {
+
 	//イベントに死亡通知を送る
+	// プレイヤーを取得
+	AVRPlayerCharacter* Player = Cast<AVRPlayerCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
+	if (Player)
+	{
+		//ステージ名を取得
+		int Stage = Player->GetStageNumber();
+		FString SpawnBPName = FString::Printf(TEXT("EnemySpawn_BP_C_%d"), Stage);
+		GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Purple, SpawnBPName);
+
+		//該当のEnemySpawnを取得
+		TArray<AActor*> Spawners;
+		UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("Spawner"), Spawners);
+
+		for (AActor* Spawner : Spawners)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Purple, Spawner->GetName());
+
+			if (Spawner->GetName() == SpawnBPName)
+			{
+				if (UFunction* Func = Spawner->FindFunction(FName("EnemyDeadFunction")))
+				{
+					Spawner->ProcessEvent(Func, nullptr);
+				}
+			}
+		}
+	}
 
 	//敵を消滅させる
 	this->Destroy();
