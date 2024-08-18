@@ -17,6 +17,16 @@ APlayerSplinePath::APlayerSplinePath()
 	// スプライン経路の現在地の初期化
 	CurrentSplineDistance = 0.0f; // スプラインが始まってからの距離。0が始点位置になる
 	MovementSpeed = 300.0f; // 移動速度。あとで酔わない程度に変更する
+
+	// スプラインのポイントの設定
+	SplineComponent->AddSplinePoint(FVector(0, 0, 0), ESplineCoordinateSpace::World);	//スタート地点
+
+	// スプラインのタイプの設定
+	for (int i = 0; i < SplineComponent->GetNumberOfSplinePoints(); ++i)
+	{
+		SplineComponent->SetSplinePointType(i, ESplinePointType::Linear);
+	}
+
 }
 
 // Called when the game starts or when spawned

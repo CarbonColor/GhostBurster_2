@@ -2,16 +2,16 @@
 
 #include "Player/VRPlayerCharacter.h"
 #include "Components/SpotLightComponent.h"
+#include "Components/InputComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "MotionControllerComponent.h"
 #include "InputAction.h"
 #include "InputMappingContext.h"
 #include "Kismet/KismetStringLibrary.h"
+#include "Kismet/GameplayStatics.h"
 #include "Enemy/Enemys.h"
 #include "Player/PlayerSplinePath.h"
-#include "Kismet/GameplayStatics.h"
-#include "Components/InputComponent.h"
 #include "Haptics/HapticFeedbackEffect_Base.h"
 
 // Sets default values
@@ -74,6 +74,10 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     Flashlight_Color = EFlashlight_Color::White;
     // バッテリーの初期値
     Battery = MaxBattery;
+    //スコアの初期値
+    Score = 0;
+    //アイテム数の初期値
+    Item = 2;
     //ライトのON/OFF切り替えを可能の状態にする
     CanToggleLight = true;
     // 攻撃力を設定する
@@ -99,6 +103,12 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     //    HapticEffect = HapticEffectObject.Object;
     //    GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Emerald, TEXT("HapticEffect Initialize"));
     //}
+
+    static ConstructorHelpers::FClassFinder<UUserWidget> WidgetClass(TEXT("/Game/_TeamFolder/UI/UI_PlayerStatus"));
+    if (WidgetClass.Succeeded())
+    {
+        PlayerStatusWidgetClass = WidgetClass.Class;
+    }
 }
 
 // Called when the game starts or when spawned
@@ -114,8 +124,13 @@ void AVRPlayerCharacter::BeginPlay()
         SplinePathActor = Cast<APlayerSplinePath>(FoundActors[0]);
     }
 
-
     // Enhanced Input setup
+    APlayerController* PlayerController = Cast<APlayerController>(GetController());
+    UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer());
+    Subsystem->AddMappingContext(IMC_Flashlight, 0);
+
+    // nullチェック用
+    /*
     if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
     {
         if (!PlayerController)
@@ -145,6 +160,19 @@ void AVRPlayerCharacter::BeginPlay()
     {
         UE_LOG(LogTemp, Warning, TEXT("Controller is not a PlayerController"));
     }
+    */ 
+
+    // Widgetの表示
+    PlayerStatusWidget = CreateWidget<UUserWidget>(GetWorld(), PlayerStatusWidgetClass);
+    PlayerStatusWidget->AddToViewport();
+    // UIの取得
+    BatteryUI = Cast<UProgressBar>(PlayerStatusWidget->GetWidgetFromName(TEXT("LightBattery")));
+    ScoreUI = Cast<UTextBlock>(PlayerStatusWidget->GetWidgetFromName(TEXT("Score")));
+    ItemUI = Cast<UTextBlock>(PlayerStatusWidget->GetWidgetFromName(TEXT("ItemNum")));
+    // Widgetの更新
+    UpdateBatteryUI();
+    UpdateItemUI();
+    UpdateScoreUI();
 }
 
 // Called every frame
@@ -174,9 +202,25 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
     }
 
     // バッテリー操作
-    if (Flashlight->GetVisibleFlag())    //ライトON
+    if (CanToggleLight == false)    //ライトがつけられないとき
+    {
+        Battery += 5;
+        //UIバーの色を赤くする
+        BatteryUI->SetFillColorAndOpacity(FLinearColor::Red);
+        if (Battery >= MaxBattery)
+        {
+            Battery = MaxBattery;
+            //ライトがつけられるようになる
+            CanToggleLight = true;
+            GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Silver, TEXT("Battery is fill! You can't use Flashlight!"));
+        }
+        UpdateBatteryUI();
+    }
+    else if (Flashlight->GetVisibleFlag())    //ライトON
     {
         Battery--;
+        //UIバーの色を白くする
+        BatteryUI->SetFillColorAndOpacity(FLinearColor::White);
         //バッテリーが切れたら
         if (Battery <= 0)
         {
@@ -188,23 +232,19 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
             CanToggleLight = false;
             GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Silver, TEXT("Battery is empty! You can't use Flashlight!"));
         }
+        UpdateBatteryUI();
     }
-    else if (Flashlight->GetVisibleFlag() == false && Battery < MaxBattery) //ライトOFF
+    else if (Flashlight->GetVisibleFlag() == false) //ライトOFF
     {
-        Battery++;
-        //ライトがつけられないとき、バッテリーが満タンになったら
-        if (CanToggleLight == false && Battery >= MaxBattery)
+        if (Battery < MaxBattery)
         {
-            //ライトがつけられるようになる
-            CanToggleLight = true;
-            GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Silver, TEXT("Battery is fill! You can't use Flashlight!"));
+            Battery++;
         }
+        //UIバーの色を白くする
+        BatteryUI->SetFillColorAndOpacity(FLinearColor::White);
+        UpdateBatteryUI();
     }
-    //if (PreBattery != Battery)
-    //{
-    //    GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Cyan, UKismetStringLibrary::Conv_IntToString(Battery));
-    //}
-    PreBattery = Battery;
+
 
     //PlayerSplinePathに沿って移動
     if (SplinePathActor)
@@ -426,6 +466,21 @@ void AVRPlayerCharacter::NextStage()
 int AVRPlayerCharacter::GetStageNumber()
 {
     return StageNumber;
+}
+
+void AVRPlayerCharacter::UpdateBatteryUI()
+{
+    BatteryUI->SetPercent(Battery / (float)MaxBattery);
+}
+
+void AVRPlayerCharacter::UpdateItemUI()
+{
+    ItemUI->SetText(FText::AsNumber(Item));
+}
+
+void AVRPlayerCharacter::UpdateScoreUI()
+{
+    ScoreUI->SetText(FText::AsNumber(Score));
 }
 
 
