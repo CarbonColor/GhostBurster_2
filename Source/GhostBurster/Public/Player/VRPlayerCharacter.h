@@ -7,6 +7,10 @@
 #include "Flashlight_Enumeration.h"
 #include "Components/BoxComponent.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Components/WidgetComponent.h"
+#include "Components/ProgressBar.h"
+#include "Components/TextBlock.h"
+#include "Blueprint/UserWidget.h"
 #include "Interface/DamageInterface.h"
 #include "VRPlayerCharacter.generated.h"
 
@@ -37,6 +41,19 @@ protected:
 	//ライトの色を切り替えるメソッド
 	UFUNCTION()
 		void ChangeColorFlashlight(const FInputActionValue& value);
+
+	//バッテリーのUIを更新するメソッド
+	UFUNCTION()
+		void UpdateBatteryUI();
+
+	//アイテムの所有数のUIを更新するメソッド
+	UFUNCTION()
+		void UpdateItemUI();
+
+	//スコアのUIを更新するメソッド
+	UFUNCTION()
+		void UpdateScoreUI();
+
 
 	////ハンドトラッキングのセットアップ
 	//UFUNCTION()
@@ -123,6 +140,12 @@ private:
 	UPROPERTY(VisibleAnywhere)
 		TObjectPtr<USpotLightComponent> Flashlight;
 
+	//プレイヤーUI
+	UPROPERTY(EditAnywhere, Category = "UI")
+		TSubclassOf<UUserWidget> PlayerStatusWidgetClass;
+	UPROPERTY()
+		TObjectPtr<UUserWidget> PlayerStatusWidget;
+
 	//ライトの色を設定するメソッド
 	UFUNCTION()
 	void SettingFlashlightColor();
@@ -136,27 +159,34 @@ private:
 	//ライトの色を保持する変数
 	EFlashlight_Color Flashlight_Color;
 
+	// UI関連
 	//ライトバッテリーの最大値
 	const int MaxBattery = 60 * 10;
-
 	//ライトバッテリー
 	int Battery;
+	UPROPERTY()
+	TObjectPtr<UProgressBar> BatteryUI;
+	//プレイヤーのスコア
+	int Score;
+	UPROPERTY()
+	TObjectPtr<UTextBlock> ScoreUI;
+	//アイテムの所有数
+	int Item;
+	UPROPERTY()
+	TObjectPtr<UTextBlock> ItemUI;
 
 	//ライトの操作を受け付けているかどうか
 	bool CanToggleLight;
 	
 	//オバケに与える攻撃力
 	int Attack;
-
 	//オバケから受けた攻撃
 	int DamageCount;
 
 	//無敵状態
 	bool DamageNow;
 
-	//デバッグ用
-	int PreBattery;
-
+	//出現する敵を判別するステージ番号
 	UPROPERTY(BlueprintReadOnly, Category = "Stage", meta = (AllowPrivateAccess = "true"))
 		int StageNumber;
 };
