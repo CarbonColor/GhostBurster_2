@@ -42,7 +42,7 @@ public:
 		void StopMovement();
 
 	UFUNCTION(BlueprintCallable, Category = "Spline")
-		void ResumeMovement();
+		void StartMovement();
 
 	UFUNCTION(BlueprintCallable, Category = "Spline")
 		FVector GetLocationAtCurrentDistance() const;

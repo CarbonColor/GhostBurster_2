@@ -4,8 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
+#include "TimerManager.h"
 #include "Flashlight_Enumeration.h"
 #include "Components/BoxComponent.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Components/WidgetComponent.h"
+#include "Components/ProgressBar.h"
+#include "Components/TextBlock.h"
+#include "Blueprint/UserWidget.h"
 #include "Interface/DamageInterface.h"
 #include "VRPlayerCharacter.generated.h"
 
@@ -37,6 +43,27 @@ protected:
 	UFUNCTION()
 		void ChangeColorFlashlight(const FInputActionValue& value);
 
+	//バッテリーのUIを更新するメソッド
+	UFUNCTION()
+		void UpdateBatteryUI();
+
+	//アイテムの所有数のUIを更新するメソッド
+	UFUNCTION()
+		void UpdateItemUI();
+
+	//スコアのUIを更新するメソッド
+	UFUNCTION()
+		void UpdateScoreUI();
+
+
+	////ハンドトラッキングのセットアップ
+	//UFUNCTION()
+	//	void SetupHandTracking();
+
+	////ハンドトラッキングのアップデート
+	//UFUNCTION()
+	//	void UpdateHandPose();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -53,6 +80,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 		TObjectPtr<UInputAction> IA_DebugTest;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+		TObjectPtr<UInputAction> IA_DebugTest1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 		TObjectPtr<UInputMappingContext> IMC_Flashlight;
@@ -60,6 +90,17 @@ public:
 	// Motion Controller
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 		TObjectPtr<UMotionControllerComponent> MotionController_Right;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+		TObjectPtr<UMotionControllerComponent> MotionController_Left;
+
+	//左手のメッシュ
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh")
+		TObjectPtr<USkeletalMeshComponent> HandMesh_Left;
+
+	//右手のメッシュ(懐中電灯のStaticMesh)
+	UPROPERTY(EditAnyWhere, BlueprintReadOnly, Category = "Mesh")
+		TObjectPtr<UStaticMeshComponent> FlashlightMesh;
 
 	//プレイヤーのコリジョン(キューブ型)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Collision")
@@ -81,13 +122,26 @@ public:
 
 	//Haptic Feedback Effect(コントローラーの振動)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Haptics")
-		TObjectPtr<UHapticFeedbackEffect_Base> HapticEffect;
+		TObjectPtr<UHapticFeedbackEffect_Base> HapticEffect_EnemyDamage;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Haptics")
+		TObjectPtr<UHapticFeedbackEffect_Base> HapticEffect_PlayerDamage;
 
 	//振動を開始するメソッド
 	UFUNCTION()
-		void StartHapticFeedback();
+		void StartHaptic_EnemyDamage();
 	UFUNCTION()
-		void StopHapticFeedback();
+		void StartHaptic_PlayerDamage();
+	//振動を停止するメソッド
+	UFUNCTION()
+		void StopHapticEffect();
+
+	//ステージ番号を増やす
+	UFUNCTION(BlueprintCallable, Category = "Stage")
+		void NextStage();
+
+	//ステージ番号を取得する
+	UFUNCTION(BlueprintCallable, Category = "Stage")
+		int GetStageNumber();
 
 
 private:
@@ -99,9 +153,19 @@ private:
 	UPROPERTY(VisibleAnywhere)
 		TObjectPtr<USpotLightComponent> Flashlight;
 
+	//プレイヤーUI
+	UPROPERTY(EditAnywhere, Category = "UI")
+		TSubclassOf<UUserWidget> PlayerStatusWidgetClass;
+	UPROPERTY()
+		TObjectPtr<UUserWidget> PlayerStatusWidget;
+
 	//ライトの色を設定するメソッド
 	UFUNCTION()
 	void SettingFlashlightColor();
+
+	//無敵時間の処理
+	UFUNCTION()
+	void NoDamageFunction();
 
 	//スプライン経路を管理するアクター
 	TObjectPtr<APlayerSplinePath> SplinePathActor;
@@ -112,24 +176,40 @@ private:
 	//ライトの色を保持する変数
 	EFlashlight_Color Flashlight_Color;
 
+	// UI関連
 	//ライトバッテリーの最大値
 	const int MaxBattery = 60 * 10;
-
 	//ライトバッテリー
 	int Battery;
+	UPROPERTY()
+	TObjectPtr<UProgressBar> BatteryUI;
+	//プレイヤーのスコア
+	int Score;
+	UPROPERTY()
+	TObjectPtr<UTextBlock> ScoreUI;
+	//アイテムの所有数
+	int Item;
+	UPROPERTY()
+	TObjectPtr<UTextBlock> ItemUI;
 
 	//ライトの操作を受け付けているかどうか
 	bool CanToggleLight;
 	
 	//オバケに与える攻撃力
 	int Attack;
-
 	//オバケから受けた攻撃
 	int DamageCount;
 
 	//無敵状態
 	bool DamageNow;
+	//無敵時間用タイマーハンドル
+	FTimerHandle NoDamageTimerHandle;
 
-	//デバッグ用
-	int PreBattery;
+	//出現する敵を判別するステージ番号
+	UPROPERTY(BlueprintReadOnly, Category = "Stage", meta = (AllowPrivateAccess = "true"))
+		int StageNumber;
+
+
+	//デバッグ用タイマー
+	int DebugTimer;
 };
