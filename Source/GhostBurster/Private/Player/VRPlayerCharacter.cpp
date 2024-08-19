@@ -44,6 +44,21 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     Flashlight->SetAttenuationRadius(1500.0f);
     Flashlight->SetOuterConeAngle(25.0f);
 
+    // 右手のライトのスタティックメッシュコンポーネントを作る
+    FlashlightMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("FlashlightMesh"));
+    // 右手にアタッチする
+    FlashlightMesh->SetupAttachment(MotionController_Right);
+    // 懐中電灯のメッシュを読み込んでセットする
+    UStaticMesh* LightMesh = LoadObject<UStaticMesh>(NULL, TEXT("/Game/_TeamFolder/CG/CG_完成モデル/VR_SM_Light"), NULL, LOAD_None, NULL);
+    if (LightMesh)
+    {
+        FlashlightMesh->SetStaticMesh(LightMesh);
+    }
+    else
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Purple, TEXT("FlashLightMesh is None"));
+    }
+
     //ボックスコリジョンを作る
     PlayerCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("PlayerCollision"));
     //ライトにアタッチしてみる
@@ -96,19 +111,20 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     //PrimaryActorTick.bCanEverTick = true;
     //PrimaryActorTick.bStartWithTickEnabled = true;
 
-    ////Hapticフィードバックのエフェクトを初期化
-    //static ConstructorHelpers::FObjectFinder<UHapticFeedbackEffect_Base>HapticEffectObject(TEXT("/Game/_TeamFolder/Player/Input/EnemyDamage"));
-    //if (HapticEffectObject.Succeeded())
-    //{
-    //    HapticEffect = HapticEffectObject.Object;
-    //    GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Emerald, TEXT("HapticEffect Initialize"));
-    //}
+    //Hapticフィードバックのエフェクトを初期化
+    UHapticFeedbackEffect_Base* Haptic_ED = LoadObject<UHapticFeedbackEffect_Base>(nullptr, TEXT("/Game/_TeamFolder/Player/Input/EnemyDamage"));
+    HapticEffect_EnemyDamage = Haptic_ED;
+    UHapticFeedbackEffect_Base* Haptic_PD = LoadObject<UHapticFeedbackEffect_Base>(nullptr, TEXT("/Game/_TeamFolder/Player/Input/PlayerDamage"));
+    HapticEffect_PlayerDamage = Haptic_PD;
+    GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Emerald, TEXT("HapticEffect Initialized"));
 
-    static ConstructorHelpers::FClassFinder<UUserWidget> WidgetClass(TEXT("/Game/_TeamFolder/UI/UI_PlayerStatus"));
-    if (WidgetClass.Succeeded())
-    {
-        PlayerStatusWidgetClass = WidgetClass.Class;
-    }
+    // ウィジェットの設定
+    UClass* WidgetClass = LoadObject<UClass>(nullptr, TEXT("/Game/_TeamFolder/UI/UI_PlayerStatus.UI_PlayerStatus_C"));
+    PlayerStatusWidgetClass = WidgetClass;
+
+
+    //デバッグ
+    DebugTimer = 0;
 }
 
 // Called when the game starts or when spawned
@@ -195,12 +211,6 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
         }
     }
 
-    //振動の停止
-    if (OverlappingEnemies.Num() == 0)
-    {
-        StopHapticFeedback();
-    }
-
     // バッテリー操作
     if (CanToggleLight == false)    //ライトがつけられないとき
     {
@@ -245,14 +255,12 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
         UpdateBatteryUI();
     }
 
-
     //PlayerSplinePathに沿って移動
     if (SplinePathActor)
     {
         FVector NewLocation = SplinePathActor->GetLocationAtCurrentDistance();
         SetActorLocation(NewLocation);
     }
-
 
 }
 
@@ -275,7 +283,8 @@ void AVRPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
             GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, TEXT("Binding InputAction"));
 
             //テスト用
-            EnhancedInputComponent->BindAction(IA_DebugTest, ETriggerEvent::Triggered, this, &AVRPlayerCharacter::StartHapticFeedback);
+            EnhancedInputComponent->BindAction(IA_DebugTest, ETriggerEvent::Triggered, this, &AVRPlayerCharacter::StartHaptic_EnemyDamage);
+            EnhancedInputComponent->BindAction(IA_DebugTest1, ETriggerEvent::Triggered, this, &AVRPlayerCharacter::StartHaptic_PlayerDamage);
         }
     }
     else
@@ -391,7 +400,7 @@ void AVRPlayerCharacter::OnConeBeginOverlap(UPrimitiveComponent* OverlappedComp,
         //振動の開始
         if (OverlappingEnemies.Num() == 0)
         {
-            StartHapticFeedback();
+            StartHaptic_EnemyDamage();
         }
         OverlappingEnemies.Add(OtherActor);
         //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Enemy is Overlapping"));
@@ -415,7 +424,7 @@ void AVRPlayerCharacter::OnConeEndOverlap(UPrimitiveComponent* OverlappedComp, A
         //振動の停止
         if (OverlappingEnemies.Num() == 0)
         {
-            StopHapticFeedback();
+            StopHapticEffect();
         }
     }
 }
@@ -424,32 +433,55 @@ void AVRPlayerCharacter::OnConeEndOverlap(UPrimitiveComponent* OverlappedComp, A
 void AVRPlayerCharacter::RecievePlayerDamage()
 {
     DamageCount++;
-     if (DamageNow == false)
-     {
-         // ダメージ回数を増やす
-         DamageCount++;
-         // 無敵状態にする
-         DamageNow = true;
-         //無敵時間の設定
+    if (DamageNow == false)
+    {
+        // ダメージ回数を増やす
+        DamageCount++;
+        // 無敵状態にする
+        DamageNow = true;
+        //無敵時間の設定 (3秒後に無敵状態を解除)
+        GetWorld()->GetTimerManager().SetTimer(NoDamageTimerHandle, this, &AVRPlayerCharacter::NoDamageFunction, 3.0f, false);
+        GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Cyan, TEXT("Player damage !"));
+    }
+    else
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Cyan, TEXT("Player takes no damage !"));
+    }
+}
+//無敵時間のメソッド
+void AVRPlayerCharacter::NoDamageFunction()
+{
+    // 無敵状態を解除
+    DamageNow = false;
+    // タイマーをクリア
+    GetWorld()->GetTimerManager().ClearTimer(NoDamageTimerHandle);
 
-     }
 }
 
-//無敵時間のメソッド
 
 
-//振動を開始する関数
-void AVRPlayerCharacter::StartHapticFeedback()
+//振動を開始するメソッド
+void AVRPlayerCharacter::StartHaptic_EnemyDamage()
 {
     if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
     {
-        PlayerController->PlayHapticEffect(HapticEffect, EControllerHand::Right, 1.0f, true);
+        PlayerController->PlayHapticEffect(HapticEffect_EnemyDamage, EControllerHand::Right, 1.0f, false);
 
-        GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, TEXT("Device Vibration"));
+        GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, TEXT("Device Vibration (Enemy)"));
     }
 }
-// 振動を停止する関数
-void AVRPlayerCharacter::StopHapticFeedback()
+void AVRPlayerCharacter::StartHaptic_PlayerDamage()
+{
+    if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
+    {
+        PlayerController->PlayHapticEffect(HapticEffect_PlayerDamage, EControllerHand::Right, 1.0f, false);
+
+        GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, TEXT("Device Vibration (Player)"));
+    }
+}
+
+// 振動を停止するメソッド
+void AVRPlayerCharacter::StopHapticEffect()
 {
     if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
     {
@@ -457,27 +489,27 @@ void AVRPlayerCharacter::StopHapticFeedback()
     }
 }
 
-//ステージ番号を進める関数
+//ステージ番号を進めるメソッド
 void AVRPlayerCharacter::NextStage()
 {
     StageNumber++;
 }
-
+//ステージ番号を取得するメソッド
 int AVRPlayerCharacter::GetStageNumber()
 {
     return StageNumber;
 }
-
+//ウィジェットのバッテリーを更新するメソッド
 void AVRPlayerCharacter::UpdateBatteryUI()
 {
     BatteryUI->SetPercent(Battery / (float)MaxBattery);
 }
-
+//ウィジェットのアイテム所有数を更新するメソッド
 void AVRPlayerCharacter::UpdateItemUI()
 {
     ItemUI->SetText(FText::AsNumber(Item));
 }
-
+//ウィジェットのスコアを更新するメソッド
 void AVRPlayerCharacter::UpdateScoreUI()
 {
     ScoreUI->SetText(FText::AsNumber(Score));
