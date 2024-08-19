@@ -13,6 +13,9 @@ class GHOSTBURSTER_API ANormalEnemy : public AEnemys
 	GENERATED_BODY()
 
 	//☆関数宣言
+	//Tickでの処理
+	virtual void TickProcess() override;
+	
 	//エネミーの状態判断
 	virtual void Think() override;
 
