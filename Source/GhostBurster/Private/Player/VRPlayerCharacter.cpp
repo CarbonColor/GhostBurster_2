@@ -54,10 +54,10 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     {
         FlashlightMesh->SetStaticMesh(LightMesh);
     }
-    else
-    {
-        GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Purple, TEXT("FlashLightMesh is None"));
-    }
+    //else
+    //{
+    //    GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Purple, TEXT("FlashLightMesh is None"));
+    //}
 
     //ボックスコリジョンを作る
     PlayerCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("PlayerCollision"));
@@ -116,7 +116,7 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     HapticEffect_EnemyDamage = Haptic_ED;
     UHapticFeedbackEffect_Base* Haptic_PD = LoadObject<UHapticFeedbackEffect_Base>(nullptr, TEXT("/Game/_TeamFolder/Player/Input/PlayerDamage"));
     HapticEffect_PlayerDamage = Haptic_PD;
-    GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Emerald, TEXT("HapticEffect Initialized"));
+    //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Emerald, TEXT("HapticEffect Initialized"));
 
     // ウィジェットの設定
     UClass* WidgetClass = LoadObject<UClass>(nullptr, TEXT("/Game/_TeamFolder/UI/UI_PlayerStatus.UI_PlayerStatus_C"));
