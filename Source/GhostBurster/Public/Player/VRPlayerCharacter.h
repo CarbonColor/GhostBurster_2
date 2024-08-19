@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
+#include "TimerManager.h"
 #include "Flashlight_Enumeration.h"
 #include "Components/BoxComponent.h"
 #include "Components/SkeletalMeshComponent.h"
@@ -79,6 +80,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 		TObjectPtr<UInputAction> IA_DebugTest;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+		TObjectPtr<UInputAction> IA_DebugTest1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 		TObjectPtr<UInputMappingContext> IMC_Flashlight;
@@ -93,6 +97,10 @@ public:
 	//左手のメッシュ
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh")
 		TObjectPtr<USkeletalMeshComponent> HandMesh_Left;
+
+	//右手のメッシュ(懐中電灯のStaticMesh)
+	UPROPERTY(EditAnyWhere, BlueprintReadOnly, Category = "Mesh")
+		TObjectPtr<UStaticMeshComponent> FlashlightMesh;
 
 	//プレイヤーのコリジョン(キューブ型)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Collision")
@@ -114,13 +122,18 @@ public:
 
 	//Haptic Feedback Effect(コントローラーの振動)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Haptics")
-		TObjectPtr<UHapticFeedbackEffect_Base> HapticEffect;
+		TObjectPtr<UHapticFeedbackEffect_Base> HapticEffect_EnemyDamage;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Haptics")
+		TObjectPtr<UHapticFeedbackEffect_Base> HapticEffect_PlayerDamage;
 
 	//振動を開始するメソッド
 	UFUNCTION()
-		void StartHapticFeedback();
+		void StartHaptic_EnemyDamage();
 	UFUNCTION()
-		void StopHapticFeedback();
+		void StartHaptic_PlayerDamage();
+	//振動を停止するメソッド
+	UFUNCTION()
+		void StopHapticEffect();
 
 	//ステージ番号を増やす
 	UFUNCTION(BlueprintCallable, Category = "Stage")
@@ -149,6 +162,10 @@ private:
 	//ライトの色を設定するメソッド
 	UFUNCTION()
 	void SettingFlashlightColor();
+
+	//無敵時間の処理
+	UFUNCTION()
+	void NoDamageFunction();
 
 	//スプライン経路を管理するアクター
 	TObjectPtr<APlayerSplinePath> SplinePathActor;
@@ -185,8 +202,14 @@ private:
 
 	//無敵状態
 	bool DamageNow;
+	//無敵時間用タイマーハンドル
+	FTimerHandle NoDamageTimerHandle;
 
 	//出現する敵を判別するステージ番号
 	UPROPERTY(BlueprintReadOnly, Category = "Stage", meta = (AllowPrivateAccess = "true"))
 		int StageNumber;
+
+
+	//デバッグ用タイマー
+	int DebugTimer;
 };
