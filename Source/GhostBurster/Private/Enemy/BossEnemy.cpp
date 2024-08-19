@@ -75,7 +75,7 @@ void ABossEnemy::Think()
 	switch (nowState)
 	{
 	case State::Stand:	//—§‚Á‚Ä‚¢‚é
-		if (MoveCount >= 60 * 5 * Gamefps / 60) { nowState = State::Attack; }
+		if (MoveCount >= 60 * Gamefps / 60) { nowState = State::Attack; }
 		if (Status.HP <= 0) { nowState = State::Die; }
 		break;
 
@@ -85,7 +85,7 @@ void ABossEnemy::Think()
 		break;
 
 	case State::Attack:	//UŒ‚
-		if (MoveCount >= AttackUpToTime * Gamefps / 60) { nowState = State::Stand; }
+		if (MoveCount >= 60 * Gamefps / 60) { nowState = State::Stand; }
 		if (Status.HP <= 0) { nowState = State::Die; }
 		break;
 	}
@@ -105,7 +105,7 @@ void ABossEnemy::Move()
 		break;
 
 	case State::Attack:	//UŒ‚
-		if (MoveCount == 15 * Gamefps / 60) //15‚Ì•”•ª‚ÍUŒ‚ƒ‚[ƒVƒ‡ƒ“‚É‡‚í‚¹‚Ä•ÏX‚·‚é
+		if (MoveCount == AttackUpToTime * Gamefps / 60) //15‚Ì•”•ª‚ÍUŒ‚ƒ‚[ƒVƒ‡ƒ“‚É‡‚í‚¹‚Ä•ÏX‚·‚é
 		{
 			//UŒ‚‚·‚é
 			UKismetSystemLibrary::PrintString(this, TEXT("BossEnemy Attack!"), true, true, FColor::Yellow, 2.f, TEXT("None"));
