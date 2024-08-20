@@ -28,6 +28,10 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     // Rootコンポーネントに設定
     RootComponent = VRRoot;
 
+    //カメラコンポーネントの作成
+    CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
+    CameraComponent->SetupAttachment(VRRoot);
+
     // モーションコントローラーコンポーネント(右手)を作る
     MotionController_Right = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("MotionController_Right"));
     // VRRootコンポーネントにアタッチする
@@ -57,7 +61,6 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     FlashlightMesh->SetRelativeLocation(FVector(50.0f, 0.0f, 0.0f));
     FlashlightMesh->SetRelativeRotation(FRotator(-90.0f, 0.0f, 0.0f));  // ※ FRotator は (Y, Z, X) の順
     FlashlightMesh->SetRelativeScale3D(FVector(3.0f, 3.0f, 3.0f));
-
 
     //ボックスコリジョンを作る
     PlayerCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("PlayerCollision"));
@@ -118,10 +121,13 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     UHapticFeedbackEffect_Base* Haptic_PD = LoadObject<UHapticFeedbackEffect_Base>(nullptr, TEXT("/Game/_TeamFolder/Player/Input/PlayerDamage"));
     HapticEffect_PlayerDamage = Haptic_PD;
 
-    // ウィジェットの設定
+    //ウィジェットコンポーネントの作成
+    PlayerStatusWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("PlayerStatusWidgetComponent"));
+    PlayerStatusWidgetComponent->SetupAttachment(CameraComponent);
+    //ウィジェットの設定
     UClass* WidgetClass = LoadObject<UClass>(nullptr, TEXT("/Game/_TeamFolder/UI/UI_PlayerStatus.UI_PlayerStatus_C"));
-    PlayerStatusWidgetClass = WidgetClass;
-
+    PlayerStatusWidgetComponent->SetWidgetClass(WidgetClass);
+    PlayerStatusWidgetComponent->SetWidgetSpace(EWidgetSpace::World);
 
     //デバッグ
     DebugTimer = 0;
@@ -179,12 +185,11 @@ void AVRPlayerCharacter::BeginPlay()
     */ 
 
     // Widgetの表示
-    PlayerStatusWidget = CreateWidget<UUserWidget>(GetWorld(), PlayerStatusWidgetClass);
-    PlayerStatusWidget->AddToViewport();
-    // UIの取得
-    BatteryUI = Cast<UProgressBar>(PlayerStatusWidget->GetWidgetFromName(TEXT("LightBattery")));
-    ScoreUI = Cast<UTextBlock>(PlayerStatusWidget->GetWidgetFromName(TEXT("Score")));
-    ItemUI = Cast<UTextBlock>(PlayerStatusWidget->GetWidgetFromName(TEXT("ItemNum")));
+    PlayerStatusWidgetComponent->InitWidget();
+    UUserWidget* Widget = PlayerStatusWidgetComponent->GetUserWidgetObject();
+    BatteryUI = Cast<UProgressBar>(Widget->GetWidgetFromName(TEXT("LightBattery")));
+    ScoreUI = Cast<UTextBlock>(Widget->GetWidgetFromName(TEXT("Score")));
+    ItemUI = Cast<UTextBlock>(Widget->GetWidgetFromName(TEXT("ItemNum")));
     // Widgetの更新
     UpdateBatteryUI();
     UpdateItemUI();
@@ -214,7 +219,7 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
     // バッテリー操作
     if (CanToggleLight == false)    //ライトがつけられないとき
     {
-        Battery += 5;
+        Battery += 10;
         //UIバーの色を赤くする
         BatteryUI->SetFillColorAndOpacity(FLinearColor::Red);
         if (Battery >= MaxBattery)
@@ -248,7 +253,7 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
     {
         if (Battery < MaxBattery)
         {
-            Battery++;
+            Battery += 5;
         }
         //UIバーの色を白くする
         BatteryUI->SetFillColorAndOpacity(FLinearColor::White);
