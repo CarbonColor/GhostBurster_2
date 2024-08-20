@@ -11,6 +11,7 @@
 #include "Components/WidgetComponent.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
+#include "Camera/CameraComponent.h"
 #include "Blueprint/UserWidget.h"
 #include "Interface/DamageInterface.h"
 #include "VRPlayerCharacter.generated.h"
@@ -110,6 +111,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Collision")
 		TObjectPtr<UStaticMeshComponent> LightCollision;
 
+	//カメラのコンポーネント
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
+		TObjectPtr<UCameraComponent> CameraComponent;
+
+
 	//ライトのコリジョンとの当たり判定
 	UFUNCTION()
 		void OnConeBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
@@ -154,8 +160,8 @@ private:
 		TObjectPtr<USpotLightComponent> Flashlight;
 
 	//プレイヤーUI
-	UPROPERTY(EditAnywhere, Category = "UI")
-		TSubclassOf<UUserWidget> PlayerStatusWidgetClass;
+	UPROPERTY(VisibleAnywhere, Category = "UI")
+		TObjectPtr<UWidgetComponent> PlayerStatusWidgetComponent;
 	UPROPERTY()
 		TObjectPtr<UUserWidget> PlayerStatusWidget;
 
@@ -178,7 +184,7 @@ private:
 
 	// UI関連
 	//ライトバッテリーの最大値
-	const int MaxBattery = 60 * 10;
+	const int MaxBattery = 60 * 30;
 	//ライトバッテリー
 	int Battery;
 	UPROPERTY()

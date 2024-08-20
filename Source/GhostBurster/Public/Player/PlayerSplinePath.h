@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Player/VRPlayerCharacter.h"
+#include "Camera/CameraComponent.h"
 #include "Components/SplineComponent.h"
 #include "PlayerSplinePath.generated.h"
 
@@ -31,8 +33,30 @@ private:
 	//経路上の現在地を0～1で表す
 	float CurrentSplineDistance;
 	//移動速度
+	const float DefaultSpeed = 100.0f;
+
 	UPROPERTY(EditAnywhere, Category = "Speed")
 	float MovementSpeed;
+
+
+	//プレイヤー
+	UPROPERTY()
+		TObjectPtr<AVRPlayerCharacter> PlayerCharacter;
+
+	//カメラ
+	UPROPERTY()
+		TObjectPtr<UCameraComponent> Camera;
+
+	//回転処理用変数
+	bool bIsRotating;			//回転フラグ
+	float RotationDuration;		//回転時間（秒）
+	float CurrentRotationTime;	//現在の回転時間
+	FRotator StartRotation;		//回転開始時の角度
+	FRotator TargetRotation;	//目標の角度
+
+	bool bIsRotatePoint;	//回転場所で回転したかどうか
+	bool bIsStairsPoint;	//階段を下りる場所かどうか
+
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "Spline")
