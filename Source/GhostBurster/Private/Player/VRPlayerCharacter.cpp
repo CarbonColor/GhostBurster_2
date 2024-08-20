@@ -46,18 +46,18 @@ AVRPlayerCharacter::AVRPlayerCharacter()
 
     // 右手のライトのスタティックメッシュコンポーネントを作る
     FlashlightMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("FlashlightMesh"));
-    // 右手にアタッチする
-    FlashlightMesh->SetupAttachment(MotionController_Right);
     // 懐中電灯のメッシュを読み込んでセットする
-    UStaticMesh* LightMesh = LoadObject<UStaticMesh>(NULL, TEXT("/Game/_TeamFolder/CG/CG_完成モデル/VR_SM_Light"), NULL, LOAD_None, NULL);
-    if (LightMesh)
-    {
-        FlashlightMesh->SetStaticMesh(LightMesh);
-    }
-    //else
-    //{
-    //    GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Purple, TEXT("FlashLightMesh is None"));
-    //}
+    UStaticMesh* LightMesh = LoadObject<UStaticMesh>(NULL, TEXT("/Game/_TeamFolder/Player/SM_Light"), NULL, LOAD_None, NULL);
+    FlashlightMesh->SetStaticMesh(LightMesh);
+    // 右手にアタッチする
+    FlashlightMesh->SetupAttachment(Flashlight);
+    // メッシュの当たり判定をなくす
+    FlashlightMesh->SetCollisionProfileName(TEXT("NoCollision"));
+    // 位置・サイズ・向きの調整をする
+    FlashlightMesh->SetRelativeLocation(FVector(50.0f, 0.0f, 0.0f));
+    FlashlightMesh->SetRelativeRotation(FRotator(-90.0f, 0.0f, 0.0f));  // ※ FRotator は (Y, Z, X) の順
+    FlashlightMesh->SetRelativeScale3D(FVector(3.0f, 3.0f, 3.0f));
+
 
     //ボックスコリジョンを作る
     PlayerCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("PlayerCollision"));
@@ -84,6 +84,7 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     // 当たり判定のメソッドをバインド
     LightCollision->OnComponentBeginOverlap.AddDynamic(this, &AVRPlayerCharacter::OnConeBeginOverlap);
     LightCollision->OnComponentEndOverlap.AddDynamic(this, &AVRPlayerCharacter::OnConeEndOverlap);
+
 
     // ライトの色を設定する
     Flashlight_Color = EFlashlight_Color::White;
@@ -116,7 +117,6 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     HapticEffect_EnemyDamage = Haptic_ED;
     UHapticFeedbackEffect_Base* Haptic_PD = LoadObject<UHapticFeedbackEffect_Base>(nullptr, TEXT("/Game/_TeamFolder/Player/Input/PlayerDamage"));
     HapticEffect_PlayerDamage = Haptic_PD;
-    //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Emerald, TEXT("HapticEffect Initialized"));
 
     // ウィジェットの設定
     UClass* WidgetClass = LoadObject<UClass>(nullptr, TEXT("/Game/_TeamFolder/UI/UI_PlayerStatus.UI_PlayerStatus_C"));
