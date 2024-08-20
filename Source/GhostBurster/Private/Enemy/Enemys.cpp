@@ -79,17 +79,8 @@ void AEnemys::EnemyDead()
 //Œ»Ý‚ÌFPS‚ðŽæ“¾‚·‚é
 float AEnemys::GetWorldFPS()
 {
-	//ƒQ[ƒ€¢ŠE‚Ìî•ñ‚ðŽæ“¾
-	UWorld* World = GetWorld();
-
-	//ƒQ[ƒ€¢ŠE‚Ìî•ñ‚ªŽæ“¾‚Å‚«‚Ä‚¢‚È‚©‚Á‚½‚ç”²‚¯‚é
-	if (!World)
-	{
-		return 60.f; //‚Æ‚è‚ ‚¦‚¸60fps‚Æ‚µ‚Ä‚¨‚­
-	}
-
 	//DeltaTimeŽæ“¾
-	float DeltaTime = World->GetDeltaSeconds();
+	float DeltaTime = GetWorld()->GetDeltaSeconds();
 
 	//Œ»Ý‚ÌFPS‚ðŒvŽZ‚µ‚ÄŽæ“¾
 	float FPS = 1.f / DeltaTime;
@@ -110,11 +101,9 @@ void AEnemys::SetAttackUpToTime(int SetTime)
 }
 
 //–Ú•WÀ•W‚ÌÝ’è—pŠÖ”
-void AEnemys::SetGoalPosition(float SetX, float SetY, float SetZ)
+void AEnemys::SetGoalPosition(double SetX, double SetY, double SetZ)
 {
-	this->Position.GoalX = SetX;
-	this->Position.GoalY = SetY;
-	this->Position.GoalZ = SetZ;
+	this->GoalPosition = FVector(SetX, SetY, SetZ);
 }
 
 //ˆÚ“®ŽžŠÔ‚ÌÝ’è—p
@@ -124,7 +113,7 @@ void AEnemys::SetMoveTime(int SetTime)
 }
 
 //¶¬‚³‚ê‚½‚Æ‚«‚ÌÝ’è—pŠÖ”
-void AEnemys::SetInitialData(float HP, int AttackUpToTimeValue, float GoalX, float GoalY, float GoalZ, int MoveTimeValue)
+void AEnemys::SetInitialData(float HP, int AttackUpToTimeValue, double GoalX, double GoalY, double GoalZ, int MoveTimeValue)
 {
 	this->SetHP(HP);
 	this->SetAttackUpToTime(AttackUpToTimeValue);
