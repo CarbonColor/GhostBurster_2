@@ -48,9 +48,9 @@ TArray<FEnemySpawnInfo> AEnemySpawner::ParseCSV(const FString& FilePath)
                 FEnemySpawnInfo SpawnInfo;
                 SpawnInfo.Wave = FCString::Atoi(*Values[0]);
                 SpawnInfo.Type = Values[1];
-                float X = FCString::Atof(*Values[2]);
-                float Y = FCString::Atof(*Values[3]);
-                float Z = FCString::Atof(*Values[4]);
+                double X = FCString::Atof(*Values[2]);
+                double Y = FCString::Atof(*Values[3]);
+                double Z = FCString::Atof(*Values[4]);
                 SpawnInfo.Location = FVector(X, Y, Z);
                 ParsedSpawnInfoArray.Add(SpawnInfo);
             }
