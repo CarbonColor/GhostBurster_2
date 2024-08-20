@@ -36,12 +36,12 @@ protected:
 	//敵の状態
 	enum class State
 	{
-		Stand,
+		Wait,
 		Move,
 		Attack,
 		Die,
 	};
-	State state = State::Stand;
+	State state = State::Wait;
 
 	enum class EnemyColor : uint8
 	{
@@ -78,7 +78,7 @@ protected:
 	int MoveTime = 0;
 
 	//移動関係
-	FVector GoalPosition = FVector(0.f, 0.f, 0.f);	//敵の移動先座標
+	FVector GoalPosition = FVector(0, 0, 0);	//敵の移動先座標
 
 	//☆関数宣言
 	//Tickでの処理
@@ -104,11 +104,11 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	//Setter関数
-	void SetHP(float HPValue);									//HPの設定用関数
-	void SetAttackUpToTime(int SetTime);						//攻撃までの時間設定用関数
-	void SetGoalPosition(float SetX, float SetY, float SetZ);	//目標座標の設定用関数
-	void SetMoveTime(int SetTime);								//移動時間の設定用
+	void SetHP(float HPValue);										//HPの設定用関数
+	void SetAttackUpToTime(int SetTime);							//攻撃までの時間設定用関数
+	void SetGoalPosition(double SetX, double SetY, double SetZ);	//目標座標の設定用関数
+	void SetMoveTime(int SetTime);									//移動時間の設定用
 
 	UFUNCTION(BlueprintCallable, Category = "Enemy")
-	void SetInitialData(float HP, int AttackUpToTimeValue, float GoalX, float GoalY, float GoalZ, int MoveTimeValue); //生成されたときの設定用関数
+	void SetInitialData(float HP, int AttackUpToTimeValue, double GoalX, double GoalY, double GoalZ, int MoveTimeValue); //生成されたときの設定用関数
 };

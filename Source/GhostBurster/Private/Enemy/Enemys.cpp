@@ -101,7 +101,7 @@ void AEnemys::SetAttackUpToTime(int SetTime)
 }
 
 //目標座標の設定用関数
-void AEnemys::SetGoalPosition(float SetX, float SetY, float SetZ)
+void AEnemys::SetGoalPosition(double SetX, double SetY, double SetZ)
 {
 	this->GoalPosition = FVector(SetX, SetY, SetZ);
 }
@@ -113,7 +113,7 @@ void AEnemys::SetMoveTime(int SetTime)
 }
 
 //生成されたときの設定用関数
-void AEnemys::SetInitialData(float HP, int AttackUpToTimeValue, float GoalX, float GoalY, float GoalZ, int MoveTimeValue)
+void AEnemys::SetInitialData(float HP, int AttackUpToTimeValue, double GoalX, double GoalY, double GoalZ, int MoveTimeValue)
 {
 	this->SetHP(HP);
 	this->SetAttackUpToTime(AttackUpToTimeValue);

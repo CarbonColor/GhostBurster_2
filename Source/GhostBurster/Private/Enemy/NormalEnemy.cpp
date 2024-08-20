@@ -77,7 +77,7 @@ void ANormalEnemy::Think()
 
 	switch (nowState)
 	{
-	case State::Stand:	//—§‚Á‚Ä‚¢‚é
+	case State::Wait:	//‘Ò‹@
 		if (MoveCount >= 60 * 1 * Gamefps / 60) { nowState = State::Attack; }
 		if (Status.HP <= 0) { nowState = State::Die; }
 		break;
@@ -88,7 +88,7 @@ void ANormalEnemy::Think()
 		break;
 
 	case State::Attack:	//UŒ‚
-		if (MoveCount >= 60 * Gamefps / 60) { nowState = State::Stand; }
+		if (MoveCount >= 60 * Gamefps / 60) { nowState = State::Wait; }
 		if (Status.HP <= 0) { nowState = State::Die; }
 		break;
 	}
@@ -101,7 +101,7 @@ void ANormalEnemy::Move()
 {
 	switch (state)
 	{
-	case State::Stand:	//—§‚Á‚Ä‚¢‚é		
+	case State::Wait:	//—§‚Á‚Ä‚¢‚é		
 		break;
 
 	case State::Move:	//“®‚­
