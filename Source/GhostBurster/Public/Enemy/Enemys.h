@@ -32,14 +32,6 @@ protected:
 	};
 	FStatus Status;
 
-	//座標
-	struct FPosition
-	{
-		float GoalX = 0;
-		float GoalY = 0;
-		float GoalZ = 0;
-	};
-	FPosition Position;
 	//☆列挙型
 	//敵の状態
 	enum class State
@@ -73,10 +65,20 @@ protected:
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<USphereComponent> GhostCollision;
 
-	int MoveCount = 0;			//ゴーストの行動制御用のカウント
-	int Gamefps = 60;			//ゲームのfps数値を設定
-	int AttackUpToTime = 15;	//ゴーストの攻撃までの時間
-	int MoveTime = 0;			//ゴーストの移動にかかる時間
+	//ゴーストの行動制御用のカウント
+	int MoveCount = 0;
+
+	//ゲームのfps数値を設定
+	int Gamefps = 60;
+
+	//ゴーストの攻撃までの時間
+	int AttackUpToTime = 15;
+
+	//ゴーストの移動にかかる時間
+	int MoveTime = 0;
+
+	//移動関係
+	FVector GoalPosition = FVector(0.f, 0.f, 0.f);	//敵の移動先座標
 
 	//☆関数宣言
 	//Tickでの処理

@@ -103,9 +103,7 @@ void AEnemys::SetAttackUpToTime(int SetTime)
 //目標座標の設定用関数
 void AEnemys::SetGoalPosition(float SetX, float SetY, float SetZ)
 {
-	this->Position.GoalX = SetX;
-	this->Position.GoalY = SetY;
-	this->Position.GoalZ = SetZ;
+	this->GoalPosition = FVector(SetX, SetY, SetZ);
 }
 
 //移動時間の設定用
