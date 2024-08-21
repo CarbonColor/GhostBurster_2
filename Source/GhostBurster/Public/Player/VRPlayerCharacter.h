@@ -136,6 +136,10 @@ public:
 	UFUNCTION()
 		void OnConeEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
+	//アイテムの個数を増やす処理
+	UFUNCTION(BlueprintCallable)
+		void AddItem();
+
 	//オバケからの攻撃(インターフェース)
 	virtual void RecievePlayerDamage() override;
 
