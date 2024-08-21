@@ -63,7 +63,7 @@ void ABlueEnemy::TickProcess()
 	//エネミーの状態判断
 	Think();
 	//状態に基づいた動き
-	Move();
+	ActProcess();
 }
 
 //エネミーの状態判断
@@ -73,12 +73,12 @@ void ABlueEnemy::Think()
 	switch (nowState)
 	{
 	case State::Wait:	//立っている
-		if (MoveCount >= 60 * Gamefps / 60) { nowState = State::Attack; }
+		if (MoveCount >= 60 * Gamefps / 60) { nowState = State::Move; }
 		if (Status.HP <= 0) { nowState = State::Die; }
 		break;
 
 	case State::Move:	//動く
-		if (MoveCount >= 60 * 5 * Gamefps / 60) { nowState = State::Attack; }
+		if (this->bHasEndedMoving) { nowState = State::Attack; }
 		if (Status.HP <= 0) { nowState = State::Die; }
 		break;
 
@@ -92,7 +92,7 @@ void ABlueEnemy::Think()
 }
 
 //状態に基づいた動きをする
-void ABlueEnemy::Move()
+void ABlueEnemy::ActProcess()
 {
 	switch (state)
 	{
@@ -100,6 +100,14 @@ void ABlueEnemy::Move()
 		break;
 
 	case State::Move:	//動く
+		//状態Move遷移時にのみ行う処理
+		if (MoveCount == 0)
+		{
+			ProcessJustForFirst_Move();
+		}
+
+		//移動処理(移動処理が終わったら状態遷移する)
+		this->bHasEndedMoving = Move();
 		break;
 
 	case State::Attack:	//攻撃
@@ -123,4 +131,62 @@ void ABlueEnemy::RecieveEnemyDamage(int DamageAmount, EFlashlight_Color Color)
 	{
 		Status.HP -= DamageAmount;
 	}
+}
+
+//状態Move遷移時にのみ行う処理
+void ABlueEnemy::ProcessJustForFirst_Move()
+{
+	// 初期位置の設定
+	CurrentLocation = GetActorLocation();
+
+	// 方向ベクトルの計算
+	Direction = (GoalLocation - CurrentLocation).GetSafeNormal();
+
+	// 総移動距離の計算
+	TotalDistance = FVector::Dist(CurrentLocation, GoalLocation);
+}
+
+//移動処理
+bool ABlueEnemy::Move()
+{
+	//DeltaTimeの取得
+	float DeltaTime = GetWorld()->GetDeltaSeconds();
+
+	//目的地までの残り距離を計算
+	float RemainingDistance = TotalDistance - TraveledDistance;
+
+	//現在の速度での移動距離を計算
+	float DeltaDistance = Speed * DeltaTime;
+
+	//目的地に近づきすぎたら、残りの距離だけ進むように調整
+	if (DeltaDistance >= RemainingDistance)
+	{
+		DeltaDistance = RemainingDistance;
+		TraveledDistance = TotalDistance;
+	}
+	else
+	{
+		TraveledDistance += DeltaDistance;
+	}
+
+	//正弦波に基づいてオフセットを計算(目的地に瞬間移動して着かないように調整する計算)
+	float Offset_Z = Amplitude * FMath::Sin(2.0f * PI * (TraveledDistance / TotalDistance));
+
+	// 新しい位置を計算
+	FVector NewLocation = CurrentLocation + (Direction * TraveledDistance);
+	NewLocation.Z += Offset_Z;
+
+	// 新しい位置に移動
+	SetActorLocation(NewLocation);
+
+	// 目的地に到達したら処理を終了
+	if (TraveledDistance >= TotalDistance)
+	{
+		SetActorLocation(GoalLocation);
+
+		//状態遷移できるようにする
+		return true;
+	}
+
+	return false;
 }
