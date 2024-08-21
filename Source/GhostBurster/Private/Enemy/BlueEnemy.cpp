@@ -3,6 +3,8 @@
 
 #include "Enemy/BlueEnemy.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Player/VRPlayerCharacter.h"
+#include "Kismet/GameplayStatics.h"
 
 ABlueEnemy::ABlueEnemy()
 {
@@ -73,19 +75,19 @@ void ABlueEnemy::Think()
 	State nowState = state;
 	switch (nowState)
 	{
-	case State::Wait:	//—§‚Á‚Ä‚¢‚é
-		if (MoveCount >= 60 * Gamefps / 60) { nowState = State::Move; }
-		if (Status.HP <= 0) { nowState = State::Die; }
+	case State::Wait:	//‘Ò‹@
+		if (MoveCount >= 60 * 3 * Gamefps / 60) { nowState = State::Attack; }	// UŒ‚‚Ö
+		if (Status.HP <= 0) { nowState = State::Die; }							// €–S‚Ö
 		break;
 
-	case State::Move:	//“®‚­
-		if (this->bHasEndedMoving) { nowState = State::Attack; }
-		if (Status.HP <= 0) { nowState = State::Die; }
+	case State::Move:	//ˆÚ“®
+		if (this->bHasEndedMoving) { nowState = State::Wait; }	// ‘Ò‹@‚Ö
+		if (Status.HP <= 0) { nowState = State::Die; }			// €–S‚Ö
 		break;
 
 	case State::Attack:	//UŒ‚
-		if (MoveCount >= 60 * Gamefps / 60) { nowState = State::Wait; }
-		if (Status.HP <= 0) { nowState = State::Die; }
+		if (this->bHasEndedAttack) { nowState = State::Wait; }	// ‘Ò‹@‚Ö
+		if (Status.HP <= 0) { nowState = State::Die; }			// €–S‚Ö
 		break;
 	}
 
@@ -112,11 +114,8 @@ void ABlueEnemy::ActProcess()
 		break;
 
 	case State::Attack:	//UŒ‚
-		if (MoveCount == AttackUpToTime * Gamefps / 60) //15‚Ì•”•ª‚ÍUŒ‚ƒ‚[ƒVƒ‡ƒ“‚É‡‚í‚¹‚Ä•ÏX‚·‚é
-		{
-			//UŒ‚‚·‚é
-			UKismetSystemLibrary::PrintString(this, TEXT("BlueEnemy Attack!"), true, true, FColor::Blue, 2.f, TEXT("None"));
-		}
+		//UŒ‚ˆ—
+		this->bHasEndedAttack = this->Attack();
 		break;
 
 	case State::Die:
@@ -189,6 +188,31 @@ bool ABlueEnemy::Move()
 		SetActorLocation(GoalLocation);
 
 		//ó‘Ô‘JˆÚ‚Å‚«‚é‚æ‚¤‚É‚·‚é
+		return true;
+	}
+
+	return false;
+}
+
+//UŒ‚ˆ—
+bool ABlueEnemy::Attack()
+{
+	//UŒ‚”»’è
+	if (MoveCount == (int)(AttackUpToTime * Gamefps / 60)) //15‚Ì•”•ª‚ÍUŒ‚ƒ‚[ƒVƒ‡ƒ“‚É‡‚í‚¹‚Ä•ÏX‚·‚é
+	{
+		UKismetSystemLibrary::PrintString(this, TEXT("BlueEnemy Attack!"), true, true, FColor::Blue, 2.f, TEXT("None"));
+
+		//ƒvƒŒƒCƒ„[‚Öƒ_ƒ[ƒW‚ğ—^‚¦‚é
+		//ƒvƒŒƒCƒ„[‚Ìî•ñæ“¾
+		AVRPlayerCharacter* Player = Cast<AVRPlayerCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
+		if (Player)
+		{
+			Player->RecievePlayerDamage();
+		}
+	}
+	//UŒ‚I—¹
+	else if (MoveCount == (int)(TimeUpToAttackEnd * Gamefps / 60))
+	{
 		return true;
 	}
 

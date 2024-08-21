@@ -26,11 +26,10 @@ class GHOSTBURSTER_API ABlueEnemy : public AEnemys
 	virtual void ActProcess() override;
 
 	//ˆÚ“®ŠÖŒW
-	//ó‘ÔMove‘JˆÚ‚É‚Ì‚İs‚¤ˆ—
-	virtual void ProcessJustForFirst_Move() override;
+	virtual void ProcessJustForFirst_Move() override;	// ó‘ÔMove‘JˆÚ‚É‚Ì‚İs‚¤ˆ—
+	virtual bool Move() override;						// ˆÚ“®ˆ—
 
-	//ˆÚ“®
-	virtual bool Move() override;
+	virtual bool Attack() override;	// UŒ‚ˆ—
 
 protected:
 	virtual void BeginPlay() override;
