@@ -144,6 +144,9 @@ void ARedEnemy::ProcessJustForFirst_Move()
 
 	// 総移動距離の計算
 	TotalDistance = FVector::Dist(CurrentLocation, GoalLocation);
+
+	// 目的地に着くまでの時間に合うように速度を計算
+	Speed = TotalDistance / this->MoveTime;
 }
 
 //移動処理

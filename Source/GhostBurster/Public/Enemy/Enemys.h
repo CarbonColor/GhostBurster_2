@@ -74,11 +74,8 @@ protected:
 	//ゴーストの攻撃までの時間
 	int AttackUpToTime = 15;
 
-	//ゴーストの移動にかかる時間
-	int MoveTime = 0;
-
 	//移動関係
-	//移動関係
+	int MoveTime = 1;							// ゴーストの移動にかかる時間
 	FVector CurrentLocation = FVector(0, 0, 0);	// 敵の現在の座標
 	FVector GoalLocation = FVector(0, 0, 0);	// 敵の移動先座標
 	bool	bHasEndedMoving = false;			// 移動が終了したか
