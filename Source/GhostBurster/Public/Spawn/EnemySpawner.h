@@ -38,7 +38,6 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "Enemy Spawning")
     void LoadSpawnInfoFromCSV(const FString& FilePath);
-
 private:
     TArray<FEnemySpawnInfo> ParseCSV(const FString& FilePath);
     TArray<FEnemySpawnInfo> SpawnInfoArray;
