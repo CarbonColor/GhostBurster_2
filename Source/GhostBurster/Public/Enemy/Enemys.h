@@ -85,13 +85,9 @@ protected:
 	FVector Direction = FVector(0, 0, 0);		// GoalLocationへ向かう単位ベクトル
 	float TotalDistance = 0.f;					// 開始位置から目的地までの直線距離
 	float TraveledDistance = 0.f;				// これまでに進んだ距離
-
-	UPROPERTY(EditAnywhere, Category = "Sine Movement")
-	float Amplitude = 40.0f;	// 振幅
-	UPROPERTY(EditAnywhere, Category = "Sine Movement")
-	float Frequency = 1.0f;		// 波の速さ
-	UPROPERTY(EditAnywhere, Category = "Sine Movement")
-	float Speed = 80.0f;		// 目的地までの移動速度
+	float Amplitude = 40.0f;					// 振幅
+	float Frequency = 1.0f;						// 波の速さ
+	float Speed = 80.0f;						// 目的地までの移動速度
 
 	//☆関数宣言
 	//Tickでの処理
