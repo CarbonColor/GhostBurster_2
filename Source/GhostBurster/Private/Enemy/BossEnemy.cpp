@@ -65,7 +65,7 @@ void ABossEnemy::TickProcess()
 	//エネミーの状態判断
 	Think();
 	//状態に基づいた動き
-	Move();
+	ActProcess();
 }
 
 //エネミーの状態判断
@@ -94,7 +94,7 @@ void ABossEnemy::Think()
 }
 
 //状態に基づいた動きをする
-void ABossEnemy::Move()
+void ABossEnemy::ActProcess()
 {
 	switch (state)
 	{

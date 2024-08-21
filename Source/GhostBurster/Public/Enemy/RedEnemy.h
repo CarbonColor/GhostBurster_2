@@ -23,7 +23,14 @@ class GHOSTBURSTER_API ARedEnemy : public AEnemys
 	virtual void Think() override;
 
 	//ó‘Ô‚ÉŠî‚Ã‚¢‚½“®‚«‚ğ‚·‚é
-	virtual void Move() override;
+	virtual void ActProcess() override;
+
+	//ˆÚ“®ŠÖŒW
+	//ó‘ÔMove‘JˆÚ‚É‚Ì‚İs‚¤ˆ—
+	virtual void ProcessJustForFirst_Move() override;
+
+	//ˆÚ“®
+	virtual bool Move() override;
 
 protected:
 	virtual void BeginPlay() override;
