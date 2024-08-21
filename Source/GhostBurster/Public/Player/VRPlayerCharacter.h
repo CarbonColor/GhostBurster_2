@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
+#include "GameFramework/SpringArmComponent.h"
 #include "TimerManager.h"
 #include "Flashlight_Enumeration.h"
 #include "Components/BoxComponent.h"
@@ -115,6 +116,19 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 		TObjectPtr<UCameraComponent> CameraComponent;
 
+	//プレイヤーUI
+	UPROPERTY(EditAnywhere, Category = "UI")
+		TObjectPtr<UWidgetComponent> PlayerStatusWidgetComponent;
+
+	// パラメーター系統
+	UPROPERTY(EditAnywhere, Category = "Mesh Parameter")
+		FVector FlashlightMeshLocation;
+
+	UPROPERTY(EditAnywhere, Category = "Mesh Parameter")
+		FRotator FlashlightMeshRotation;
+
+	UPROPERTY(EditAnywhere, Category = "Mesh Parameter")
+		FVector FlashlightMeshScale;
 
 	//ライトのコリジョンとの当たり判定
 	UFUNCTION()
@@ -155,13 +169,14 @@ private:
 	UPROPERTY(VisibleAnywhere)
 		TObjectPtr<USceneComponent> VRRoot;
 
+	////スプリングアームコンポーネント
+	//UPROPERTY(VisibleAnywhere)
+	//	TObjectPtr<USpringArmComponent> SpringArmComponent;
+
 	//スポットライトコンポーネント
 	UPROPERTY(VisibleAnywhere)
 		TObjectPtr<USpotLightComponent> Flashlight;
 
-	//プレイヤーUI
-	UPROPERTY(VisibleAnywhere, Category = "UI")
-		TObjectPtr<UWidgetComponent> PlayerStatusWidgetComponent;
 	UPROPERTY()
 		TObjectPtr<UUserWidget> PlayerStatusWidget;
 
