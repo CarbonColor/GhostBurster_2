@@ -33,15 +33,16 @@ ARedEnemy::ARedEnemy()
 	GhostCollision = CreateDefaultSubobject<USphereComponent>(TEXT("GhostCollision"));
 	//GhostCollisionをルートコンポーネントにアタッチする
 	GhostCollision->SetupAttachment(RootComponent);
+
+	//☆赤の敵の設定
+	this->Status.HP = 100;
+	this->enemyColor = EnemyColor::Red;
 }
 
 void ARedEnemy::BeginPlay()
 {
 	Super::BeginPlay();
 
-	//緑の敵の設定
-	this->Status.HP = 100;
-	this->enemyColor = EnemyColor::Red;
 }
 
 void ARedEnemy::Tick(float DeltaTime)

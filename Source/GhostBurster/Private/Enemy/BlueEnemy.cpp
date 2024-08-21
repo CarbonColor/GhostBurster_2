@@ -33,15 +33,16 @@ ABlueEnemy::ABlueEnemy()
 	GhostCollision = CreateDefaultSubobject<USphereComponent>(TEXT("GhostCollision"));
 	//GhostCollisionをルートコンポーネントにアタッチする
 	GhostCollision->SetupAttachment(RootComponent);
+
+	//青の敵の設定
+	this->Status.HP = 100;
+	this->enemyColor = EnemyColor::Blue;
 }
 
 void ABlueEnemy::BeginPlay()
 {
 	Super::BeginPlay();
 
-	//緑の敵の設定
-	this->Status.HP = 100;
-	this->enemyColor = EnemyColor::Blue;
 }
 
 void ABlueEnemy::Tick(float DeltaTime)

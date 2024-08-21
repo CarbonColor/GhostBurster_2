@@ -35,16 +35,17 @@ ANormalEnemy::ANormalEnemy()
 	GhostCollision = CreateDefaultSubobject<USphereComponent>(TEXT("GhostCollision"));
 	//GhostCollisionをルートコンポーネントにアタッチする
 	GhostCollision->SetupAttachment(RootComponent);
+
+	//☆白い敵の設定
+	this->Status.HP = 100;
+	this->enemyColor = EnemyColor::White;
 }
 
 // Called when the game starts or when spawned
 void ANormalEnemy::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	//白い敵の設定
-	this->Status.HP = 100;
-	this->enemyColor = EnemyColor::White;
+
 }
 
 // Called every frame
