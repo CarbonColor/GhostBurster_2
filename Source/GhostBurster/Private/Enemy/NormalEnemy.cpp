@@ -3,6 +3,8 @@
 
 #include "Enemy/NormalEnemy.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Player/VRPlayerCharacter.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 ANormalEnemy::ANormalEnemy()
@@ -35,16 +37,17 @@ ANormalEnemy::ANormalEnemy()
 	GhostCollision = CreateDefaultSubobject<USphereComponent>(TEXT("GhostCollision"));
 	//GhostCollisionをルートコンポーネントにアタッチする
 	GhostCollision->SetupAttachment(RootComponent);
+
+	//☆白い敵の設定
+	this->Status.HP = 100;
+	this->enemyColor = EnemyColor::White;
 }
 
 // Called when the game starts or when spawned
 void ANormalEnemy::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	//白い敵の設定
-	this->Status.HP = 100;
-	this->enemyColor = EnemyColor::White;
+
 }
 
 // Called every frame
@@ -78,18 +81,18 @@ void ANormalEnemy::Think()
 	switch (nowState)
 	{
 	case State::Wait:	//待機
-		if (MoveCount >= 60 * Gamefps / 60) { nowState = State::Move; }
-		if (Status.HP <= 0) { nowState = State::Die; }
+		if (MoveCount >= 60 * 3 * Gamefps / 60) { nowState = State::Attack; }	// 攻撃へ
+		if (Status.HP <= 0) { nowState = State::Die; }							// 死亡へ
 		break;
 
-	case State::Move:	//動く
-		if (this->bHasEndedMoving) { nowState = State::Attack; }
-		if (Status.HP <= 0) { nowState = State::Die; }
+	case State::Move:	//移動
+		if (this->bHasEndedMoving) { nowState = State::Wait; }	// 待機へ
+		if (Status.HP <= 0) { nowState = State::Die; }			// 死亡へ
 		break;
 
 	case State::Attack:	//攻撃
-		if (MoveCount >= 60 * Gamefps / 60) { nowState = State::Wait; }
-		if (Status.HP <= 0) { nowState = State::Die; }
+		if (this->bHasEndedAttack) { nowState = State::Wait; }	// 待機へ
+		if (Status.HP <= 0) { nowState = State::Die; }			// 死亡へ
 		break;
 	}
 
@@ -116,11 +119,8 @@ void ANormalEnemy::ActProcess()
 		break;
 
 	case State::Attack:	//攻撃
-		if (MoveCount == AttackUpToTime * Gamefps / 60) //15の部分は攻撃モーションに合わせて変更する
-		{
-			//攻撃する
-			UKismetSystemLibrary::PrintString(this, TEXT("WhiteEnemy Attack!"), true, true, FColor::White, 2.f, TEXT("None"));
-		}
+		//攻撃処理
+		this->bHasEndedAttack = this->Attack();
 		break;
 
 	case State::Die:
@@ -149,6 +149,9 @@ void ANormalEnemy::ProcessJustForFirst_Move()
 
 	// 総移動距離の計算
 	TotalDistance = FVector::Dist(CurrentLocation, GoalLocation);
+
+	// 目的地に着くまでの時間に合うように速度を計算
+	Speed = TotalDistance / this->MoveTime;
 }
 
 //移動処理
@@ -190,6 +193,31 @@ bool ANormalEnemy::Move()
 		SetActorLocation(GoalLocation);
 
 		//状態遷移できるようにする
+		return true;
+	}
+
+	return false;
+}
+
+//攻撃処理
+bool ANormalEnemy::Attack()
+{
+	//攻撃判定
+	if (MoveCount == (int)(AttackUpToTime * Gamefps / 60)) //15の部分は攻撃モーションに合わせて変更する
+	{
+		UKismetSystemLibrary::PrintString(this, TEXT("WhiteEnemy Attack!"), true, true, FColor::White, 2.f, TEXT("None"));
+
+		//プレイヤーへダメージを与える
+		//プレイヤーの情報取得
+		AVRPlayerCharacter* Player = Cast<AVRPlayerCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
+		if (Player)
+		{
+			Player->RecievePlayerDamage();
+		}
+	}
+	//攻撃終了
+	else if (MoveCount == (int)(TimeUpToAttackEnd * Gamefps / 60))
+	{
 		return true;
 	}
 

@@ -71,14 +71,8 @@ protected:
 	//ゲームのfps数値を設定
 	int Gamefps = 60;
 
-	//ゴーストの攻撃までの時間
-	int AttackUpToTime = 15;
-
-	//ゴーストの移動にかかる時間
-	int MoveTime = 0;
-
 	//移動関係
-	//移動関係
+	int MoveTime = 1;							// ゴーストの移動にかかる時間
 	FVector CurrentLocation = FVector(0, 0, 0);	// 敵の現在の座標
 	FVector GoalLocation = FVector(0, 0, 0);	// 敵の移動先座標
 	bool	bHasEndedMoving = false;			// 移動が終了したか
@@ -88,6 +82,11 @@ protected:
 	float Amplitude = 40.0f;					// 振幅
 	float Frequency = 1.0f;						// 波の速さ
 	float Speed = 80.0f;						// 目的地までの移動速度
+
+	//攻撃関係
+	bool  bHasEndedAttack = false;					// 攻撃が終了したか
+	float AttackUpToTime = 0.f;						// ゴーストの攻撃までの時間(フレーム)
+	float TimeUpToAttackEnd = AttackUpToTime + 1.f;	// 攻撃状態が終了するタイミング
 
 	//☆関数宣言
 	//Tickでの処理
@@ -109,11 +108,11 @@ protected:
 	float GetWorldFPS();
 
 	//状態：Moveで使う関数
-	//状態Move遷移時にのみ行う処理
-	virtual void ProcessJustForFirst_Move() PURE_VIRTUAL(AEnemys::ProcessJustForFirst_Move, );
+	virtual void ProcessJustForFirst_Move() PURE_VIRTUAL(AEnemys::ProcessJustForFirst_Move, );	// 状態Move遷移時にのみ行う処理
+	virtual bool Move() PURE_VIRTUAL(AEnemys::Move, return 0;);									// 移動処理
 
-	//移動
-	virtual bool Move() PURE_VIRTUAL(AEnemys::Move, return 0;);
+	//状態：Attackで使う関数
+	virtual bool Attack() PURE_VIRTUAL(AEnemys::Move, return false;);	// 攻撃処理
 
 public:	
 	// Called every frame
