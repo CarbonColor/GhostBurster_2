@@ -32,6 +32,20 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
     CameraComponent->SetupAttachment(VRRoot);
 
+    ////スプリングアームコンポーネントの作成
+    //SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComponent"));
+    //SpringArmComponent->SetupAttachment(CameraComponent);
+    //SpringArmComponent->TargetArmLength = -200.0f;           //カメラからの距離
+    //SpringArmComponent->bUsePawnControlRotation = true;     //カメラの回転を追従
+
+    //ウィジェットコンポーネントの作成
+    PlayerStatusWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("PlayerStatusWidgetComponent"));
+    PlayerStatusWidgetComponent->SetupAttachment(CameraComponent);
+    //ウィジェットの設定
+    UClass* WidgetClass = LoadObject<UClass>(nullptr, TEXT("/Game/_TeamFolder/UI/UI_PlayerStatus.UI_PlayerStatus_C"));
+    PlayerStatusWidgetComponent->SetWidgetClass(WidgetClass);
+    PlayerStatusWidgetComponent->SetWidgetSpace(EWidgetSpace::World);
+
     // モーションコントローラーコンポーネント(右手)を作る
     MotionController_Right = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("MotionController_Right"));
     // VRRootコンポーネントにアタッチする
@@ -58,9 +72,9 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     // メッシュの当たり判定をなくす
     FlashlightMesh->SetCollisionProfileName(TEXT("NoCollision"));
     // 位置・サイズ・向きの調整をする
-    FlashlightMesh->SetRelativeLocation(FVector(50.0f, 0.0f, 0.0f));
-    FlashlightMesh->SetRelativeRotation(FRotator(-90.0f, 0.0f, 0.0f));  // ※ FRotator は (Y, Z, X) の順
-    FlashlightMesh->SetRelativeScale3D(FVector(3.0f, 3.0f, 3.0f));
+    FlashlightMesh->SetRelativeLocation(FlashlightMeshLocation);
+    FlashlightMesh->SetRelativeRotation(FlashlightMeshRotation);  // ※ FRotator は (Y, Z, X) の順
+    FlashlightMesh->SetRelativeScale3D(FlashlightMeshScale);
 
     //ボックスコリジョンを作る
     PlayerCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("PlayerCollision"));
@@ -121,14 +135,6 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     UHapticFeedbackEffect_Base* Haptic_PD = LoadObject<UHapticFeedbackEffect_Base>(nullptr, TEXT("/Game/_TeamFolder/Player/Input/PlayerDamage"));
     HapticEffect_PlayerDamage = Haptic_PD;
 
-    //ウィジェットコンポーネントの作成
-    PlayerStatusWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("PlayerStatusWidgetComponent"));
-    PlayerStatusWidgetComponent->SetupAttachment(CameraComponent);
-    //ウィジェットの設定
-    UClass* WidgetClass = LoadObject<UClass>(nullptr, TEXT("/Game/_TeamFolder/UI/UI_PlayerStatus.UI_PlayerStatus_C"));
-    PlayerStatusWidgetComponent->SetWidgetClass(WidgetClass);
-    PlayerStatusWidgetComponent->SetWidgetSpace(EWidgetSpace::World);
-
     //デバッグ
     DebugTimer = 0;
 }
@@ -151,38 +157,6 @@ void AVRPlayerCharacter::BeginPlay()
     UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer());
     Subsystem->AddMappingContext(IMC_Flashlight, 0);
 
-    // nullチェック用
-    /*
-    if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
-    {
-        if (!PlayerController)
-        {
-            UE_LOG(LogTemp, Warning, TEXT("PlayerController is null"));
-        }
-
-        // マッピングコンテキストのセット
-        if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
-        {
-            if (!Subsystem)
-            {
-                UE_LOG(LogTemp, Warning, TEXT("Subsystem is null"));
-            }
-            else
-            {
-                Subsystem->AddMappingContext(IMC_Flashlight, 0);
-                GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, TEXT("InputMappingContext"));
-            }
-        }
-        else
-        {
-            UE_LOG(LogTemp, Warning, TEXT("EnhancedInputLocalPlayerSubsystem is null"));
-        }
-    }
-    else
-    {
-        UE_LOG(LogTemp, Warning, TEXT("Controller is not a PlayerController"));
-    }
-    */ 
 
     // Widgetの表示
     PlayerStatusWidgetComponent->InitWidget();
