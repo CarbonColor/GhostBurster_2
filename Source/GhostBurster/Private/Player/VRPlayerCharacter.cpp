@@ -279,7 +279,7 @@ void AVRPlayerCharacter::ToggleFlashlight(const FInputActionValue& value)
 
     if (bIsPressed && CanToggleLight)
     {
-        GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, TEXT("Light ON/OFF"));
+        //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, TEXT("Light ON/OFF"));
         Flashlight->ToggleVisibility();
         //ライトの電源変更後、ONになったなら
         if (Flashlight->GetVisibleFlag())
@@ -341,7 +341,7 @@ void AVRPlayerCharacter::ChangeColorFlashlight(const FInputActionValue& value)
         // ライトの色を変更
         SettingFlashlightColor();
 
-        GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, TEXT("Light ChangeColor"));
+        //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, TEXT("Light ChangeColor"));
     }
 }
 
@@ -371,7 +371,7 @@ void AVRPlayerCharacter::SettingFlashlightColor()
 //当たり判定のメソッド
 void AVRPlayerCharacter::OnConeBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-    //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Light BeginOverlap Called"));
+    //GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Cyan, FString::Printf(TEXT("Light BeginOverlap Called (%s)"), *OtherActor->GetActorNameOrLabel()));
 
     // 接触したアクターがオバケかどうか判定する
     if (const AEnemys* Enemy = Cast<AEnemys>(OtherActor))
@@ -385,10 +385,17 @@ void AVRPlayerCharacter::OnConeBeginOverlap(UPrimitiveComponent* OverlappedComp,
         //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Enemy is Overlapping"));
     }
 
-    // 接触したアクターが宝箱かどうか判定する
-
-
-
+    //// 接触したアクターが宝箱かどうか判定する
+    //if (OtherActor->ActorHasTag(FName("Treasure")))
+    //{
+    //    GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Cyan, TEXT("TreasureBox is Overlapping"));
+    //    //宝箱のカスタムイベントを呼び出す
+    //    FName CustomEventName = "GetTreasure";
+    //    OtherActor->CallFunctionByNameWithArguments(*CustomEventName.ToString(), *GLog, nullptr, true);
+    //    //アイテム数を増やしてUIを更新
+    //    Item++;
+    //    UpdateItemUI();
+    //}
 }
 void AVRPlayerCharacter::OnConeEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
@@ -437,8 +444,6 @@ void AVRPlayerCharacter::NoDamageFunction()
 
 }
 
-
-
 //振動を開始するメソッド
 void AVRPlayerCharacter::StartHaptic_EnemyDamage()
 {
@@ -458,7 +463,6 @@ void AVRPlayerCharacter::StartHaptic_PlayerDamage()
         GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, TEXT("Device Vibration (Player)"));
     }
 }
-
 // 振動を停止するメソッド
 void AVRPlayerCharacter::StopHapticEffect()
 {
@@ -493,5 +497,10 @@ void AVRPlayerCharacter::UpdateScoreUI()
 {
     ScoreUI->SetText(FText::AsNumber(Score));
 }
-
+//アイテムを増やすメソッド
+void AVRPlayerCharacter::AddItem()
+{
+    Item++;
+    UpdateItemUI();
+}
 
