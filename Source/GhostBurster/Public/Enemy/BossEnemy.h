@@ -27,7 +27,7 @@ class GHOSTBURSTER_API ABossEnemy : public AEnemys
 
 	//ˆÚ“®ŠÖŒW
 	//ó‘ÔMove‘JˆÚ‚É‚Ì‚İs‚¤ˆ—
-	virtual void ProcessJustForFirst_Move() {}
+	virtual bool ProcessJustForFirst_Move() { return false; }
 
 	//ˆÚ“®
 	virtual bool Move() { return false; }

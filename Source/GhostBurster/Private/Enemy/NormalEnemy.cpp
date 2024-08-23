@@ -109,9 +109,9 @@ void ANormalEnemy::ActProcess()
 
 	case State::Move:	//動く
 		//状態Move遷移時にのみ行う処理
-		if (MoveCount == 0)
+		if (this->bShouldBeenProcessWhenFirstStateTransition == false)
 		{
-			ProcessJustForFirst_Move();
+			this->bShouldBeenProcessWhenFirstStateTransition = ProcessJustForFirst_Move();
 		}
 
 		//移動処理(移動処理が終わったら状態遷移する)
@@ -139,7 +139,7 @@ void ANormalEnemy::RecieveEnemyDamage(int DamageAmount, EFlashlight_Color Color)
 }
 
 //状態Move遷移時にのみ行う処理
-void ANormalEnemy::ProcessJustForFirst_Move()
+bool ANormalEnemy::ProcessJustForFirst_Move()
 {
 	// 初期位置の設定
 	CurrentLocation = GetActorLocation();
@@ -152,6 +152,9 @@ void ANormalEnemy::ProcessJustForFirst_Move()
 
 	// 目的地に着くまでの時間に合うように速度を計算
 	Speed = TotalDistance / this->MoveTime;
+
+	// 処理が終わったらtrueを返す
+	return true;
 }
 
 //移動処理
@@ -203,7 +206,7 @@ bool ANormalEnemy::Move()
 bool ANormalEnemy::Attack()
 {
 	//攻撃判定
-	if (MoveCount == (int)(AttackUpToTime * Gamefps / 60)) //15の部分は攻撃モーションに合わせて変更する
+	if (MoveCount == (int)(AttackUpToTime * Gamefps / 60)) //AttackUpToTimeの部分は攻撃モーションに合わせて変更する
 	{
 		UKismetSystemLibrary::PrintString(this, TEXT("WhiteEnemy Attack!"), true, true, FColor::White, 2.f, TEXT("None"));
 
