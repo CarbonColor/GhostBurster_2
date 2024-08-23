@@ -27,18 +27,6 @@ ANormalEnemy::ANormalEnemy()
 	//StaticMeshComponentをRootComponentにアタッチする
 	GhostMesh->SetupAttachment(RootComponent);
 
-	////☆マテリアル
-	////マテリアルをロード
-	//UMaterial* Material = LoadObject<UMaterial>(NULL, TEXT("/Game/_TeamFolder/Enemy/White"), NULL, LOAD_None, NULL);
-	//if (Material)
-	//{
-	//	//ダイナミックマテリアルインスタンスを作成
-	//	this->DynamicMaterial = UMaterialInstanceDynamic::Create(Material, this);
-
-	//	//GhostMeshにダイナミックマテリアルを設定
-	//	GhostMesh->SetMaterial(0, DynamicMaterial);
-	//}
-
 	//☆コリジョン
 	//スフィアコリジョンの作成
 	GhostCollision = CreateDefaultSubobject<USphereComponent>(TEXT("GhostCollision"));
@@ -65,6 +53,9 @@ void ANormalEnemy::BeginPlay()
 
 		//GhostMeshにダイナミックマテリアルを設定
 		GhostMesh->SetMaterial(0, DynamicMaterial);
+
+		//初期オパシティ値を設定
+		this->DynamicMaterial->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
 	}
 }
 
@@ -263,23 +254,23 @@ bool ANormalEnemy::Appear()
 	if (DynamicMaterial)
 	{
 		//オパシティの値を変更
-		this->OpacityValue += 1.f / TimeSpentInAppear * DeltaTime;
+		this->OpacityValue += 1.f / (float)TimeSpentInAppear * DeltaTime;
 
 		//出現が終わったら処理を終了する
-		if (OpacityValue >= 1.f)
+		if (this->OpacityValue >= 1.f)
 		{
 			//オパシティの値が1を超えないようにする
-			OpacityValue = 1.f;
+			this->OpacityValue = 1.f;
 
 			//オパシティを設定
-			DynamicMaterial->SetScalarParameterValue(FName("Opacity"), OpacityValue);
+			this->DynamicMaterial->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
 
 			//状態遷移可能にする
 			return true;
 		}
 
 		//オパシティを設定
-		DynamicMaterial->SetScalarParameterValue(FName("Opacity"), OpacityValue);
+		this->DynamicMaterial->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
 	}
 
 	return false;
