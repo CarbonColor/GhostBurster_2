@@ -35,6 +35,7 @@ void AEnemys::UpdateState(State nowState)
 	{
 		this->state = nowState;
 		this->MoveCount = 0;
+		this->bShouldBeenProcessWhenFirstStateTransition = false;
 	}
 }
 

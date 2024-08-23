@@ -36,12 +36,13 @@ protected:
 	//敵の状態
 	enum class State
 	{
-		Wait,
-		Move,
-		Attack,
-		Die,
+		Wait,	//待機
+		Move,	//移動
+		Attack,	//攻撃
+		Die,	//死亡
+		Appear,	//出現
 	};
-	State state = State::Wait;
+	State state = State::Appear;
 
 	enum class EnemyColor : uint8
 	{
@@ -65,28 +66,39 @@ protected:
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<USphereComponent> GhostCollision;
 
-	//ゴーストの行動制御用のカウント
+	//ダイナミックマテリアルの変数宣言
+	TObjectPtr<UMaterialInstanceDynamic> DynamicMaterial;
+
+	//敵の行動制御用のカウント
 	int MoveCount = 0;
 
 	//ゲームのfps数値を設定
 	int Gamefps = 60;
 
+	//敵が状態遷移したときに最初に行う処理を行ったらtrue
+	bool bShouldBeenProcessWhenFirstStateTransition = false;
+
 	//移動関係
-	int MoveTime = 1;							// ゴーストの移動にかかる時間
+	int		MoveTime = 1;						// ゴーストの移動にかかる時間
 	FVector CurrentLocation = FVector(0, 0, 0);	// 敵の現在の座標
 	FVector GoalLocation = FVector(0, 0, 0);	// 敵の移動先座標
 	bool	bHasEndedMoving = false;			// 移動が終了したか
 	FVector Direction = FVector(0, 0, 0);		// GoalLocationへ向かう単位ベクトル
-	float TotalDistance = 0.f;					// 開始位置から目的地までの直線距離
-	float TraveledDistance = 0.f;				// これまでに進んだ距離
-	float Amplitude = 40.0f;					// 振幅
-	float Frequency = 1.0f;						// 波の速さ
-	float Speed = 80.0f;						// 目的地までの移動速度
+	float	TotalDistance = 0.f;				// 開始位置から目的地までの直線距離
+	float	TraveledDistance = 0.f;				// これまでに進んだ距離
+	float	Amplitude = 40.0f;					// 振幅
+	float	Frequency = 1.0f;					// 波の速さ
+	float	Speed = 80.0f;						// 目的地までの移動速度
 
 	//攻撃関係
-	bool  bHasEndedAttack = false;					// 攻撃が終了したか
-	float AttackUpToTime = 0.f;						// ゴーストの攻撃までの時間(フレーム)
-	float TimeUpToAttackEnd = AttackUpToTime + 1.f;	// 攻撃状態が終了するタイミング
+	bool	bHasEndedAttack = false;					// 攻撃が終了したか
+	float	AttackUpToTime = 0.f;						// ゴーストの攻撃までの時間(フレーム)
+	float	TimeUpToAttackEnd = AttackUpToTime + 1.f;	// 攻撃状態が終了するタイミング
+
+	//出現関係
+	bool	bHasEndedAppear = false;	// 出現が終了したか
+	float	OpacityValue = 0.f;			// オパシティの値
+	int		TimeSpentInAppear = 1;		// 出現するのにかかる時間
 
 	//☆関数宣言
 	//Tickでの処理
@@ -108,11 +120,14 @@ protected:
 	float GetWorldFPS();
 
 	//状態：Moveで使う関数
-	virtual void ProcessJustForFirst_Move() PURE_VIRTUAL(AEnemys::ProcessJustForFirst_Move, );	// 状態Move遷移時にのみ行う処理
-	virtual bool Move() PURE_VIRTUAL(AEnemys::Move, return 0;);									// 移動処理
+	virtual bool ProcessJustForFirst_Move() PURE_VIRTUAL(AEnemys::ProcessJustForFirst_Move, return false;);	// 状態Move遷移時にのみ行う処理
+	virtual bool Move() PURE_VIRTUAL(AEnemys::Move, return false;);											// 移動処理
 
 	//状態：Attackで使う関数
 	virtual bool Attack() PURE_VIRTUAL(AEnemys::Move, return false;);	// 攻撃処理
+
+	//状態：Appearで使う関数
+	virtual bool Appear() PURE_VIRTUAL(AEnemys::Appear, return false;);	// 敵出現処理
 
 public:	
 	// Called every frame

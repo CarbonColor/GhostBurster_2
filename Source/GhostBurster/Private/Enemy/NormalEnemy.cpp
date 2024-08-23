@@ -27,20 +27,11 @@ ANormalEnemy::ANormalEnemy()
 	//StaticMeshComponentをRootComponentにアタッチする
 	GhostMesh->SetupAttachment(RootComponent);
 
-	//☆マテリアル
-	//マテリアルをロードしてGhostMeshに設定する
-	UMaterial* Material = LoadObject<UMaterial>(NULL, TEXT("/Game/_TeamFolder/Enemy/White"), NULL, LOAD_None, NULL);
-	GhostMesh->SetMaterial(0, Material);
-
 	//☆コリジョン
 	//スフィアコリジョンの作成
 	GhostCollision = CreateDefaultSubobject<USphereComponent>(TEXT("GhostCollision"));
 	//GhostCollisionをルートコンポーネントにアタッチする
 	GhostCollision->SetupAttachment(RootComponent);
-
-	//☆白い敵の設定
-	this->Status.HP = 100;
-	this->enemyColor = EnemyColor::White;
 }
 
 // Called when the game starts or when spawned
@@ -48,6 +39,24 @@ void ANormalEnemy::BeginPlay()
 {
 	Super::BeginPlay();
 
+	//☆白い敵の設定
+	this->Status.HP = 100;
+	this->enemyColor = EnemyColor::White;
+
+	//☆マテリアル
+	//マテリアルをロード
+	UMaterial* Material = LoadObject<UMaterial>(NULL, TEXT("/Game/_TeamFolder/Enemy/White"), NULL, LOAD_None, NULL);
+	if (Material)
+	{
+		//ダイナミックマテリアルインスタンスを作成
+		this->DynamicMaterial = UMaterialInstanceDynamic::Create(Material, this);
+
+		//GhostMeshにダイナミックマテリアルを設定
+		GhostMesh->SetMaterial(0, DynamicMaterial);
+
+		//初期オパシティ値を設定
+		this->DynamicMaterial->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
+	}
 }
 
 // Called every frame
@@ -94,6 +103,10 @@ void ANormalEnemy::Think()
 		if (this->bHasEndedAttack) { nowState = State::Wait; }	// 待機へ
 		if (Status.HP <= 0) { nowState = State::Die; }			// 死亡へ
 		break;
+
+	case State::Appear:	//出現
+		if (this->bHasEndedAppear) { nowState = State::Move; }	// 移動へ
+		break;
 	}
 
 	UpdateState(nowState);
@@ -104,14 +117,14 @@ void ANormalEnemy::ActProcess()
 {
 	switch (state)
 	{
-	case State::Wait:	//立っている		
+	case State::Wait:	//待機		
 		break;
 
-	case State::Move:	//動く
+	case State::Move:	//移動
 		//状態Move遷移時にのみ行う処理
-		if (MoveCount == 0)
+		if (this->bShouldBeenProcessWhenFirstStateTransition == false)
 		{
-			ProcessJustForFirst_Move();
+			this->bShouldBeenProcessWhenFirstStateTransition = ProcessJustForFirst_Move();
 		}
 
 		//移動処理(移動処理が終わったら状態遷移する)
@@ -123,8 +136,13 @@ void ANormalEnemy::ActProcess()
 		this->bHasEndedAttack = this->Attack();
 		break;
 
-	case State::Die:
+	case State::Die:	//死亡
 		EnemyDead();
+		break;
+
+	case State::Appear:	//出現
+		//出現処理
+		this->bHasEndedAppear = this->Appear();
 		break;
 	}
 }
@@ -139,7 +157,7 @@ void ANormalEnemy::RecieveEnemyDamage(int DamageAmount, EFlashlight_Color Color)
 }
 
 //状態Move遷移時にのみ行う処理
-void ANormalEnemy::ProcessJustForFirst_Move()
+bool ANormalEnemy::ProcessJustForFirst_Move()
 {
 	// 初期位置の設定
 	CurrentLocation = GetActorLocation();
@@ -152,6 +170,9 @@ void ANormalEnemy::ProcessJustForFirst_Move()
 
 	// 目的地に着くまでの時間に合うように速度を計算
 	Speed = TotalDistance / this->MoveTime;
+
+	// 処理が終わったらtrueを返す
+	return true;
 }
 
 //移動処理
@@ -203,7 +224,7 @@ bool ANormalEnemy::Move()
 bool ANormalEnemy::Attack()
 {
 	//攻撃判定
-	if (MoveCount == (int)(AttackUpToTime * Gamefps / 60)) //15の部分は攻撃モーションに合わせて変更する
+	if (MoveCount == (int)(AttackUpToTime * Gamefps / 60)) //AttackUpToTimeの部分は攻撃モーションに合わせて変更する
 	{
 		UKismetSystemLibrary::PrintString(this, TEXT("WhiteEnemy Attack!"), true, true, FColor::White, 2.f, TEXT("None"));
 
@@ -219,6 +240,37 @@ bool ANormalEnemy::Attack()
 	else if (MoveCount == (int)(TimeUpToAttackEnd * Gamefps / 60))
 	{
 		return true;
+	}
+
+	return false;
+}
+
+// 敵出現処理
+bool ANormalEnemy::Appear()
+{
+	//DeltaTimeの取得
+	float DeltaTime = GetWorld()->GetDeltaSeconds();
+
+	if (DynamicMaterial)
+	{
+		//オパシティの値を変更
+		this->OpacityValue += 1.f / (float)TimeSpentInAppear * DeltaTime;
+
+		//出現が終わったら処理を終了する
+		if (this->OpacityValue >= 1.f)
+		{
+			//オパシティの値が1を超えないようにする
+			this->OpacityValue = 1.f;
+
+			//オパシティを設定
+			this->DynamicMaterial->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
+
+			//状態遷移可能にする
+			return true;
+		}
+
+		//オパシティを設定
+		this->DynamicMaterial->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
 	}
 
 	return false;

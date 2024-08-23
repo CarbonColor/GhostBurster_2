@@ -26,11 +26,11 @@ class GHOSTBURSTER_API ABossEnemy : public AEnemys
 	virtual void ActProcess() override;
 
 	//ˆÚ“®ŠÖŒW
-	//ó‘ÔMove‘JˆÚ‚É‚Ì‚İs‚¤ˆ—
-	virtual void ProcessJustForFirst_Move() {}
+	virtual bool ProcessJustForFirst_Move() { return false; } // ó‘ÔMove‘JˆÚ‚É‚Ì‚İs‚¤ˆ—
+	virtual bool Move() { return false; } // ˆÚ“®
 
-	//ˆÚ“®
-	virtual bool Move() { return false; }
+	//oŒ»ŠÖŒW
+	virtual bool Appear() { return false; }	// “GoŒ»ˆ—
 
 protected:
 	virtual void BeginPlay() override;

@@ -35,16 +35,15 @@ ABlueEnemy::ABlueEnemy()
 	GhostCollision = CreateDefaultSubobject<USphereComponent>(TEXT("GhostCollision"));
 	//GhostCollisionをルートコンポーネントにアタッチする
 	GhostCollision->SetupAttachment(RootComponent);
-
-	//青の敵の設定
-	this->Status.HP = 100;
-	this->enemyColor = EnemyColor::Blue;
 }
 
 void ABlueEnemy::BeginPlay()
 {
 	Super::BeginPlay();
 
+	//青の敵の設定
+	this->Status.HP = 100;
+	this->enemyColor = EnemyColor::Blue;
 }
 
 void ABlueEnemy::Tick(float DeltaTime)
@@ -99,14 +98,14 @@ void ABlueEnemy::ActProcess()
 {
 	switch (state)
 	{
-	case State::Wait:	//立っている		
+	case State::Wait:	//待機		
 		break;
 
-	case State::Move:	//動く
+	case State::Move:	//移動
 		//状態Move遷移時にのみ行う処理
-		if (MoveCount == 0)
+		if (this->bShouldBeenProcessWhenFirstStateTransition == false)
 		{
-			ProcessJustForFirst_Move();
+			this->bShouldBeenProcessWhenFirstStateTransition = ProcessJustForFirst_Move();
 		}
 
 		//移動処理(移動処理が終わったら状態遷移する)
@@ -134,7 +133,7 @@ void ABlueEnemy::RecieveEnemyDamage(int DamageAmount, EFlashlight_Color Color)
 }
 
 //状態Move遷移時にのみ行う処理
-void ABlueEnemy::ProcessJustForFirst_Move()
+bool ABlueEnemy::ProcessJustForFirst_Move()
 {
 	// 初期位置の設定
 	CurrentLocation = GetActorLocation();
@@ -147,6 +146,9 @@ void ABlueEnemy::ProcessJustForFirst_Move()
 
 	// 目的地に着くまでの時間に合うように速度を計算
 	Speed = TotalDistance / this->MoveTime;
+
+	// 処理が終わったらtrueを返す
+	return true;
 }
 
 //移動処理
