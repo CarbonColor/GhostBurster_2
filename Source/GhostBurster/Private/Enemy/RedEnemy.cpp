@@ -35,16 +35,15 @@ ARedEnemy::ARedEnemy()
 	GhostCollision = CreateDefaultSubobject<USphereComponent>(TEXT("GhostCollision"));
 	//GhostCollisionをルートコンポーネントにアタッチする
 	GhostCollision->SetupAttachment(RootComponent);
-
-	//☆赤の敵の設定
-	this->Status.HP = 100;
-	this->enemyColor = EnemyColor::Red;
 }
 
 void ARedEnemy::BeginPlay()
 {
 	Super::BeginPlay();
 
+	//☆赤の敵の設定
+	this->Status.HP = 100;
+	this->enemyColor = EnemyColor::Red;
 }
 
 void ARedEnemy::Tick(float DeltaTime)
@@ -99,10 +98,10 @@ void ARedEnemy::ActProcess()
 {
 	switch (state)
 	{
-	case State::Wait:	//立っている		
+	case State::Wait:	//待機		
 		break;
 
-	case State::Move:	//動く
+	case State::Move:	//移動
 		//状態Move遷移時にのみ行う処理
 		if (this->bShouldBeenProcessWhenFirstStateTransition == false)
 		{

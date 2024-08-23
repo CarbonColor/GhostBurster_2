@@ -32,6 +32,9 @@ class GHOSTBURSTER_API ARedEnemy : public AEnemys
 	//UŒ‚ŠÖŒW
 	virtual bool Attack() override;	// UŒ‚ˆ—
 
+	//oŒ»ŠÖŒW
+	virtual bool Appear() { return false; }	// “GoŒ»ˆ—
+
 protected:
 	virtual void BeginPlay() override;
 

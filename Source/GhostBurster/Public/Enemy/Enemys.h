@@ -36,12 +36,13 @@ protected:
 	//敵の状態
 	enum class State
 	{
-		Wait,
-		Move,
-		Attack,
-		Die,
+		Wait,	//待機
+		Move,	//移動
+		Attack,	//攻撃
+		Die,	//死亡
+		Appear,	//出現
 	};
-	State state = State::Move;
+	State state = State::Appear;
 
 	enum class EnemyColor : uint8
 	{
@@ -65,6 +66,9 @@ protected:
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<USphereComponent> GhostCollision;
 
+	//ダイナミックマテリアルの変数宣言
+	TObjectPtr<UMaterialInstanceDynamic> DynamicMaterial;
+
 	//敵の行動制御用のカウント
 	int MoveCount = 0;
 
@@ -87,9 +91,14 @@ protected:
 	float	Speed = 80.0f;						// 目的地までの移動速度
 
 	//攻撃関係
-	bool  bHasEndedAttack = false;					// 攻撃が終了したか
-	float AttackUpToTime = 0.f;						// ゴーストの攻撃までの時間(フレーム)
-	float TimeUpToAttackEnd = AttackUpToTime + 1.f;	// 攻撃状態が終了するタイミング
+	bool	bHasEndedAttack = false;					// 攻撃が終了したか
+	float	AttackUpToTime = 0.f;						// ゴーストの攻撃までの時間(フレーム)
+	float	TimeUpToAttackEnd = AttackUpToTime + 1.f;	// 攻撃状態が終了するタイミング
+
+	//出現関係
+	bool	bHasEndedAppear = false;	// 出現が終了したか
+	float	OpacityValue = 0.f;			// オパシティの値
+	int		TimeSpentInAppear = 1;		// 出現するのにかかる時間
 
 	//☆関数宣言
 	//Tickでの処理
@@ -116,6 +125,9 @@ protected:
 
 	//状態：Attackで使う関数
 	virtual bool Attack() PURE_VIRTUAL(AEnemys::Move, return false;);	// 攻撃処理
+
+	//状態：Appearで使う関数
+	virtual bool Appear() PURE_VIRTUAL(AEnemys::Appear, return false;);	// 敵出現処理
 
 public:	
 	// Called every frame

@@ -41,7 +41,7 @@ void ABossEnemy::BeginPlay()
 {
 	Super::BeginPlay();
 
-	//—Î‚Ì“G‚ÌÝ’è
+	//ƒ{ƒX“G‚ÌÝ’è
 	this->Status.HP = 300;
 	this->enemyColor = EnemyColor::White;
 }
