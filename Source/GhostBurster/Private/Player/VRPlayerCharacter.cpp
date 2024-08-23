@@ -17,6 +17,44 @@
 // Sets default values
 AVRPlayerCharacter::AVRPlayerCharacter()
 {
+    // ------------------------------------------------------------------------------------
+    // 変更可能な初期値設定
+    // ------------------------------------------------------------------------------------
+    
+    //ライトバッテリーの秒数設定
+    BatteryTime = 30;
+    //最大値をセット
+    MaxBattery = 60 * BatteryTime;
+    //アイテム数の初期値
+    Item = 2;
+    // 攻撃力の初期値
+    Attack = 1;
+    //デバッグ
+    DebugTimer = 0;
+
+    // ------------------------------------------------------------------------------------
+    // 変更不可能な初期値設定
+    // ------------------------------------------------------------------------------------
+    
+    // ライトの色を設定する
+    Flashlight_Color = EFlashlight_Color::White;
+    // バッテリーの初期値
+    Battery = MaxBattery;
+    //スコアの初期値
+    Score = 0;
+    //ライトのON/OFF切り替えを可能の状態にする
+    CanToggleLight = true;
+    // ダメージカウントを初期化する
+    DamageCount = 0;
+    //ステージ番号を初期化する
+    StageNumber = 1;
+    // 無敵時間の初期化
+    DamageNow = false;
+
+    // ------------------------------------------------------------------------------------
+    // コンポーネント関係
+    // ------------------------------------------------------------------------------------
+
     // Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
     PrimaryActorTick.bCanEverTick = true;
 
@@ -102,26 +140,6 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     LightCollision->OnComponentBeginOverlap.AddDynamic(this, &AVRPlayerCharacter::OnConeBeginOverlap);
     LightCollision->OnComponentEndOverlap.AddDynamic(this, &AVRPlayerCharacter::OnConeEndOverlap);
 
-
-    // ライトの色を設定する
-    Flashlight_Color = EFlashlight_Color::White;
-    // バッテリーの初期値
-    Battery = MaxBattery;
-    //スコアの初期値
-    Score = 0;
-    //アイテム数の初期値
-    Item = 2;
-    //ライトのON/OFF切り替えを可能の状態にする
-    CanToggleLight = true;
-    // 攻撃力を設定する
-    Attack = 1;
-    // ダメージカウントを初期化する
-    DamageCount = 0;
-    //ステージ番号を初期化する
-    StageNumber = 1;
-    // 無敵時間の初期化
-    DamageNow = false;
-
     ////// Tickを止める
     ////PrimaryActorTick.bCanEverTick = false;
     ////PrimaryActorTick.bStartWithTickEnabled = false;
@@ -134,9 +152,6 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     HapticEffect_EnemyDamage = Haptic_ED;
     UHapticFeedbackEffect_Base* Haptic_PD = LoadObject<UHapticFeedbackEffect_Base>(nullptr, TEXT("/Game/_TeamFolder/Player/Input/PlayerDamage"));
     HapticEffect_PlayerDamage = Haptic_PD;
-
-    //デバッグ
-    DebugTimer = 0;
 }
 
 // Called when the game starts or when spawned
@@ -156,7 +171,6 @@ void AVRPlayerCharacter::BeginPlay()
     APlayerController* PlayerController = Cast<APlayerController>(GetController());
     UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer());
     Subsystem->AddMappingContext(IMC_Flashlight, 0);
-
 
     // Widgetの表示
     PlayerStatusWidgetComponent->InitWidget();
@@ -201,7 +215,7 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
             Battery = MaxBattery;
             //ライトがつけられるようになる
             CanToggleLight = true;
-            GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Silver, TEXT("Battery is fill! You can't use Flashlight!"));
+            GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Yellow, TEXT("Battery is fill! You can't use Flashlight!"));
         }
         UpdateBatteryUI();
     }
@@ -219,7 +233,7 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
             LightCollision->SetCollisionProfileName("NoCollision");
             //充電切れ直後はライトをつけられない
             CanToggleLight = false;
-            GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Silver, TEXT("Battery is empty! You can't use Flashlight!"));
+            GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Yellow, TEXT("Battery is empty! You can't use Flashlight!"));
         }
         UpdateBatteryUI();
     }
@@ -259,7 +273,7 @@ void AVRPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
         {
             EnhancedInputComponent->BindAction(IA_Flashlight_OnOff, ETriggerEvent::Triggered, this, &AVRPlayerCharacter::ToggleFlashlight);
             EnhancedInputComponent->BindAction(IA_Flashlight_ChangeColor, ETriggerEvent::Triggered, this, &AVRPlayerCharacter::ChangeColorFlashlight);
-            GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, TEXT("Binding InputAction"));
+            //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, TEXT("Binding InputAction"));
 
             //テスト用
             EnhancedInputComponent->BindAction(IA_DebugTest, ETriggerEvent::Triggered, this, &AVRPlayerCharacter::StartHaptic_EnemyDamage);
@@ -368,6 +382,42 @@ void AVRPlayerCharacter::SettingFlashlightColor()
     }
 }
 
+void AVRPlayerCharacter::CheckUsedItem(const TArray<int> value)
+{
+    //狐の形（親指[0]・中指[2]・薬指[3]）
+    if (value[0] >= 2000 && value[2] >= 2000 && value[3] >= 2000)
+    {
+        //狐のモデルの出現
+
+        //場にいるすべての敵にダメージを与える
+
+        //UIの更新
+        Item--;
+        UpdateItemUI();
+    }
+    //銃の形（中指[2]・薬指[3]・小指[4]）
+    else if (value[2] >= 2000 && value[3] >= 2000 && value[4] >= 2000)
+    {
+        //ライトのバッテリー時間を変更
+
+        //最大値の再設定
+
+        //UIの更新
+        Item--;
+        UpdateItemUI();
+    }
+    //金の形（親指[0]・人差し指[1]）
+    else if (value[0] >= 2000 && value[1] >= 2000)
+    {
+        //スコアの増加
+
+        //UIの更新
+        Item--;
+        UpdateItemUI();
+    }
+
+}
+
 //当たり判定のメソッド
 void AVRPlayerCharacter::OnConeBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
@@ -384,18 +434,6 @@ void AVRPlayerCharacter::OnConeBeginOverlap(UPrimitiveComponent* OverlappedComp,
         OverlappingEnemies.Add(OtherActor);
         //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Enemy is Overlapping"));
     }
-
-    //// 接触したアクターが宝箱かどうか判定する
-    //if (OtherActor->ActorHasTag(FName("Treasure")))
-    //{
-    //    GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Cyan, TEXT("TreasureBox is Overlapping"));
-    //    //宝箱のカスタムイベントを呼び出す
-    //    FName CustomEventName = "GetTreasure";
-    //    OtherActor->CallFunctionByNameWithArguments(*CustomEventName.ToString(), *GLog, nullptr, true);
-    //    //アイテム数を増やしてUIを更新
-    //    Item++;
-    //    UpdateItemUI();
-    //}
 }
 void AVRPlayerCharacter::OnConeEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
