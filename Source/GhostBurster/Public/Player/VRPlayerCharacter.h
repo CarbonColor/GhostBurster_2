@@ -6,6 +6,7 @@
 #include "GameFramework/Pawn.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "TimerManager.h"
+#include "Misc/OutputDeviceNull.h"
 #include "Flashlight_Enumeration.h"
 #include "Components/BoxComponent.h"
 #include "Components/SkeletalMeshComponent.h"
@@ -56,6 +57,10 @@ protected:
 	//スコアのUIを更新するメソッド
 	UFUNCTION()
 		void UpdateScoreUI();
+
+	//アイテムが使用されたかどうかを確認するメソッド
+	UFUNCTION(BlueprintCallable)
+		void CheckUsedItem(const TArray<int> value);
 
 
 	////ハンドトラッキングのセットアップ
@@ -130,6 +135,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Mesh Parameter")
 		FVector FlashlightMeshScale;
 
+
 	//ライトのコリジョンとの当たり判定
 	UFUNCTION()
 		void OnConeBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
@@ -202,8 +208,10 @@ private:
 	EFlashlight_Color Flashlight_Color;
 
 	// UI関連
+	//ライトバッテリー秒数
+	int BatteryTime = 30;
 	//ライトバッテリーの最大値
-	const int MaxBattery = 60 * 30;
+	int MaxBattery = 60 * 30;
 	//ライトバッテリー
 	int Battery;
 	UPROPERTY()
