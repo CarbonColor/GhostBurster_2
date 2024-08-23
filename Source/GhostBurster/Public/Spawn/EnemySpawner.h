@@ -38,7 +38,22 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "Enemy Spawning")
     void LoadSpawnInfoFromCSV(const FString& FilePath);
+
+    UFUNCTION(BlueprintCallable, Category = "Enemy Spawning")
+    void EnemyDeadFunction();
+
+    UPROPERTY(BlueprintReadWrite, Category = "Enemy Spawning")
+    int32 EnemyCount;
 private:
-    TArray<FEnemySpawnInfo> ParseCSV(const FString& FilePath);
+    void LogCurrentEnemyCount() const;
+    void LogAttemptingToSpawn(const FString& EnemyType, const FVector& Location) const;
+    void LogSpawnedEnemy(const FString& EnemyType, const FVector& Location) const;
+    void LogFailedSpawn(const FString& EnemyType, const FVector& Location) const;
+    void LogEnemyClassNotFound(const FString& EnemyType) const;
+    void LogSpawnInfoArray() const;
+    TArray<FEnemySpawnInfo> ParseCSV(const FString& FilePath) const;
     TArray<FEnemySpawnInfo> SpawnInfoArray;
+
+    void HandleEnemyCountZero(); // EnemyCountが0になったときの処理を実装するためのメソッド
+    AActor* GetPlayerActor() const; // プレイヤーアクターを取得するメソッド
 };
