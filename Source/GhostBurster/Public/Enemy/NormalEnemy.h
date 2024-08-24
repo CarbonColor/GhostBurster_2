@@ -44,6 +44,9 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	//☆関数宣言
-	//ダメージを受ける処理、引数でもらった攻撃力分体力を減らす
+	//ダメージを受ける処理、引数でもらった数値分体力を減らす
 	virtual void RecieveEnemyDamage(int DamageAmount, EFlashlight_Color Color) override;
+
+	//アイテムでダメージを受ける処理、引数でもらった数値分体力を減らす
+	virtual void RecieveItemDamage(int DamageAmount) override;
 };

@@ -147,13 +147,19 @@ void ANormalEnemy::ActProcess()
 	}
 }
 
-//ダメージを受ける処理、引数でもらった攻撃力分体力を減らす
+//ダメージを受ける処理、引数でもらった数値分体力を減らす
 void ANormalEnemy::RecieveEnemyDamage(int DamageAmount, EFlashlight_Color Color)
 {
 	if ((int)Color == (int)this->enemyColor)
 	{
 		Status.HP -= DamageAmount;
 	}
+}
+
+//アイテムでダメージを受ける処理、引数でもらった数値分体力を減らす
+void ANormalEnemy::RecieveItemDamage(int DamageAmount)
+{
+	Status.HP -= DamageAmount;
 }
 
 //状態Move遷移時にのみ行う処理
