@@ -132,6 +132,12 @@ void ABlueEnemy::RecieveEnemyDamage(int DamageAmount, EFlashlight_Color Color)
 	}
 }
 
+//アイテムでダメージを受ける処理、引数でもらった数値分体力を減らす
+void ABlueEnemy::RecieveItemDamage(int DamageAmount)
+{
+	Status.HP -= DamageAmount;
+}
+
 //状態Move遷移時にのみ行う処理
 bool ABlueEnemy::ProcessJustForFirst_Move()
 {

@@ -127,3 +127,9 @@ void ABossEnemy::RecieveEnemyDamage(int DamageAmount, EFlashlight_Color Color)
 		Status.HP -= DamageAmount;
 	}
 }
+
+//アイテムでダメージを受ける処理、引数でもらった数値分体力を減らす
+void ABossEnemy::RecieveItemDamage(int DamageAmount)
+{
+	Status.HP -= DamageAmount;
+}
