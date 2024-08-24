@@ -21,15 +21,26 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     // 変更可能な初期値設定
     // ------------------------------------------------------------------------------------
     
-    //ライトバッテリーの秒数設定
-    BatteryTime = 30;
-    //最大値をセット
+    // ライトバッテリーの秒数設定
+    BatteryTime = 10;
+    // バッテリー秒数の増加率設定
+    AddBatteryTime = 5;
+    // 最大値をセット
     MaxBattery = 60 * BatteryTime;
-    //アイテム数の初期値
-    Item = 2;
-    // 攻撃力の初期値
-    Attack = 1;
-    //デバッグ
+    // ライトの攻撃力設定
+    LightAttack = 1;
+    // ライトの攻撃力増加率の設定
+    AddLightAttack = 2;
+
+    // アイテム数の初期値
+    ItemCount = 2;
+    // アイテムの攻撃力の設定
+    ItemAttack = 50;
+    // アイテム使用のボーダー設定
+    FingerBendingBorder = 2500;
+    FingerStretchingBorder = 1000;
+
+    // デバッグ
     DebugTimer = 0;
 
     // ------------------------------------------------------------------------------------
@@ -42,14 +53,16 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     Battery = MaxBattery;
     //スコアの初期値
     Score = 0;
-    //ライトのON/OFF切り替えを可能の状態にする
-    CanToggleLight = true;
     // ダメージカウントを初期化する
     DamageCount = 0;
     //ステージ番号を初期化する
     StageNumber = 1;
+    //ライトのON/OFF切り替えを可能の状態にする
+    bCanToggleLight = true;
+    //アイテムの使用状態を可能にする
+    bCanUseItem = true;
     // 無敵時間の初期化
-    DamageNow = false;
+    bIsDamageNow = false;
 
     // ------------------------------------------------------------------------------------
     // コンポーネント関係
@@ -197,7 +210,9 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
             IDamageInterface* DamageInterface = Cast<IDamageInterface>(Enemy);
             if (DamageInterface)
             {
-                DamageInterface->RecieveEnemyDamage(Attack, Flashlight_Color);
+                DamageInterface->RecieveEnemyDamage(LightAttack, Flashlight_Color);
+                //StartHaptic_EnemyDamage();
+
                 //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, TEXT("Enemy Damage"));
                 //OverlappingEnemies.Remove(Enemy);
             }
@@ -205,17 +220,18 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
     }
 
     // バッテリー操作
-    if (CanToggleLight == false)    //ライトがつけられないとき
+    if (bCanToggleLight == false)    //ライトがつけられないとき
     {
-        Battery += 10;
+        //バッテリーの回復
+        Battery += MaxBattery / (60 * 2);
         //UIバーの色を赤くする
         BatteryUI->SetFillColorAndOpacity(FLinearColor::Red);
         if (Battery >= MaxBattery)
         {
             Battery = MaxBattery;
             //ライトがつけられるようになる
-            CanToggleLight = true;
-            GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Yellow, TEXT("Battery is fill! You can't use Flashlight!"));
+            bCanToggleLight = true;
+            //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Yellow, TEXT("Battery is fill! You can't use Flashlight!"));
         }
         UpdateBatteryUI();
     }
@@ -232,16 +248,17 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
             //ライトの当たり判定を無効化
             LightCollision->SetCollisionProfileName("NoCollision");
             //充電切れ直後はライトをつけられない
-            CanToggleLight = false;
-            GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Yellow, TEXT("Battery is empty! You can't use Flashlight!"));
+            bCanToggleLight = false;
+            //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Yellow, TEXT("Battery is empty! You can't use Flashlight!"));
         }
         UpdateBatteryUI();
     }
     else if (Flashlight->GetVisibleFlag() == false) //ライトOFF
     {
+        //バッテリーの回復
         if (Battery < MaxBattery)
         {
-            Battery += 5;
+            Battery += MaxBattery / (60 * 5);
         }
         //UIバーの色を白くする
         BatteryUI->SetFillColorAndOpacity(FLinearColor::White);
@@ -291,7 +308,7 @@ void AVRPlayerCharacter::ToggleFlashlight(const FInputActionValue& value)
 {
     bool bIsPressed = value.Get<bool>();
 
-    if (bIsPressed && CanToggleLight)
+    if (bIsPressed && bCanToggleLight)
     {
         //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, TEXT("Light ON/OFF"));
         Flashlight->ToggleVisibility();
@@ -307,10 +324,10 @@ void AVRPlayerCharacter::ToggleFlashlight(const FInputActionValue& value)
             LightCollision->SetCollisionProfileName("NoCollision");
         }
     }
-    else if (CanToggleLight == false)
-    {
-        GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Silver, TEXT("Battery is Charging! Wait until the battery is full."));
-    }
+    //else if (bCanToggleLight == false)
+    //{
+    //    GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Yellow, TEXT("Battery is Charging! Wait until the battery is full."));
+    //}
 
     //ライトの変更後、OFFの状態ならコーンコリジョンのプリセットを NoCollision にする
     if (Flashlight->GetVisibleFlag() == false)
@@ -384,39 +401,99 @@ void AVRPlayerCharacter::SettingFlashlightColor()
 
 void AVRPlayerCharacter::CheckUsedItem(const TArray<int> value)
 {
-    //狐の形（親指[0]・中指[2]・薬指[3]）
-    if (value[0] >= 2000 && value[2] >= 2000 && value[3] >= 2000)
+    //使えない状態のときは即リターン
+    if (bCanUseItem == false || ItemCount <= 0)
     {
-        //狐のモデルの出現
+        return;
+    }
 
-        //場にいるすべての敵にダメージを与える
+    //狐の形（親指[0]・中指[2]・薬指[3]）
+    if (value[0] >= FingerBendingBorder &&
+        value[1] <= FingerStretchingBorder &&
+        value[2] >= FingerBendingBorder &&
+        value[3] >= FingerBendingBorder &&
+        value[4] <= FingerStretchingBorder)
+    {
+         //狐のモデルの出現
 
-        //UIの更新
-        Item--;
-        UpdateItemUI();
+         //場にいるすべての敵にダメージを与える
+        TArray<AActor*> Enemies;
+        UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEnemys::StaticClass(), Enemies);
+        for (AActor* Enemy : Enemies)
+        {
+            if (Enemy && Enemy->GetClass()->ImplementsInterface(UDamageInterface::StaticClass()))
+            {
+                IDamageInterface* DamageInterface = Cast<IDamageInterface>(Enemy);
+                if (DamageInterface)
+                {
+                    DamageInterface->RecieveItemDamage(50);
+                    Enemies.Remove(Enemy);
+                }
+            }
+        }
+        //デバッグ
+        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Purple, TEXT("Used Item ( Enemy Damage )"));
+
     }
     //銃の形（中指[2]・薬指[3]・小指[4]）
-    else if (value[2] >= 2000 && value[3] >= 2000 && value[4] >= 2000)
+    else if (value[0] <= FingerStretchingBorder &&
+             value[1] <= FingerStretchingBorder &&
+             value[2] >= FingerBendingBorder &&
+             value[3] >= FingerBendingBorder &&
+             value[4] >= FingerBendingBorder)
     {
-        //ライトのバッテリー時間を変更
-
+        //ライトのバッテリー時間を増加
+        BatteryTime += AddBatteryTime;
+        //ライトの攻撃力を増加
+        LightAttack += AddLightAttack;
         //最大値の再設定
+        MaxBattery = 60 * BatteryTime;
+        //デバッグ
+        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Purple, TEXT("Used Item ( Light Enhanced )"));
 
-        //UIの更新
-        Item--;
-        UpdateItemUI();
     }
     //金の形（親指[0]・人差し指[1]）
-    else if (value[0] >= 2000 && value[1] >= 2000)
+    else if (value[0] >= FingerBendingBorder &&
+             value[1] >= FingerBendingBorder &&
+             value[2] <= FingerStretchingBorder &&
+             value[3] <= FingerStretchingBorder &&
+             value[4] <= FingerStretchingBorder)
     {
         //スコアの増加
-
+        Score += 1000;
         //UIの更新
-        Item--;
-        UpdateItemUI();
+        UpdateScoreUI();
+        //デバッグ
+        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Purple, TEXT("Used Item ( Add Score )"));
+
+    }
+    //それ以外は何もせずリターン
+    else
+    {
+        //GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Silver, TEXT("Not Use Item"));
+        return;
     }
 
+    //アイテムを使えない状態にする
+    bCanUseItem = false;
+    //アイテムのクールタイムの設定
+    GetWorld()->GetTimerManager().SetTimer(ItemCoolTimeHandle, this, &AVRPlayerCharacter::ItemCoolTimeFunction, 5.0f, false);
+    //UIの更新
+    ItemCount--;
+    UpdateItemUI();
+
 }
+//アイテムのクールタイムメソッド
+void AVRPlayerCharacter::ItemCoolTimeFunction()
+{
+    bCanUseItem = true;
+    // タイマーをクリア
+    GetWorld()->GetTimerManager().ClearTimer(ItemCoolTimeHandle);
+
+    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Purple, TEXT("You Can Use Item"));
+
+}
+
 
 //当たり判定のメソッド
 void AVRPlayerCharacter::OnConeBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -426,11 +503,6 @@ void AVRPlayerCharacter::OnConeBeginOverlap(UPrimitiveComponent* OverlappedComp,
     // 接触したアクターがオバケかどうか判定する
     if (const AEnemys* Enemy = Cast<AEnemys>(OtherActor))
     {
-        //振動の開始
-        if (OverlappingEnemies.Num() == 0)
-        {
-            StartHaptic_EnemyDamage();
-        }
         OverlappingEnemies.Add(OtherActor);
         //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Enemy is Overlapping"));
     }
@@ -457,12 +529,12 @@ void AVRPlayerCharacter::OnConeEndOverlap(UPrimitiveComponent* OverlappedComp, A
 void AVRPlayerCharacter::RecievePlayerDamage()
 {
     DamageCount++;
-    if (DamageNow == false)
+    if (bIsDamageNow == false)
     {
         // ダメージ回数を増やす
         DamageCount++;
         // 無敵状態にする
-        DamageNow = true;
+        bIsDamageNow = true;
         //無敵時間の設定 (3秒後に無敵状態を解除)
         GetWorld()->GetTimerManager().SetTimer(NoDamageTimerHandle, this, &AVRPlayerCharacter::NoDamageFunction, 3.0f, false);
         GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Cyan, TEXT("Player damage !"));
@@ -476,7 +548,7 @@ void AVRPlayerCharacter::RecievePlayerDamage()
 void AVRPlayerCharacter::NoDamageFunction()
 {
     // 無敵状態を解除
-    DamageNow = false;
+    bIsDamageNow = false;
     // タイマーをクリア
     GetWorld()->GetTimerManager().ClearTimer(NoDamageTimerHandle);
 
@@ -487,7 +559,7 @@ void AVRPlayerCharacter::StartHaptic_EnemyDamage()
 {
     if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
     {
-        PlayerController->PlayHapticEffect(HapticEffect_EnemyDamage, EControllerHand::Right, 1.0f, false);
+        PlayerController->PlayHapticEffect(HapticEffect_EnemyDamage, EControllerHand::Right, 1.0f, true);
 
         GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, TEXT("Device Vibration (Enemy)"));
     }
@@ -528,7 +600,7 @@ void AVRPlayerCharacter::UpdateBatteryUI()
 //ウィジェットのアイテム所有数を更新するメソッド
 void AVRPlayerCharacter::UpdateItemUI()
 {
-    ItemUI->SetText(FText::AsNumber(Item));
+    ItemUI->SetText(FText::AsNumber(ItemCount));
 }
 //ウィジェットのスコアを更新するメソッド
 void AVRPlayerCharacter::UpdateScoreUI()
@@ -538,7 +610,7 @@ void AVRPlayerCharacter::UpdateScoreUI()
 //アイテムを増やすメソッド
 void AVRPlayerCharacter::AddItem()
 {
-    Item++;
+    ItemCount++;
     UpdateItemUI();
 }
 

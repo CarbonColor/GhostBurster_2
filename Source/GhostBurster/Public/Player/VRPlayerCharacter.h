@@ -171,7 +171,7 @@ public:
 
 	//ステージ番号を取得する
 	UFUNCTION(BlueprintCallable, Category = "Stage")
-		int GetStageNumber();
+		int32 GetStageNumber();
 
 
 private:
@@ -194,6 +194,10 @@ private:
 	UFUNCTION()
 	void SettingFlashlightColor();
 
+	//無敵状態
+	bool bIsDamageNow;
+	//無敵時間用タイマーハンドル
+	FTimerHandle NoDamageTimerHandle;
 	//無敵時間の処理
 	UFUNCTION()
 	void NoDamageFunction();
@@ -207,42 +211,57 @@ private:
 	//ライトの色を保持する変数
 	EFlashlight_Color Flashlight_Color;
 
-	// UI関連
 	//ライトバッテリー秒数
-	int BatteryTime = 30;
+	int32 BatteryTime;
+	//バッテリー秒数の増加率
+	int32 AddBatteryTime;
 	//ライトバッテリーの最大値
-	int MaxBattery = 60 * 30;
+	int32 MaxBattery;
+	//ライトの攻撃力
+	int32 LightAttack;
+	//攻撃力の増加率
+	int32 AddLightAttack;
 	//ライトバッテリー
-	int Battery;
+	int32 Battery;
+	//ライトバッテリーのUI
 	UPROPERTY()
 	TObjectPtr<UProgressBar> BatteryUI;
+
 	//プレイヤーのスコア
-	int Score;
+	int32 Score;
+	//スコアのテキストUI
 	UPROPERTY()
 	TObjectPtr<UTextBlock> ScoreUI;
+
 	//アイテムの所有数
-	int Item;
+	int32 ItemCount;
+	//アイテムの攻撃力
+	int32 ItemAttack;
+	//アイテム所有数のテキストUI
 	UPROPERTY()
 	TObjectPtr<UTextBlock> ItemUI;
+	//アイテム使用状態
+	bool bCanUseItem;
+	//アイテムクールタイム用タイマーハンドル
+	FTimerHandle ItemCoolTimeHandle;
+	//アイテムのクールタイム処理
+	UFUNCTION()
+	void ItemCoolTimeFunction();
 
 	//ライトの操作を受け付けているかどうか
-	bool CanToggleLight;
+	bool bCanToggleLight;
 	
-	//オバケに与える攻撃力
-	int Attack;
+	//グローブの曲げ具合設定
+	int32 FingerBendingBorder;
+	int32 FingerStretchingBorder;
 	//オバケから受けた攻撃
-	int DamageCount;
-
-	//無敵状態
-	bool DamageNow;
-	//無敵時間用タイマーハンドル
-	FTimerHandle NoDamageTimerHandle;
+	int32 DamageCount;
 
 	//出現する敵を判別するステージ番号
 	UPROPERTY(BlueprintReadOnly, Category = "Stage", meta = (AllowPrivateAccess = "true"))
-		int StageNumber;
+	int32 StageNumber;
 
 
 	//デバッグ用タイマー
-	int DebugTimer;
+	int32 DebugTimer;
 };
