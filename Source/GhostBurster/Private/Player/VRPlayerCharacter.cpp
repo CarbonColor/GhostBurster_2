@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Player/VRPlayerCharacter.h"
+#include "Player/PlayerSplinePath.h"
 #include "Components/SpotLightComponent.h"
 #include "Components/InputComponent.h"
 #include "EnhancedInputComponent.h"
@@ -13,7 +14,6 @@
 #include "Enemy/Enemys.h"
 #include "Title/TitleEnemy.h"
 #include "Title/TitleEventManager.h"
-#include "Player/PlayerSplinePath.h"
 #include "Haptics/HapticFeedbackEffect_Base.h"
 
 DEFINE_LOG_CATEGORY_STATIC(PlayerScript, Log, All);
@@ -56,10 +56,6 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     Flashlight_Color = EFlashlight_Color::White;
     // バッテリーの初期値
     Battery = MaxBattery;
-    //スコアの初期値
-    Score = 0;
-    // ダメージカウントを初期化する
-    DamageCount = 0;
     //ステージ番号を初期化する
     StageNumber = 1;
     //ライトのON/OFF切り替えを可能の状態にする
@@ -87,12 +83,6 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     //カメラコンポーネントの作成
     CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
     CameraComponent->SetupAttachment(VRRoot);
-
-    ////スプリングアームコンポーネントの作成
-    //SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComponent"));
-    //SpringArmComponent->SetupAttachment(CameraComponent);
-    //SpringArmComponent->TargetArmLength = -200.0f;           //カメラからの距離
-    //SpringArmComponent->bUsePawnControlRotation = true;     //カメラの回転を追従
 
     //ウィジェットコンポーネントの作成
     PlayerStatusWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("PlayerStatusWidgetComponent"));
@@ -170,12 +160,21 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     HapticEffect_EnemyDamage = Haptic_ED;
     UHapticFeedbackEffect_Base* Haptic_PD = LoadObject<UHapticFeedbackEffect_Base>(nullptr, TEXT("/Game/_TeamFolder/Player/Input/PlayerDamage"));
     HapticEffect_PlayerDamage = Haptic_PD;
+
 }
 
 // Called when the game starts or when spawned
 void AVRPlayerCharacter::BeginPlay()
 {
     Super::BeginPlay();
+
+    //スコアのインスタンスを取得する
+    ScoreInstance = Cast<UPlayerScoreInstance>(GetGameInstance());
+    //スコアの初期化
+    ScoreInstance->ResetPlayerScore();
+    //ダメージカウントの初期化
+    ScoreInstance->ResetPlayerDamageCount();
+
 
     //SplinePathActorを取得して設定する
     TArray<AActor*> FoundActors;
@@ -523,11 +522,10 @@ void AVRPlayerCharacter::OnConeEndOverlap(UPrimitiveComponent* OverlappedComp, A
 //オバケからの攻撃を受けた時のメソッド
 void AVRPlayerCharacter::RecievePlayerDamage()
 {
-    DamageCount++;
     if (bIsDamageNow == false)
     {
         // ダメージ回数を増やす
-        DamageCount++;
+        ScoreInstance->AddPlayerDamageCount();
         // 無敵状態にする
         bIsDamageNow = true;
         //無敵時間の設定 (3秒後に無敵状態を解除)
@@ -616,6 +614,7 @@ void AVRPlayerCharacter::UpdateScoreUI()
 {
     if (ScoreUI)
     {
+        int32 Score = ScoreInstance->GetPlayerScore();
         ScoreUI->SetText(FText::AsNumber(Score));
     }
     else
@@ -632,7 +631,7 @@ void AVRPlayerCharacter::AddItem()
 //スコアを増やすメソッド
 void AVRPlayerCharacter::AddScore(int32 Value)
 {
-    Score += Value;
+    ScoreInstance->AddPlayerScore(Value);
     UpdateScoreUI();
 }
 
@@ -682,7 +681,7 @@ void AVRPlayerCharacter::UseItem_Buff()
 void AVRPlayerCharacter::UseItem_Score()
 {
     //スコアの増加
-    Score += 1000;
+    ScoreInstance->AddPlayerScore(1000);
     //UIの更新
     UpdateScoreUI();
 
