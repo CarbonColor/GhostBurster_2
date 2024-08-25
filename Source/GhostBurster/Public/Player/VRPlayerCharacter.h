@@ -92,6 +92,9 @@ public:
 		TObjectPtr<UInputAction> IA_DebugTest1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+		TObjectPtr<UInputAction> IA_DebugTest2;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 		TObjectPtr<UInputMappingContext> IMC_Flashlight;
 
 	// Motion Controller
@@ -145,6 +148,9 @@ public:
 	//アイテムの個数を増やす処理
 	UFUNCTION(BlueprintCallable)
 		void AddItem();
+	//スコアを増やす処理
+	UFUNCTION(BlueprintCallable)
+	void AddScore(int32 Value);
 
 	//オバケからの攻撃(インターフェース)
 	virtual void RecievePlayerDamage() override;
@@ -207,6 +213,7 @@ private:
 
 	//ライト内(コーンのコリジョン)に入っているオバケを格納するリスト
 	TSet<AActor*> OverlappingEnemies;
+	TSet<AActor*> TmpEnemies;
 
 	//ライトの色を保持する変数
 	EFlashlight_Color Flashlight_Color;
@@ -261,6 +268,13 @@ private:
 	UPROPERTY(BlueprintReadOnly, Category = "Stage", meta = (AllowPrivateAccess = "true"))
 	int32 StageNumber;
 
+	//アイテム処理メソッド
+	UFUNCTION()
+	void UseItem_Attack();
+	UFUNCTION()
+	void UseItem_Buff();
+	UFUNCTION()
+	void UseItem_Score();
 
 	//デバッグ用タイマー
 	int32 DebugTimer;

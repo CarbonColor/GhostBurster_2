@@ -11,8 +11,13 @@
 #include "Kismet/KismetStringLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "Enemy/Enemys.h"
+#include "Title/TitleEnemy.h"
+#include "Title/TitleEventManager.h"
 #include "Player/PlayerSplinePath.h"
 #include "Haptics/HapticFeedbackEffect_Base.h"
+
+DEFINE_LOG_CATEGORY_STATIC(PlayerScript, Log, All);
+
 
 // Sets default values
 AVRPlayerCharacter::AVRPlayerCharacter()
@@ -202,8 +207,8 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
-    // ダメージを与える処理
-    for (AActor* Enemy : OverlappingEnemies)
+    TmpEnemies = OverlappingEnemies;
+    for (AActor* Enemy : TmpEnemies)
     {
         if (Enemy && Enemy->GetClass()->ImplementsInterface(UDamageInterface::StaticClass()))
         {
@@ -211,10 +216,6 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
             if (DamageInterface)
             {
                 DamageInterface->RecieveEnemyDamage(LightAttack, Flashlight_Color);
-                //StartHaptic_EnemyDamage();
-
-                //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, TEXT("Enemy Damage"));
-                //OverlappingEnemies.Remove(Enemy);
             }
         }
     }
@@ -293,8 +294,11 @@ void AVRPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
             //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, TEXT("Binding InputAction"));
 
             //テスト用
-            EnhancedInputComponent->BindAction(IA_DebugTest, ETriggerEvent::Triggered, this, &AVRPlayerCharacter::StartHaptic_EnemyDamage);
-            EnhancedInputComponent->BindAction(IA_DebugTest1, ETriggerEvent::Triggered, this, &AVRPlayerCharacter::StartHaptic_PlayerDamage);
+            //EnhancedInputComponent->BindAction(IA_DebugTest, ETriggerEvent::Triggered, this, &AVRPlayerCharacter::StartHaptic_EnemyDamage);
+            //EnhancedInputComponent->BindAction(IA_DebugTest1, ETriggerEvent::Triggered, this, &AVRPlayerCharacter::StartHaptic_PlayerDamage);
+            EnhancedInputComponent->BindAction(IA_DebugTest, ETriggerEvent::Triggered, this, &AVRPlayerCharacter::UseItem_Attack);
+            EnhancedInputComponent->BindAction(IA_DebugTest1, ETriggerEvent::Triggered, this, &AVRPlayerCharacter::UseItem_Buff);
+            EnhancedInputComponent->BindAction(IA_DebugTest2, ETriggerEvent::Triggered, this, &AVRPlayerCharacter::UseItem_Score);
         }
     }
     else
@@ -414,26 +418,11 @@ void AVRPlayerCharacter::CheckUsedItem(const TArray<int> value)
         value[3] >= FingerBendingBorder &&
         value[4] <= FingerStretchingBorder)
     {
-         //狐のモデルの出現
-
-         //場にいるすべての敵にダメージを与える
-        TArray<AActor*> Enemies;
-        UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEnemys::StaticClass(), Enemies);
-        for (AActor* Enemy : Enemies)
-        {
-            if (Enemy && Enemy->GetClass()->ImplementsInterface(UDamageInterface::StaticClass()))
-            {
-                IDamageInterface* DamageInterface = Cast<IDamageInterface>(Enemy);
-                if (DamageInterface)
-                {
-                    DamageInterface->RecieveItemDamage(50);
-                    Enemies.Remove(Enemy);
-                }
-            }
-        }
+        //攻撃アイテムの処理
+        UseItem_Attack();
+        
         //デバッグ
         GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Purple, TEXT("Used Item ( Enemy Damage )"));
-
     }
     //銃の形（中指[2]・薬指[3]・小指[4]）
     else if (value[0] <= FingerStretchingBorder &&
@@ -442,12 +431,9 @@ void AVRPlayerCharacter::CheckUsedItem(const TArray<int> value)
              value[3] >= FingerBendingBorder &&
              value[4] >= FingerBendingBorder)
     {
-        //ライトのバッテリー時間を増加
-        BatteryTime += AddBatteryTime;
-        //ライトの攻撃力を増加
-        LightAttack += AddLightAttack;
-        //最大値の再設定
-        MaxBattery = 60 * BatteryTime;
+        //強化アイテムの処理
+        UseItem_Buff();
+
         //デバッグ
         GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Purple, TEXT("Used Item ( Light Enhanced )"));
 
@@ -459,10 +445,9 @@ void AVRPlayerCharacter::CheckUsedItem(const TArray<int> value)
              value[3] <= FingerStretchingBorder &&
              value[4] <= FingerStretchingBorder)
     {
-        //スコアの増加
-        Score += 1000;
-        //UIの更新
-        UpdateScoreUI();
+        //スコアアイテムの処理
+        UseItem_Score();
+
         //デバッグ
         GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Purple, TEXT("Used Item ( Add Score )"));
 
@@ -506,23 +491,33 @@ void AVRPlayerCharacter::OnConeBeginOverlap(UPrimitiveComponent* OverlappedComp,
         OverlappingEnemies.Add(OtherActor);
         //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Enemy is Overlapping"));
     }
+
+    if (const ATitleEnemy* TitleEnemy = Cast<ATitleEnemy>(OtherActor))
+    {
+        OverlappingEnemies.Add(OtherActor);
+    }
 }
 void AVRPlayerCharacter::OnConeEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
     //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Light EndOverlap Called"));
 
     // オバケがコリジョンから抜けたかどうか判定する
-    if (const AEnemys* enemy = Cast<AEnemys>(OtherActor))
+    if (const AEnemys* Enemy = Cast<AEnemys>(OtherActor))
     {
         OverlappingEnemies.Remove(OtherActor);
         //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Enemy is not Overlapping"));
-        
-        //振動の停止
-        if (OverlappingEnemies.Num() == 0)
-        {
-            StopHapticEffect();
-        }
     }
+
+    if (const ATitleEnemy* TitleEnemy = Cast<ATitleEnemy>(OtherActor))
+    {
+        OverlappingEnemies.Remove(OtherActor);
+    }
+    //振動の停止
+    if (OverlappingEnemies.Num() == 0)
+    {
+        StopHapticEffect();
+    }
+
 }
 
 //オバケからの攻撃を受けた時のメソッド
@@ -595,17 +590,38 @@ int AVRPlayerCharacter::GetStageNumber()
 //ウィジェットのバッテリーを更新するメソッド
 void AVRPlayerCharacter::UpdateBatteryUI()
 {
-    BatteryUI->SetPercent(Battery / (float)MaxBattery);
+    if (BatteryUI)
+    {
+        BatteryUI->SetPercent(Battery / (float)MaxBattery);
+    }
+    else
+    {
+        UE_LOG(PlayerScript, Warning, TEXT("Battery UI is null !"));
+    }
 }
 //ウィジェットのアイテム所有数を更新するメソッド
 void AVRPlayerCharacter::UpdateItemUI()
 {
-    ItemUI->SetText(FText::AsNumber(ItemCount));
+    if (ItemUI)
+    {
+        ItemUI->SetText(FText::AsNumber(ItemCount));
+    }
+    else
+    {
+        UE_LOG(PlayerScript, Warning, TEXT("Item UI is null !"));
+    }
 }
 //ウィジェットのスコアを更新するメソッド
 void AVRPlayerCharacter::UpdateScoreUI()
 {
-    ScoreUI->SetText(FText::AsNumber(Score));
+    if (ScoreUI)
+    {
+        ScoreUI->SetText(FText::AsNumber(Score));
+    }
+    else
+    {
+        UE_LOG(PlayerScript, Warning, TEXT("Score UI is null !"));
+    }
 }
 //アイテムを増やすメソッド
 void AVRPlayerCharacter::AddItem()
@@ -613,4 +629,68 @@ void AVRPlayerCharacter::AddItem()
     ItemCount++;
     UpdateItemUI();
 }
+//スコアを増やすメソッド
+void AVRPlayerCharacter::AddScore(int32 Value)
+{
+    Score += Value;
+    UpdateScoreUI();
+}
 
+//アイテム使用メソッド
+void AVRPlayerCharacter::UseItem_Attack()
+{
+    //狐のモデルの出現
+
+    //場にいるすべての敵にダメージを与える
+    TArray<AActor*> Enemies;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEnemys::StaticClass(), Enemies);
+    for (AActor* Enemy : Enemies)
+    {
+        if (Enemy && Enemy->GetClass()->ImplementsInterface(UDamageInterface::StaticClass()))
+        {
+            IDamageInterface* DamageInterface = Cast<IDamageInterface>(Enemy);
+            if (DamageInterface)
+            {
+                DamageInterface->RecieveItemDamage(50);
+            }
+        }
+    }
+
+    //タイトル画面での処理
+    ATitleEventManager* EventManager = Cast<ATitleEventManager>(UGameplayStatics::GetActorOfClass(GetWorld(), ATitleEventManager::StaticClass()));
+    if (EventManager)
+    {
+        EventManager->IsUseAttackItem();
+    }
+}
+void AVRPlayerCharacter::UseItem_Buff()
+{
+    //ライトのバッテリー時間を増加
+    BatteryTime += AddBatteryTime;
+    //ライトの攻撃力を増加
+    LightAttack += AddLightAttack;
+    //最大値の再設定
+    MaxBattery = 60 * BatteryTime;
+
+    //タイトル画面での処理
+    ATitleEventManager* EventManager = Cast<ATitleEventManager>(UGameplayStatics::GetActorOfClass(GetWorld(), ATitleEventManager::StaticClass()));
+    if (EventManager)
+    {
+        EventManager->IsUseBuffItem();
+    }
+}
+void AVRPlayerCharacter::UseItem_Score()
+{
+    //スコアの増加
+    Score += 1000;
+    //UIの更新
+    UpdateScoreUI();
+
+    //タイトル画面での処理
+    ATitleEventManager* EventManager = Cast<ATitleEventManager>(UGameplayStatics::GetActorOfClass(GetWorld(), ATitleEventManager::StaticClass()));
+    if (EventManager)
+    {
+        EventManager->IsUseScoreItem();
+    }
+
+}
