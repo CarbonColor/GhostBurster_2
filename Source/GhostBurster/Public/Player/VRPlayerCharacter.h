@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
-#include "GameFramework/SpringArmComponent.h"
+#include "GameData/PlayerScoreInstance.h"
 #include "TimerManager.h"
 #include "Misc/OutputDeviceNull.h"
 #include "Flashlight_Enumeration.h"
@@ -185,16 +185,19 @@ private:
 	UPROPERTY(VisibleAnywhere)
 		TObjectPtr<USceneComponent> VRRoot;
 
-	////スプリングアームコンポーネント
-	//UPROPERTY(VisibleAnywhere)
-	//	TObjectPtr<USpringArmComponent> SpringArmComponent;
-
 	//スポットライトコンポーネント
 	UPROPERTY(VisibleAnywhere)
 		TObjectPtr<USpotLightComponent> Flashlight;
 
+	//プレイヤーのUI
 	UPROPERTY()
 		TObjectPtr<UUserWidget> PlayerStatusWidget;
+
+
+	//スコアのインスタンス
+	UPROPERTY()
+	TObjectPtr<UPlayerScoreInstance> ScoreInstance;
+
 
 	//ライトの色を設定するメソッド
 	UFUNCTION()
@@ -234,8 +237,6 @@ private:
 	UPROPERTY()
 	TObjectPtr<UProgressBar> BatteryUI;
 
-	//プレイヤーのスコア
-	int32 Score;
 	//スコアのテキストUI
 	UPROPERTY()
 	TObjectPtr<UTextBlock> ScoreUI;
@@ -261,8 +262,6 @@ private:
 	//グローブの曲げ具合設定
 	int32 FingerBendingBorder;
 	int32 FingerStretchingBorder;
-	//オバケから受けた攻撃
-	int32 DamageCount;
 
 	//出現する敵を判別するステージ番号
 	UPROPERTY(BlueprintReadOnly, Category = "Stage", meta = (AllowPrivateAccess = "true"))
