@@ -50,8 +50,8 @@ void AEnemys::EnemyDead()
 	{
 		//ステージ名を取得
 		int Stage = Player->GetStageNumber();
-		FString SpawnBPName = FString::Printf(TEXT("EnemySpawn_BP%d_C"), Stage);
-		GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Purple, SpawnBPName);
+		FString SpawnBPName = FString::Printf(TEXT("EnemysSpawn_BP_C_%d"), Stage + 6);
+		GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Silver, SpawnBPName);
 
 		//該当のEnemySpawnを取得
 		TArray<AActor*> Spawners;
