@@ -266,8 +266,8 @@ private:
 	bool bCanToggleLight;
 	
 	//グローブの曲げ具合設定
+	UPROPERTY(EditAnywhere)
 	int32 FingerBendingBorder;
-	int32 FingerStretchingBorder;
 
 	//出現する敵を判別するステージ番号
 	UPROPERTY(BlueprintReadOnly, Category = "Stage", meta = (AllowPrivateAccess = "true"))

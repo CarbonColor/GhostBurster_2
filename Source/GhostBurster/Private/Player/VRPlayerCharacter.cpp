@@ -42,8 +42,7 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     // アイテムの攻撃力の設定
     ItemAttack = 50;
     // アイテム使用のボーダー設定
-    FingerBendingBorder = 2500;
-    FingerStretchingBorder = 1000;
+    FingerBendingBorder = 350;
 
     // デバッグ
     DebugTimer = 0;
@@ -409,7 +408,7 @@ void AVRPlayerCharacter::CheckUsedItem(const TArray<int32> value)
     {
         DebugValue += FString::FromInt(v) + ", ";
     }
-    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Silver, DebugValue);
+    GEngine->AddOnScreenDebugMessage(-1, 0.2f, FColor::Silver, DebugValue);
 
     //使えない状態のときは即リターン
     if (bCanUseItem == false || ItemCount <= 0)
@@ -418,11 +417,11 @@ void AVRPlayerCharacter::CheckUsedItem(const TArray<int32> value)
     }
 
     //狐の形（親指[0]・中指[2]・薬指[3]）
-    if (value[0] >= FingerBendingBorder &&
-        value[1] <= FingerStretchingBorder &&
-        value[2] >= FingerBendingBorder &&
-        value[3] >= FingerBendingBorder &&
-        value[4] <= FingerStretchingBorder)
+    if (value[0] > FingerBendingBorder &&
+        value[1] <= FingerBendingBorder &&
+        value[2] > FingerBendingBorder &&
+        value[3] > FingerBendingBorder &&
+        value[4] <= FingerBendingBorder)
     {
         //攻撃アイテムの処理
         UseItem_Attack();
@@ -431,11 +430,11 @@ void AVRPlayerCharacter::CheckUsedItem(const TArray<int32> value)
         GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Purple, TEXT("Used Item ( Enemy Damage )"));
     }
     //銃の形（中指[2]・薬指[3]・小指[4]）
-    else if (value[0] <= FingerStretchingBorder &&
-             value[1] <= FingerStretchingBorder &&
-             value[2] >= FingerBendingBorder &&
-             value[3] >= FingerBendingBorder &&
-             value[4] >= FingerBendingBorder)
+    else if (value[0] <= FingerBendingBorder &&
+             value[1] <= FingerBendingBorder &&
+             value[2] > FingerBendingBorder &&
+             value[3] > FingerBendingBorder &&
+             value[4] > FingerBendingBorder)
     {
         //強化アイテムの処理
         UseItem_Buff();
@@ -445,11 +444,11 @@ void AVRPlayerCharacter::CheckUsedItem(const TArray<int32> value)
 
     }
     //金の形（親指[0]・人差し指[1]）
-    else if (value[0] >= FingerBendingBorder &&
-             value[1] >= FingerBendingBorder &&
-             value[2] <= FingerStretchingBorder &&
-             value[3] <= FingerStretchingBorder &&
-             value[4] <= FingerStretchingBorder)
+    else if (value[0] > FingerBendingBorder &&
+             value[1] > FingerBendingBorder &&
+             value[2] <= FingerBendingBorder &&
+             value[3] <= FingerBendingBorder &&
+             value[4] <= FingerBendingBorder)
     {
         //スコアアイテムの処理
         UseItem_Score();
