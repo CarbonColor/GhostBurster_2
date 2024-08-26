@@ -150,9 +150,12 @@ void ANormalEnemy::ActProcess()
 //ダメージを受ける処理、引数でもらった数値分体力を減らす
 void ANormalEnemy::RecieveEnemyDamage(int DamageAmount, EFlashlight_Color Color)
 {
-	if ((int)Color == (int)this->enemyColor)
+	if (this->state != State::Appear)
 	{
-		Status.HP -= DamageAmount;
+		if ((int)Color == (int)this->enemyColor)
+		{
+			Status.HP -= DamageAmount;
+		}
 	}
 }
 

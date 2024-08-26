@@ -25,11 +25,6 @@ ARedEnemy::ARedEnemy()
 	//GhostMeshをルートコンポーネントにアタッチする
 	GhostMesh->SetupAttachment(RootComponent);
 
-	//☆マテリアル
-	//マテリアルをロードしてGhostMeshに設定する
-	UMaterial* Material = LoadObject<UMaterial>(NULL, TEXT("/Game/_Teamfolder/Enemy/Red"), NULL, LOAD_None, NULL);
-	GhostMesh->SetMaterial(0, Material);
-
 	//☆コリジョン
 	//スフィアコリジョンの作成
 	GhostCollision = CreateDefaultSubobject<USphereComponent>(TEXT("GhostCollision"));
@@ -44,6 +39,21 @@ void ARedEnemy::BeginPlay()
 	//☆赤の敵の設定
 	this->Status.HP = 100;
 	this->enemyColor = EnemyColor::Red;
+
+	//☆マテリアル
+	//マテリアルをロード
+	UMaterial* Material = LoadObject<UMaterial>(NULL, TEXT("/Game/_TeamFolder/Enemy/Red"), NULL, LOAD_None, NULL);
+	if (Material)
+	{
+		//ダイナミックマテリアルインスタンスを作成
+		this->DynamicMaterial = UMaterialInstanceDynamic::Create(Material, this);
+
+		//GhostMeshにダイナミックマテリアルを設定
+		GhostMesh->SetMaterial(0, DynamicMaterial);
+
+		//初期オパシティ値を設定
+		this->DynamicMaterial->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
+	}
 }
 
 void ARedEnemy::Tick(float DeltaTime)
@@ -88,6 +98,10 @@ void ARedEnemy::Think()
 		if (this->bHasEndedAttack) { nowState = State::Wait; }	// 待機へ
 		if (Status.HP <= 0) { nowState = State::Die; }			// 死亡へ
 		break;
+
+	case State::Appear:	//出現
+		if (this->bHasEndedAppear) { nowState = State::Move; }	// 移動へ
+		break;
 	}
 
 	UpdateState(nowState);
@@ -120,15 +134,23 @@ void ARedEnemy::ActProcess()
 	case State::Die:
 		EnemyDead();
 		break;
+
+	case State::Appear:	//出現
+		//出現処理
+		this->bHasEndedAppear = this->Appear();
+		break;
 	}
 }
 
 //ダメージを受ける処理、引数でもらった攻撃力分体力を減らす
 void ARedEnemy::RecieveEnemyDamage(int DamageAmount, EFlashlight_Color Color)
 {
-	if ((int)Color == (int)this->enemyColor)
+	if (this->state != State::Appear)
 	{
-		Status.HP -= DamageAmount;
+		if ((int)Color == (int)this->enemyColor)
+		{
+			Status.HP -= DamageAmount;
+		}
 	}
 }
 
@@ -222,6 +244,37 @@ bool ARedEnemy::Attack()
 	else if (MoveCount == (int)(TimeUpToAttackEnd * Gamefps / 60))
 	{
 		return true;
+	}
+
+	return false;
+}
+
+// 敵出現処理
+bool ARedEnemy::Appear()
+{
+	//DeltaTimeの取得
+	float DeltaTime = GetWorld()->GetDeltaSeconds();
+
+	if (DynamicMaterial)
+	{
+		//オパシティの値を変更
+		this->OpacityValue += 1.f / (float)TimeSpentInAppear * DeltaTime;
+
+		//出現が終わったら処理を終了する
+		if (this->OpacityValue >= 1.f)
+		{
+			//オパシティの値が1を超えないようにする
+			this->OpacityValue = 1.f;
+
+			//オパシティを設定
+			this->DynamicMaterial->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
+
+			//状態遷移可能にする
+			return true;
+		}
+
+		//オパシティを設定
+		this->DynamicMaterial->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
 	}
 
 	return false;
