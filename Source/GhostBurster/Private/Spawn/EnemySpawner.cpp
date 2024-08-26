@@ -8,6 +8,9 @@
 #include "Enemy/RedEnemy.h"
 #include "Enemy/BlueEnemy.h"
 #include "Enemy/BossEnemy.h"
+#include "TimerManager.h"
+#include "Player/PlayerSplinePath.h"
+#include "Kismet/GameplayStatics.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogEnemySpawner, Log, All);
 
@@ -28,7 +31,6 @@ void AEnemySpawner::BeginPlay()
     if (FPaths::FileExists(FilePath))
     {
         LoadSpawnInfoFromCSV(FilePath);
-        //UE_LOG(LogEnemySpawner, Log, TEXT("CSV file successfully loaded: %s"), *FilePath);
     }
     else
     {
@@ -191,6 +193,30 @@ void AEnemySpawner::SpawnEnemiesForWave(int32 Wave)
             }
         }
     }
+    // タイマーの設定
+    switch (Wave)
+    {
+    case 1:
+        GetWorld()->GetTimerManager().SetTimer(Wave1TimerHandle, this, &AEnemySpawner::HandleEnemyCountZero, 15.0f, false);
+        break;
+    case 2:
+        GetWorld()->GetTimerManager().SetTimer(Wave2TimerHandle, this, &AEnemySpawner::HandleEnemyCountZero, 5.0f, false);
+        break;
+    case 3:
+        GetWorld()->GetTimerManager().SetTimer(Wave3TimerHandle, this, &AEnemySpawner::HandleEnemyCountZero, 20.0f, false);
+        break;
+    case 4:
+        GetWorld()->GetTimerManager().SetTimer(Wave4TimerHandle, this, &AEnemySpawner::HandleEnemyCountZero, 35.0f, false);
+        break;
+    case 5:
+        GetWorld()->GetTimerManager().SetTimer(Wave5TimerHandle, this, &AEnemySpawner::HandleEnemyCountZero, 10.0f, false);
+        break;
+    case 6:
+        // ボスウェーブなのでタイマー設定なし
+        break;
+    default:
+        break;
+    }
 }
 
 void AEnemySpawner::EnemyDeadFunction()
@@ -208,14 +234,16 @@ void AEnemySpawner::EnemyDeadFunction()
 
 void AEnemySpawner::HandleEnemyCountZero()
 {
-    AActor* PlayerActor = GetPlayerActor();
-
+    APlayerSplinePath* PlayerActor = Cast<APlayerSplinePath>(UGameplayStatics::GetActorOfClass(GetWorld(), APlayerSplinePath::StaticClass()));
+    EnemyCount = 0;
     if (PlayerActor)
     {
         UFunction* StartMovementFunction = PlayerActor->FindFunction(TEXT("StartMovement"));
         if (StartMovementFunction)
         {
             PlayerActor->ProcessEvent(StartMovementFunction, nullptr);
+            AVRPlayerCharacter* Player = Cast<AVRPlayerCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(),0));
+            Player->NextStage();
         }
     }
 
