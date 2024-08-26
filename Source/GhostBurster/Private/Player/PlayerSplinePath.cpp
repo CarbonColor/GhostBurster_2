@@ -21,8 +21,8 @@ APlayerSplinePath::APlayerSplinePath()
 	SplineComponent->AddSplinePoint(FVector(0, 100.0f, 200.0f), ESplineCoordinateSpace::World);				//スタート地点
 	SplineComponent->AddSplinePoint(FVector(6800.0f, 100.0f, 200.0f), ESplineCoordinateSpace::World);		//左に曲がる地点
 	SplineComponent->AddSplinePoint(FVector(6800.0f, -2850.0f, 200.0f), ESplineCoordinateSpace::World);		//階段を下りる直前
-	SplineComponent->AddSplinePoint(FVector(6800.0f, -3650.0f, -500.0f), ESplineCoordinateSpace::World);	//階段を下りた直後
-	SplineComponent->AddSplinePoint(FVector(6800.0f, -8000.0f, -500.0f), ESplineCoordinateSpace::World);	//ゴール地点
+	SplineComponent->AddSplinePoint(FVector(6800.0f, -3650.0f, -600.0f), ESplineCoordinateSpace::World);	//階段を下りた直後
+	SplineComponent->AddSplinePoint(FVector(6800.0f, -8200.0f, -600.0f), ESplineCoordinateSpace::World);	//ゴール地点
 
 	// スプラインのタイプの設定
 	for (int i = 0; i < SplineComponent->GetNumberOfSplinePoints(); ++i)
