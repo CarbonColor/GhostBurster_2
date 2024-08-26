@@ -402,8 +402,15 @@ void AVRPlayerCharacter::SettingFlashlightColor()
     }
 }
 
-void AVRPlayerCharacter::CheckUsedItem(const TArray<int> value)
+void AVRPlayerCharacter::CheckUsedItem(const TArray<int32> value)
 {
+    FString DebugValue = "";
+    for (int32 v : value)
+    {
+        DebugValue += FString::FromInt(v) + ", ";
+    }
+    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Silver, DebugValue);
+
     //使えない状態のときは即リターン
     if (bCanUseItem == false || ItemCount <= 0)
     {
@@ -454,7 +461,6 @@ void AVRPlayerCharacter::CheckUsedItem(const TArray<int> value)
     //それ以外は何もせずリターン
     else
     {
-        //GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Silver, TEXT("Not Use Item"));
         return;
     }
 
@@ -462,6 +468,8 @@ void AVRPlayerCharacter::CheckUsedItem(const TArray<int> value)
     bCanUseItem = false;
     //アイテムのクールタイムの設定
     GetWorld()->GetTimerManager().SetTimer(ItemCoolTimeHandle, this, &AVRPlayerCharacter::ItemCoolTimeFunction, 5.0f, false);
+    //デバイスに振動要請を送る
+    GloveDeviceVibration_UseItem();
     //UIの更新
     ItemCount--;
     UpdateItemUI();
@@ -490,10 +498,14 @@ void AVRPlayerCharacter::OnConeBeginOverlap(UPrimitiveComponent* OverlappedComp,
         OverlappingEnemies.Add(OtherActor);
         //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Enemy is Overlapping"));
     }
-
     if (const ATitleEnemy* TitleEnemy = Cast<ATitleEnemy>(OtherActor))
     {
         OverlappingEnemies.Add(OtherActor);
+    }
+    //振動の開始
+    if (OverlappingEnemies.Num() > 0)
+    {
+        StartHaptic_EnemyDamage();
     }
 }
 void AVRPlayerCharacter::OnConeEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
@@ -511,12 +523,6 @@ void AVRPlayerCharacter::OnConeEndOverlap(UPrimitiveComponent* OverlappedComp, A
     {
         OverlappingEnemies.Remove(OtherActor);
     }
-    //振動の停止
-    if (OverlappingEnemies.Num() == 0)
-    {
-        StopHapticEffect();
-    }
-
 }
 
 //オバケからの攻撃を受けた時のメソッド
@@ -531,6 +537,9 @@ void AVRPlayerCharacter::RecievePlayerDamage()
         //無敵時間の設定 (3秒後に無敵状態を解除)
         GetWorld()->GetTimerManager().SetTimer(NoDamageTimerHandle, this, &AVRPlayerCharacter::NoDamageFunction, 3.0f, false);
         GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Cyan, TEXT("Player damage !"));
+        //デバイスを振動させる
+        StartHaptic_PlayerDamage();
+        GloveDeviceVibration_Damage();
     }
     else
     {
@@ -552,7 +561,7 @@ void AVRPlayerCharacter::StartHaptic_EnemyDamage()
 {
     if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
     {
-        PlayerController->PlayHapticEffect(HapticEffect_EnemyDamage, EControllerHand::Right, 1.0f, true);
+        PlayerController->PlayHapticEffect(HapticEffect_EnemyDamage, EControllerHand::Right, 1.0f, false);
 
         GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, TEXT("Device Vibration (Enemy)"));
     }
@@ -574,6 +583,8 @@ void AVRPlayerCharacter::StopHapticEffect()
         PlayerController->StopHapticEffect(EControllerHand::Right);
     }
 }
+
+
 
 //ステージ番号を進めるメソッド
 void AVRPlayerCharacter::NextStage()
@@ -650,12 +661,29 @@ void AVRPlayerCharacter::UseItem_Attack()
             IDamageInterface* DamageInterface = Cast<IDamageInterface>(Enemy);
             if (DamageInterface)
             {
+                FString String = Enemy->GetName() + TEXT(" is Damage");
+                GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Yellow, String);
                 DamageInterface->RecieveItemDamage(50);
             }
         }
     }
 
     //タイトル画面での処理
+    TArray<AActor*> TitleEnemies;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), ATitleEnemy::StaticClass(), TitleEnemies);
+    for (AActor* Enemy : TitleEnemies)
+    {
+        if (Enemy && Enemy->GetClass()->ImplementsInterface(UDamageInterface::StaticClass()))
+        {
+            IDamageInterface* DamageInterface = Cast<IDamageInterface>(Enemy);
+            if (DamageInterface)
+            {
+                FString String = Enemy->GetName() + TEXT(" is Damage");
+                GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Yellow, String);
+                DamageInterface->RecieveItemDamage(50);
+            }
+        }
+    }
     ATitleEventManager* EventManager = Cast<ATitleEventManager>(UGameplayStatics::GetActorOfClass(GetWorld(), ATitleEventManager::StaticClass()));
     if (EventManager)
     {

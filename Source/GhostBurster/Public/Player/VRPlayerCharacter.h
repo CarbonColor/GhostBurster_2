@@ -155,12 +155,18 @@ public:
 	//オバケからの攻撃(インターフェース)
 	virtual void RecievePlayerDamage() override;
 
-
 	//Haptic Feedback Effect(コントローラーの振動)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Haptics")
 		TObjectPtr<UHapticFeedbackEffect_Base> HapticEffect_EnemyDamage;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Haptics")
 		TObjectPtr<UHapticFeedbackEffect_Base> HapticEffect_PlayerDamage;
+
+	//デバイスに振動要請を送るメソッド（Blueprintで実装）
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Device")
+		void GloveDeviceVibration_UseItem();
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Device")
+		void GloveDeviceVibration_Damage();
+
 
 	//振動を開始するメソッド
 	UFUNCTION()
