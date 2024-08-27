@@ -84,8 +84,8 @@ void AGreenEnemy::Think()
 	switch (nowState)
 	{
 	case State::Wait:	//待機
-		if (MoveCount >= 60 * 3 * Gamefps / 60) { nowState = State::Attack; }	// 攻撃へ
-		if (Status.HP <= 0) { nowState = State::Die; }							// 死亡へ
+		if (MoveCount >= 1 * Gamefps) { nowState = State::Attack; }	// 攻撃へ
+		if (Status.HP <= 0) { nowState = State::Die; }				// 死亡へ
 		break;
 
 	case State::Move:	//移動
@@ -236,7 +236,7 @@ bool AGreenEnemy::Move()
 bool AGreenEnemy::Attack()
 {
 	//攻撃判定
-	if (MoveCount == (int)(AttackUpToTime * Gamefps / 60)) //15の部分は攻撃モーションに合わせて変更する
+	if (MoveCount == AttackUpToTime * Gamefps)
 	{
 		UKismetSystemLibrary::PrintString(this, TEXT("GreenEnemy Attack!"), true, true, FColor::Green, 2.f, TEXT("None"));
 
@@ -247,10 +247,8 @@ bool AGreenEnemy::Attack()
 		{
 			Player->RecievePlayerDamage();
 		}
-	}
-	//攻撃終了
-	else if (MoveCount == (int)(TimeUpToAttackEnd * Gamefps / 60))
-	{
+
+		//攻撃終了(条件式で制御し、アニメーションが終わったらにするかも)
 		return true;
 	}
 

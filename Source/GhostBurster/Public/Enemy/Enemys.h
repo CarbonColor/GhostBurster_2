@@ -93,8 +93,7 @@ protected:
 
 	//攻撃関係
 	bool	bHasEndedAttack = false;					// 攻撃が終了したか
-	float	AttackUpToTime = 0.f;						// ゴーストの攻撃までの時間(秒)
-	float	TimeUpToAttackEnd = AttackUpToTime + 1.f;	// 攻撃状態が終了するタイミング(フレーム)
+	int		AttackUpToTime = 0;							// ゴーストの攻撃までの時間(秒)
 
 	//出現関係
 	bool	bHasEndedAppear = false;	// 出現が終了したか
@@ -117,15 +116,15 @@ protected:
 	//HPが0になったら消滅させる
 	void EnemyDead();
 
-	//現在のFPSを取得する
-	float GetWorldFPS();
+	//現在のFPSを取得する(int型で)
+	int GetWorldFPS();
 
 	//状態：Moveで使う関数
 	virtual bool ProcessJustForFirst_Move() PURE_VIRTUAL(AEnemys::ProcessJustForFirst_Move, return false;);	// 状態Move遷移時にのみ行う処理
 	virtual bool Move() PURE_VIRTUAL(AEnemys::Move, return false;);											// 移動処理
 
 	//状態：Attackで使う関数
-	virtual bool Attack() PURE_VIRTUAL(AEnemys::Move, return false;);	// 攻撃処理
+	virtual bool Attack() PURE_VIRTUAL(AEnemys::Move, return false;);											// 攻撃処理
 
 	//状態：Appearで使う関数
 	virtual bool Appear() PURE_VIRTUAL(AEnemys::Appear, return false;);	// 敵出現処理

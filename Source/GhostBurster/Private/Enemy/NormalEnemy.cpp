@@ -89,8 +89,8 @@ void ANormalEnemy::Think()
 	switch (nowState)
 	{
 	case State::Wait:	//‘Ò‹@
-		if (MoveCount >= 60 * 3 * Gamefps / 60) { nowState = State::Attack; }	// UŒ‚‚Ö
-		if (Status.HP <= 0) { nowState = State::Die; }							// €–S‚Ö
+		if (MoveCount >= 1 * Gamefps) { nowState = State::Attack; }	// UŒ‚‚Ö
+		if (Status.HP <= 0) { nowState = State::Die; }				// €–S‚Ö
 		break;
 
 	case State::Move:	//ˆÚ“®
@@ -131,7 +131,7 @@ void ANormalEnemy::ActProcess()
 		break;
 
 	case State::Attack:	//UŒ‚
-		//UŒ‚ˆ—
+		//UŒ‚ˆ—(UŒ‚‚ªI‚í‚Á‚½Œãó‘Ô‘JˆÚ‚·‚é)
 		this->bHasEndedAttack = this->Attack();
 		break;
 
@@ -241,7 +241,7 @@ bool ANormalEnemy::Move()
 bool ANormalEnemy::Attack()
 {
 	//UŒ‚”»’è
-	if (MoveCount == (int)(AttackUpToTime * Gamefps / 60)) //AttackUpToTime‚Ì•”•ª‚ÍUŒ‚ƒ‚[ƒVƒ‡ƒ“‚É‡‚í‚¹‚Ä•ÏX‚·‚é
+	if (MoveCount == AttackUpToTime * Gamefps)
 	{
 		UKismetSystemLibrary::PrintString(this, TEXT("WhiteEnemy Attack!"), true, true, FColor::White, 2.f, TEXT("None"));
 
@@ -252,10 +252,8 @@ bool ANormalEnemy::Attack()
 		{
 			Player->RecievePlayerDamage();
 		}
-	}
-	//UŒ‚I—¹
-	else if (MoveCount == (int)(TimeUpToAttackEnd * Gamefps / 60))
-	{
+
+		//UŒ‚I—¹(ğŒ®‚Å§Œä‚µAƒAƒjƒ[ƒVƒ‡ƒ“‚ªI‚í‚Á‚½‚ç‚É‚·‚é‚©‚à)
 		return true;
 	}
 
