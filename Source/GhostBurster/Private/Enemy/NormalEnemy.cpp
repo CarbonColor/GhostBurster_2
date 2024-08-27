@@ -150,7 +150,7 @@ void ANormalEnemy::ActProcess()
 //ダメージを受ける処理、引数でもらった数値分体力を減らす
 void ANormalEnemy::RecieveEnemyDamage(int DamageAmount, EFlashlight_Color Color)
 {
-	if (this->state != State::Appear)
+	if (this->state != State::Appear && this->state != State::Die)
 	{
 		if ((int)Color == (int)this->enemyColor)
 		{
@@ -284,3 +284,17 @@ bool ANormalEnemy::Appear()
 
 	return false;
 }
+
+//メモ
+/*
+Move後の敵の行動を外部ファイルで制御したい
+・外部ファイルの内容をセットする関数の追加
+・Move後の状態遷移処理を外部ファイルの内容で決まるようにする
+
+switch(hoge)
+{
+	case 0:
+		State StateHoge1 = State::Wait;
+}
+みたいな感じ
+*/

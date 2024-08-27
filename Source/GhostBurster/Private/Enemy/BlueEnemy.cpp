@@ -145,7 +145,7 @@ void ABlueEnemy::ActProcess()
 //ダメージを受ける処理、引数でもらった攻撃力分体力を減らす
 void ABlueEnemy::RecieveEnemyDamage(int DamageAmount, EFlashlight_Color Color)
 {
-	if (this->state != State::Appear)
+	if (this->state != State::Appear && this->state != State::Die)
 	{
 		if ((int)Color == (int)this->enemyColor)
 		{
