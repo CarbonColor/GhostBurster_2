@@ -93,8 +93,8 @@ protected:
 
 	//攻撃関係
 	bool	bHasEndedAttack = false;					// 攻撃が終了したか
-	float	AttackUpToTime = 0.f;						// ゴーストの攻撃までの時間(フレーム)
-	float	TimeUpToAttackEnd = AttackUpToTime + 1.f;	// 攻撃状態が終了するタイミング
+	float	AttackUpToTime = 0.f;						// ゴーストの攻撃までの時間(秒)
+	float	TimeUpToAttackEnd = AttackUpToTime + 1.f;	// 攻撃状態が終了するタイミング(フレーム)
 
 	//出現関係
 	bool	bHasEndedAppear = false;	// 出現が終了したか
@@ -135,10 +135,10 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	//Setter関数
-	void SetHP(int HPValue);				//HPの設定用関数
-	void SetAttackUpToTime(int SetTime);	//攻撃までの時間設定用関数
+	void SetHP(int HPValue);					//HPの設定用関数
+	void SetAttackUpToTime(int SetTime);		//攻撃までの時間設定用関数
 	void SetGoalLocation(FVector SetLocation);	//目標座標の設定用関数
-	void SetMoveTime(int SetTime);			//移動時間の設定用
+	void SetMoveTime(int SetTime);				//移動時間の設定用
 
 	UFUNCTION(BlueprintCallable, Category = "Enemy")
 	void SetInitialData(int HP, int AttackUpToTimeValue, FVector SetLocation, int MoveTimeValue); //生成されたときの設定用関数
