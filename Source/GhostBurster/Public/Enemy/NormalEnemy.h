@@ -27,7 +27,7 @@ class GHOSTBURSTER_API ANormalEnemy : public AEnemys
 	virtual bool Move() override;						// ˆÚ“®ˆ—
 
 	//UŒ‚ŠÖŒW
-	virtual bool Attack() override;	// UŒ‚ˆ—
+	virtual bool Attack() override;						// UŒ‚ˆ—
 
 	//oŒ»ŠÖŒW
 	virtual bool Appear() override;	// “GoŒ»ˆ—
