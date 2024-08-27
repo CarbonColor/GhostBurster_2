@@ -37,7 +37,6 @@ void ARedEnemy::BeginPlay()
 	Super::BeginPlay();
 
 	//☆赤の敵の設定
-	this->Status.HP = 100;
 	this->enemyColor = EnemyColor::Red;
 
 	//☆マテリアル
@@ -164,16 +163,19 @@ void ARedEnemy::RecieveItemDamage(int DamageAmount)
 bool ARedEnemy::ProcessJustForFirst_Move()
 {
 	// 初期位置の設定
-	CurrentLocation = GetActorLocation();
+	this->CurrentLocation = GetActorLocation();
+
+	// 現在位置からの相対座標
+	this->GoalLocation += this->CurrentLocation;
 
 	// 方向ベクトルの計算
-	Direction = (GoalLocation - CurrentLocation).GetSafeNormal();
+	this->Direction = (this->GoalLocation - this->CurrentLocation).GetSafeNormal();
 
 	// 総移動距離の計算
-	TotalDistance = FVector::Dist(CurrentLocation, GoalLocation);
+	this->TotalDistance = FVector::Dist(this->CurrentLocation, this->GoalLocation);
 
 	// 目的地に着くまでの時間に合うように速度を計算
-	Speed = TotalDistance / this->MoveTime;
+	this->Speed = this->TotalDistance / this->MoveTime;
 
 	// 処理が終わったらtrueを返す
 	return true;

@@ -28,7 +28,7 @@ protected:
 	//ステータス
 	struct FStatus
 	{
-		float HP = 1;	//ゴーストの体力
+		int HP = 1;	//ゴーストの体力
 	};
 	FStatus Status;
 
@@ -134,11 +134,11 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	//Setter関数
-	void SetHP(float HPValue);										//HPの設定用関数
-	void SetAttackUpToTime(int SetTime);							//攻撃までの時間設定用関数
-	void SetGoalLocation(double SetX, double SetY, double SetZ);	//目標座標の設定用関数
-	void SetMoveTime(int SetTime);									//移動時間の設定用
+	void SetHP(int HPValue);				//HPの設定用関数
+	void SetAttackUpToTime(int SetTime);	//攻撃までの時間設定用関数
+	void SetGoalLocation(FVector SetLocation);	//目標座標の設定用関数
+	void SetMoveTime(int SetTime);			//移動時間の設定用
 
 	UFUNCTION(BlueprintCallable, Category = "Enemy")
-	void SetInitialData(float HP, int AttackUpToTimeValue, double GoalX, double GoalY, double GoalZ, int MoveTimeValue); //生成されたときの設定用関数
+	void SetInitialData(int HP, int AttackUpToTimeValue, FVector SetLocation, int MoveTimeValue); //生成されたときの設定用関数
 };
