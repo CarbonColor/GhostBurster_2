@@ -18,8 +18,6 @@ AEnemys::AEnemys()
 void AEnemys::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	ScoreInstance = Cast<UPlayerScoreInstance>(GetGameInstance());
 }
 
 // Called every frame
@@ -67,7 +65,7 @@ void AEnemys::EnemyDead()
 				if (UFunction* Func = Spawner->FindFunction(FName("EnemyDeadFunction")))
 				{
 					Spawner->ProcessEvent(Func, nullptr);
-					ScoreInstance->AddPlayerScore(100);
+					Player->AddScore(100);
 					//GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, FString::Printf(TEXT("Call Spawner%d Function"), Stage));
 				}
 			}
