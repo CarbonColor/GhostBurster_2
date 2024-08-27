@@ -162,17 +162,23 @@ void ARedEnemy::RecieveItemDamage(int DamageAmount)
 //状態Move遷移時にのみ行う処理
 bool ARedEnemy::ProcessJustForFirst_Move()
 {
+	//ゼロクリアする
+	this->TraveledDistance = 0.f;
+
 	// 初期位置の設定
 	this->CurrentLocation = GetActorLocation();
 
-	// 現在位置からの相対座標
-	this->GoalLocation += this->CurrentLocation;
+	// 目標座標の設定
+	/*もし移動が複数回行われるようになった時、外部ファイルから読み込んで設定*/
+
+	// ワールド座標への変換
+	this->GoalLocation_World = this->CurrentLocation + this->GoalLocation;
 
 	// 方向ベクトルの計算
-	this->Direction = (this->GoalLocation - this->CurrentLocation).GetSafeNormal();
+	this->Direction = (this->GoalLocation_World - this->CurrentLocation).GetSafeNormal();
 
 	// 総移動距離の計算
-	this->TotalDistance = FVector::Dist(this->CurrentLocation, this->GoalLocation);
+	this->TotalDistance = FVector::Dist(this->CurrentLocation, this->GoalLocation_World);
 
 	// 目的地に着くまでの時間に合うように速度を計算
 	this->Speed = this->TotalDistance / this->MoveTime;
@@ -217,7 +223,7 @@ bool ARedEnemy::Move()
 	// 目的地に到達したら処理を終了
 	if (TraveledDistance >= TotalDistance)
 	{
-		SetActorLocation(GoalLocation);
+		SetActorLocation(this->GoalLocation_World);
 
 		//状態遷移できるようにする
 		return true;

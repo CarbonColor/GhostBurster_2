@@ -79,21 +79,22 @@ protected:
 	bool bShouldBeenProcessWhenFirstStateTransition = false;
 
 	//移動関係
-	int		MoveTime = 1;						// ゴーストの移動にかかる時間(秒)
-	FVector CurrentLocation = FVector(0, 0, 0);	// 敵の現在の座標
-	FVector GoalLocation = FVector(0, 0, 0);	// 敵の移動先座標
-	bool	bHasEndedMoving = false;			// 移動が終了したか
-	FVector Direction = FVector(0, 0, 0);		// GoalLocationへ向かう単位ベクトル
-	float	TotalDistance = 0.f;				// 開始位置から目的地までの直線距離
-	float	TraveledDistance = 0.f;				// これまでに進んだ距離
-	float	Amplitude = 40.0f;					// 振幅
-	float	Frequency = 1.0f;					// 波の速さ
-	float	Speed = 80.0f;						// 目的地までの移動速度
+	int		MoveTime = 1;							// ゴーストの移動にかかる時間(秒)
+	FVector CurrentLocation = FVector(0, 0, 0);		// 敵の現在の座標
+	FVector GoalLocation = FVector(0, 0, 0);		// 敵の移動先座標(ローカル座標)
+	FVector GoalLocation_World = FVector(0, 0, 0);	// 敵の移動先座標(ワールド座標)
+	bool	bHasEndedMoving = false;				// 移動が終了したか
+	FVector Direction = FVector(0, 0, 0);			// GoalLocationへ向かう単位ベクトル
+	float	TotalDistance = 0.f;					// 開始位置から目的地までの直線距離
+	float	TraveledDistance = 0.f;					// これまでに進んだ距離
+	float	Amplitude = 40.0f;						// 振幅
+	float	Frequency = 1.0f;						// 波の速さ
+	float	Speed = 80.0f;							// 目的地までの移動速度
 
 	//攻撃関係
 	bool	bHasEndedAttack = false;					// 攻撃が終了したか
-	float	AttackUpToTime = 0.f;						// ゴーストの攻撃までの時間(フレーム)
-	float	TimeUpToAttackEnd = AttackUpToTime + 1.f;	// 攻撃状態が終了するタイミング
+	float	AttackUpToTime = 0.f;						// ゴーストの攻撃までの時間(秒)
+	float	TimeUpToAttackEnd = AttackUpToTime + 1.f;	// 攻撃状態が終了するタイミング(フレーム)
 
 	//出現関係
 	bool	bHasEndedAppear = false;	// 出現が終了したか
@@ -134,10 +135,10 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	//Setter関数
-	void SetHP(int HPValue);				//HPの設定用関数
-	void SetAttackUpToTime(int SetTime);	//攻撃までの時間設定用関数
+	void SetHP(int HPValue);					//HPの設定用関数
+	void SetAttackUpToTime(int SetTime);		//攻撃までの時間設定用関数
 	void SetGoalLocation(FVector SetLocation);	//目標座標の設定用関数
-	void SetMoveTime(int SetTime);			//移動時間の設定用
+	void SetMoveTime(int SetTime);				//移動時間の設定用
 
 	UFUNCTION(BlueprintCallable, Category = "Enemy")
 	void SetInitialData(int HP, int AttackUpToTimeValue, FVector SetLocation, int MoveTimeValue); //生成されたときの設定用関数

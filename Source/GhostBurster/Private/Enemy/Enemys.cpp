@@ -51,7 +51,7 @@ void AEnemys::EnemyDead()
 		//ステージ名を取得
 		int Stage = Player->GetStageNumber();
 		FString SpawnBPName = FString::Printf(TEXT("EnemysSpawn_BP_C_%d"), Stage + 6);
-		GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Silver, SpawnBPName);
+		//GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Silver, SpawnBPName);
 
 		//該当のEnemySpawnを取得
 		TArray<AActor*> Spawners;
@@ -59,14 +59,14 @@ void AEnemys::EnemyDead()
 
 		for (AActor* Spawner : Spawners)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Purple, Spawner->GetName());
+			//GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Purple, Spawner->GetName());
 
 			if (Spawner->GetName() == SpawnBPName)
 			{
 				if (UFunction* Func = Spawner->FindFunction(FName("EnemyDeadFunction")))
 				{
 					Spawner->ProcessEvent(Func, nullptr);
-					GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, FString::Printf(TEXT("Call Spawner%d Function"), Stage));
+					//GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, FString::Printf(TEXT("Call Spawner%d Function"), Stage));
 				}
 			}
 		}
