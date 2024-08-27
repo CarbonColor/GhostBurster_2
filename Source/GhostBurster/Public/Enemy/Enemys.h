@@ -79,16 +79,17 @@ protected:
 	bool bShouldBeenProcessWhenFirstStateTransition = false;
 
 	//移動関係
-	int		MoveTime = 1;						// ゴーストの移動にかかる時間(秒)
-	FVector CurrentLocation = FVector(0, 0, 0);	// 敵の現在の座標
-	FVector GoalLocation = FVector(0, 0, 0);	// 敵の移動先座標
-	bool	bHasEndedMoving = false;			// 移動が終了したか
-	FVector Direction = FVector(0, 0, 0);		// GoalLocationへ向かう単位ベクトル
-	float	TotalDistance = 0.f;				// 開始位置から目的地までの直線距離
-	float	TraveledDistance = 0.f;				// これまでに進んだ距離
-	float	Amplitude = 40.0f;					// 振幅
-	float	Frequency = 1.0f;					// 波の速さ
-	float	Speed = 80.0f;						// 目的地までの移動速度
+	int		MoveTime = 1;							// ゴーストの移動にかかる時間(秒)
+	FVector CurrentLocation = FVector(0, 0, 0);		// 敵の現在の座標
+	FVector GoalLocation = FVector(0, 0, 0);		// 敵の移動先座標(ローカル座標)
+	FVector GoalLocation_World = FVector(0, 0, 0);	// 敵の移動先座標(ワールド座標)
+	bool	bHasEndedMoving = false;				// 移動が終了したか
+	FVector Direction = FVector(0, 0, 0);			// GoalLocationへ向かう単位ベクトル
+	float	TotalDistance = 0.f;					// 開始位置から目的地までの直線距離
+	float	TraveledDistance = 0.f;					// これまでに進んだ距離
+	float	Amplitude = 40.0f;						// 振幅
+	float	Frequency = 1.0f;						// 波の速さ
+	float	Speed = 80.0f;							// 目的地までの移動速度
 
 	//攻撃関係
 	bool	bHasEndedAttack = false;					// 攻撃が終了したか
