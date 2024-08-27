@@ -87,7 +87,7 @@ int AEnemys::GetWorldFPS()
 	//Œ»İ‚ÌFPS‚ğŒvZ‚µ‚Äæ“¾
 	float FPS = 1.f / DeltaTime;
 
-	return (int)FPS;
+	return (int)FPS; //lÌŒÜ“ü‚É‚µ‚½‚¢
 }
 
 //HP‚Ìİ’è—pŠÖ”
