@@ -99,7 +99,9 @@ public:
     FVector Third_White_Location;
 
     UPROPERTY(EditAnywhere, Category = "FourthEvent")
-    FVector Fourth_Treasure_Location;
+    FVector Fourth_Treasure_Location1;
+    UPROPERTY(EditAnywhere, Category = "FourthEvent")
+    FVector Fourth_Treasure_Location2;
 
 private:
 

@@ -63,6 +63,8 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     bCanUseItem = true;
     // 無敵時間の初期化
     bIsDamageNow = false;
+    //振動状態の初期化
+    bIsEnemyHaptic = false;
 
     // ------------------------------------------------------------------------------------
     // コンポーネント関係
@@ -204,6 +206,15 @@ void AVRPlayerCharacter::BeginPlay()
 void AVRPlayerCharacter::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
+
+    //振動処理が全くないときに敵に当たっていたら振動を開始
+    if (bIsEnemyHaptic == false && bIsPlayerHaptic == false)
+    {
+        if (OverlappingEnemies.Num() > 0)
+        {
+            StartHaptic_EnemyDamage();
+        }
+    }
 
     TmpEnemies = OverlappingEnemies;
     for (AActor* Enemy : TmpEnemies)
@@ -425,9 +436,6 @@ void AVRPlayerCharacter::CheckUsedItem(const TArray<int32> value)
     {
         //攻撃アイテムの処理
         UseItem_Attack();
-        
-        //デバッグ
-        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Purple, TEXT("Used Item ( Enemy Damage )"));
     }
     //銃の形（中指[2]・薬指[3]・小指[4]）
     else if (value[0] <= FingerBendingBorder &&
@@ -438,10 +446,6 @@ void AVRPlayerCharacter::CheckUsedItem(const TArray<int32> value)
     {
         //強化アイテムの処理
         UseItem_Buff();
-
-        //デバッグ
-        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Purple, TEXT("Used Item ( Light Enhanced )"));
-
     }
     //金の形（親指[0]・人差し指[1]）
     else if (value[0] > FingerBendingBorder &&
@@ -452,10 +456,6 @@ void AVRPlayerCharacter::CheckUsedItem(const TArray<int32> value)
     {
         //スコアアイテムの処理
         UseItem_Score();
-
-        //デバッグ
-        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Purple, TEXT("Used Item ( Add Score )"));
-
     }
     //それ以外は何もせずリターン
     else
@@ -501,11 +501,6 @@ void AVRPlayerCharacter::OnConeBeginOverlap(UPrimitiveComponent* OverlappedComp,
     {
         OverlappingEnemies.Add(OtherActor);
     }
-    //振動の開始
-    if (OverlappingEnemies.Num() > 0)
-    {
-        StartHaptic_EnemyDamage();
-    }
 }
 void AVRPlayerCharacter::OnConeEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
@@ -517,10 +512,14 @@ void AVRPlayerCharacter::OnConeEndOverlap(UPrimitiveComponent* OverlappedComp, A
         OverlappingEnemies.Remove(OtherActor);
         //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Enemy is not Overlapping"));
     }
-
     if (const ATitleEnemy* TitleEnemy = Cast<ATitleEnemy>(OtherActor))
     {
         OverlappingEnemies.Remove(OtherActor);
+    }
+
+    if (OverlappingEnemies.Num() <= 0)
+    {
+        StopHapticEffect();
     }
 }
 
@@ -535,14 +534,14 @@ void AVRPlayerCharacter::RecievePlayerDamage()
         bIsDamageNow = true;
         //無敵時間の設定 (3秒後に無敵状態を解除)
         GetWorld()->GetTimerManager().SetTimer(NoDamageTimerHandle, this, &AVRPlayerCharacter::NoDamageFunction, 3.0f, false);
-        GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Cyan, TEXT("Player damage !"));
+        GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, TEXT("Player damage !"));
         //デバイスを振動させる
         StartHaptic_PlayerDamage();
         GloveDeviceVibration_Damage();
     }
     else
     {
-        GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Cyan, TEXT("Player takes no damage !"));
+        GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, TEXT("Player takes no damage !"));
     }
 }
 //無敵時間のメソッド
@@ -560,9 +559,10 @@ void AVRPlayerCharacter::StartHaptic_EnemyDamage()
 {
     if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
     {
-        PlayerController->PlayHapticEffect(HapticEffect_EnemyDamage, EControllerHand::Right, 1.0f, false);
-
-        GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, TEXT("Device Vibration (Enemy)"));
+        PlayerController->PlayHapticEffect(HapticEffect_EnemyDamage, EControllerHand::Right, 1.0f, true);
+        bIsEnemyHaptic = true;
+        bIsPlayerHaptic = false;
+        //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, TEXT("Device Vibration (Enemy)"));
     }
 }
 void AVRPlayerCharacter::StartHaptic_PlayerDamage()
@@ -570,8 +570,10 @@ void AVRPlayerCharacter::StartHaptic_PlayerDamage()
     if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
     {
         PlayerController->PlayHapticEffect(HapticEffect_PlayerDamage, EControllerHand::Right, 1.0f, false);
-
-        GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, TEXT("Device Vibration (Player)"));
+        bIsEnemyHaptic = false;
+        bIsPlayerHaptic = true;
+        GetWorld()->GetTimerManager().SetTimer(HapticTimer, this, &AVRPlayerCharacter::StopHapticEffect, 1.5f, false);
+        //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, TEXT("Device Vibration (Player)"));
     }
 }
 // 振動を停止するメソッド
@@ -580,6 +582,8 @@ void AVRPlayerCharacter::StopHapticEffect()
     if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
     {
         PlayerController->StopHapticEffect(EControllerHand::Right);
+        bIsEnemyHaptic = false;
+        bIsPlayerHaptic = false;
     }
 }
 
@@ -648,6 +652,9 @@ void AVRPlayerCharacter::AddScore(int32 Value)
 //アイテム使用メソッド
 void AVRPlayerCharacter::UseItem_Attack()
 {
+    //デバッグ
+    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Purple, TEXT("Used Item ( Enemy Damage )"));
+
     //狐のモデルの出現
 
     //場にいるすべての敵にダメージを与える
@@ -660,9 +667,7 @@ void AVRPlayerCharacter::UseItem_Attack()
             IDamageInterface* DamageInterface = Cast<IDamageInterface>(Enemy);
             if (DamageInterface)
             {
-                FString String = Enemy->GetName() + TEXT(" is Damage");
-                GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Yellow, String);
-                DamageInterface->RecieveItemDamage(50);
+                DamageInterface->RecieveItemDamage(100);
             }
         }
     }
@@ -677,9 +682,7 @@ void AVRPlayerCharacter::UseItem_Attack()
             IDamageInterface* DamageInterface = Cast<IDamageInterface>(Enemy);
             if (DamageInterface)
             {
-                FString String = Enemy->GetName() + TEXT(" is Damage");
-                GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Yellow, String);
-                DamageInterface->RecieveItemDamage(50);
+                DamageInterface->RecieveItemDamage(100);
             }
         }
     }
@@ -691,6 +694,9 @@ void AVRPlayerCharacter::UseItem_Attack()
 }
 void AVRPlayerCharacter::UseItem_Buff()
 {
+    //デバッグ
+    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Purple, TEXT("Used Item ( Light Enhanced )"));
+
     //ライトのバッテリー時間を増加
     BatteryTime += AddBatteryTime;
     //ライトの攻撃力を増加
@@ -707,6 +713,9 @@ void AVRPlayerCharacter::UseItem_Buff()
 }
 void AVRPlayerCharacter::UseItem_Score()
 {
+    //デバッグ
+    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Purple, TEXT("Used Item ( Add Score )"));
+
     //スコアの増加
     ScoreInstance->AddPlayerScore(1000);
     //UIの更新
@@ -718,5 +727,4 @@ void AVRPlayerCharacter::UseItem_Score()
     {
         EventManager->IsUseScoreItem();
     }
-
 }

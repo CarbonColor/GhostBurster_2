@@ -9,7 +9,6 @@
 #include "Enemy/BlueEnemy.h"
 #include "Enemy/BossEnemy.h"
 #include "TimerManager.h"
-#include "Player/PlayerSplinePath.h"
 #include "Kismet/GameplayStatics.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogEnemySpawner, Log, All);
@@ -25,16 +24,24 @@ void AEnemySpawner::BeginPlay()
 {
     Super::BeginPlay();
 
-    FString FilePath = FPaths::ProjectContentDir() + TEXT("_TeamFolder/map/enemy_spawn_data.csv");
+    //スプラインの取得
+    PlayerSpline = Cast<APlayerSplinePath>(UGameplayStatics::GetActorOfClass(GetWorld(), APlayerSplinePath::StaticClass()));
+
+    // 旧スポーンデータ
+    //FString FilePath = FPaths::ProjectContentDir() + TEXT("_TeamFolder/map/enemy_spawn_data.csv");
+    // 新スポーンデータ
+    FString SpawnDataPath = FPaths::ProjectContentDir() + TEXT("_TeamFolder/map/EnemySpawnData.csv");
+    FString StageDataPath = FPaths::ProjectContentDir() + TEXT("_TeamFolder/map/StageTimerData.csv");
+
     //UE_LOG(LogEnemySpawner, Log, TEXT("Looking for file at: %s"), *FilePath);
 
-    if (FPaths::FileExists(FilePath))
+    if (FPaths::FileExists(SpawnDataPath) && FPaths::FileExists(StageDataPath))
     {
-        LoadSpawnInfoFromCSV(FilePath);
+        LoadSpawnInfoFromCSV(SpawnDataPath, StageDataPath);
     }
     else
     {
-        UE_LOG(LogEnemySpawner, Warning, TEXT("CSV file not found at: %s"), *FilePath);
+        UE_LOG(LogEnemySpawner, Warning, TEXT("CSV file not found at: %s"), *SpawnDataPath);
     }
 }
 
@@ -43,7 +50,7 @@ void AEnemySpawner::Tick(float DeltaTime)
     Super::Tick(DeltaTime);
 }
 
-TArray<FEnemySpawnInfo> AEnemySpawner::ParseCSV(const FString& FilePath) const
+TArray<FEnemySpawnInfo> AEnemySpawner::ParseCSV_SpawnData(const FString& FilePath) const
 {
     TArray<FEnemySpawnInfo> ParsedSpawnInfoArray;
     FString FileData;
@@ -55,29 +62,77 @@ TArray<FEnemySpawnInfo> AEnemySpawner::ParseCSV(const FString& FilePath) const
 
         for (const FString& Line : Lines)
         {
-            if (Line.IsEmpty())
+            //行が空白 || 行の最初が「//」で始まっていたらスルー
+            if (Line.IsEmpty() || Line.StartsWith("//"))
             {
                 continue;
             }
 
+            //カンマ区切りで分割
             TArray<FString> Values;
             Line.ParseIntoArray(Values, TEXT(","), true);
 
-            if (Values.Num() == 5)
-            {
-                FEnemySpawnInfo SpawnInfo;
-                SpawnInfo.Wave = FCString::Atoi(*Values[0]);
-                SpawnInfo.Type = Values[1];
-                double X = FCString::Atof(*Values[2]);
-                double Y = FCString::Atof(*Values[3]);
-                double Z = FCString::Atof(*Values[4]);
-                SpawnInfo.Location = FVector(X, Y, Z);
-                ParsedSpawnInfoArray.Add(SpawnInfo);
-            }
+            //データの変換
+            FEnemySpawnInfo SpawnInfo;
+            //出現するステージ番号
+            SpawnInfo.Wave = FCString::Atoi(*Values[0]);
+            //出現する敵の種類
+            SpawnInfo.Type = Values[1];
+            //出現する座標
+            float SX = FCString::Atof(*Values[2]);
+            float SY = FCString::Atof(*Values[3]);
+            float SZ = FCString::Atof(*Values[4]);
+            SpawnInfo.StartLocation = FVector(SX, SY, SZ);
+
+            //敵の目標地点
+            float GX = FCString::Atof(*Values[5]);
+            float GY = FCString::Atof(*Values[6]);
+            float GZ = FCString::Atof(*Values[7]);
+            SpawnInfo.GoalLocation = FVector(GX, GY, GZ);
+            //敵の移動時間
+            SpawnInfo.MoveTime = FCString::Atoi(*Values[8]);
+            //敵の体力
+            SpawnInfo.EnemyHP = FCString::Atoi(*Values[9]);
+            //敵の移動が終わってから攻撃するまでの時間
+            SpawnInfo.AttackTime = FCString::Atoi(*Values[10]);
+            //以下、必要に応じて追加
+
+
+            ParsedSpawnInfoArray.Add(SpawnInfo);
+            //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Yellow, TEXT("Add Enemy Data"));
         }
     }
 
     return ParsedSpawnInfoArray;
+}
+
+TArray<int32> AEnemySpawner::ParseCSV_StageTime(const FString& FilePath) const
+{
+    TArray<int32> ParsedStageTimer;
+    FString FileData;
+
+    if (FFileHelper::LoadFileToString(FileData, *FilePath))
+    {
+        TArray<FString> Lines;
+        FileData.ParseIntoArrayLines(Lines);
+
+        for (const FString& Line : Lines)
+        {
+            //行が空白 || 行の最初が「//」で始まっていたらスルー
+            if (Line.IsEmpty() || Line.StartsWith("//"))
+            {
+                continue;
+            }
+
+            //カンマ区切りで分割
+            TArray<FString> Values;
+            Line.ParseIntoArray(Values, TEXT(","), true);
+
+            ParsedStageTimer.Add(FCString::Atoi(*Values[0]));
+            //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Yellow, TEXT("Add Timer Data"));
+        }
+    }
+    return ParsedStageTimer;
 }
 
 void AEnemySpawner::LogCurrentEnemyCount() const
@@ -113,23 +168,24 @@ void AEnemySpawner::LogSpawnInfoArray() const
     for (const FEnemySpawnInfo& SpawnInfo : SpawnInfoArray)
     {
         UE_LOG(LogEnemySpawner, Warning, TEXT("SpawnInfo: Wave: %d, Type: %s, Location: (%f, %f, %f)"),
-            SpawnInfo.Wave, *SpawnInfo.Type, SpawnInfo.Location.X, SpawnInfo.Location.Y, SpawnInfo.Location.Z);
+            SpawnInfo.Wave, *SpawnInfo.Type, SpawnInfo.StartLocation.X, SpawnInfo.StartLocation.Y, SpawnInfo.StartLocation.Z);
     }
 }
 
-void AEnemySpawner::LoadSpawnInfoFromCSV(const FString& FilePath)
+void AEnemySpawner::LoadSpawnInfoFromCSV(const FString& SpawnPath, const FString& TimerPath)
 {
-    if (!FPaths::FileExists(FilePath))
+    if (!FPaths::FileExists(SpawnPath))
     {
-        UE_LOG(LogEnemySpawner, Warning, TEXT("CSV file not found: %s"), *FilePath);
+        UE_LOG(LogEnemySpawner, Warning, TEXT("CSV file not found: %s"), *SpawnPath);
         return;
     }
 
-    SpawnInfoArray = ParseCSV(FilePath);
+    SpawnInfoArray = ParseCSV_SpawnData(SpawnPath);
+    WaveTime = ParseCSV_StageTime(TimerPath);
 
     if (SpawnInfoArray.Num() == 0)
     {
-        UE_LOG(LogEnemySpawner, Warning, TEXT("No spawn info parsed from CSV file: %s"), *FilePath);
+        UE_LOG(LogEnemySpawner, Warning, TEXT("No spawn info parsed from CSV file: %s"), *SpawnPath);
     }
 }
 
@@ -137,17 +193,17 @@ void AEnemySpawner::SpawnEnemiesForWave(int32 Wave)
 {
     UE_LOG(LogEnemySpawner, Warning, TEXT("SpawnEnemiesForWave called for Wave: %d"), Wave);
 
-    LoadSpawnInfoFromCSV(FPaths::ProjectContentDir() + TEXT("_TeamFolder/map/enemy_spawn_data.csv"));
-
+    //LoadSpawnInfoFromCSV(FPaths::ProjectContentDir() + TEXT("_TeamFolder/map/enemy_spawn_data.csv"));
     //LogSpawnInfoArray();
 
+    //敵の生成
     for (const FEnemySpawnInfo& SpawnInfo : SpawnInfoArray)
     {
         if (SpawnInfo.Wave == Wave)
         {
             EnemyCount += 1;
             LogCurrentEnemyCount();
-            LogAttemptingToSpawn(SpawnInfo.Type, SpawnInfo.Location);
+            LogAttemptingToSpawn(SpawnInfo.Type, SpawnInfo.StartLocation);
 
             TSubclassOf<AActor> EnemyClass = nullptr;
 
@@ -176,15 +232,24 @@ void AEnemySpawner::SpawnEnemiesForWave(int32 Wave)
             {
                 UE_LOG(LogEnemySpawner, Warning, TEXT("Spawning enemy class: %s"), *EnemyClass->GetName());
 
-                AActor* SpawnedEnemy = GetWorld()->SpawnActor<AActor>(EnemyClass, SpawnInfo.Location, FRotator::ZeroRotator);
+                //敵の出現
+                AActor* SpawnedEnemy = GetWorld()->SpawnActor<AActor>(EnemyClass, GetActorLocation() + SpawnInfo.StartLocation, FRotator::ZeroRotator);
+                //出現した敵のステータス設定
+                if (AEnemys* Enemy = Cast<AEnemys>(SpawnedEnemy))
+                {
+                    Enemy->SetHP(SpawnInfo.EnemyHP);
+                    Enemy->SetGoalLocation(SpawnInfo.GoalLocation);
+                    Enemy->SetMoveTime(SpawnInfo.MoveTime);
+                    Enemy->SetAttackUpToTime(SpawnInfo.AttackTime);
+                }
 
                 if (SpawnedEnemy)
                 {
-                    LogSpawnedEnemy(SpawnInfo.Type, SpawnInfo.Location);
+                    LogSpawnedEnemy(SpawnInfo.Type, SpawnInfo.StartLocation);
                 }
                 else
                 {
-                    LogFailedSpawn(SpawnInfo.Type, SpawnInfo.Location);
+                    LogFailedSpawn(SpawnInfo.Type, SpawnInfo.StartLocation);
                 }
             }
             else
@@ -194,28 +259,10 @@ void AEnemySpawner::SpawnEnemiesForWave(int32 Wave)
         }
     }
     // タイマーの設定
-    switch (Wave)
+    if (WaveTime.Num() != 0 && WaveTime[Wave - 1] != -1)
     {
-    case 1:
-        GetWorld()->GetTimerManager().SetTimer(Wave1TimerHandle, this, &AEnemySpawner::HandleEnemyCountZero, 15.0f, false);
-        break;
-    case 2:
-        GetWorld()->GetTimerManager().SetTimer(Wave2TimerHandle, this, &AEnemySpawner::HandleEnemyCountZero, 5.0f, false);
-        break;
-    case 3:
-        GetWorld()->GetTimerManager().SetTimer(Wave3TimerHandle, this, &AEnemySpawner::HandleEnemyCountZero, 20.0f, false);
-        break;
-    case 4:
-        GetWorld()->GetTimerManager().SetTimer(Wave4TimerHandle, this, &AEnemySpawner::HandleEnemyCountZero, 35.0f, false);
-        break;
-    case 5:
-        GetWorld()->GetTimerManager().SetTimer(Wave5TimerHandle, this, &AEnemySpawner::HandleEnemyCountZero, 10.0f, false);
-        break;
-    case 6:
-        // ボスウェーブなのでタイマー設定なし
-        break;
-    default:
-        break;
+        GetWorld()->GetTimerManager().SetTimer(WaveTimerHandle, this, &AEnemySpawner::HandleEnemyCountZero, WaveTime[Wave - 1], false);
+        GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, FString::Printf(TEXT("Setting Timer : %d second"), WaveTime[Wave - 1]));
     }
 }
 
@@ -223,43 +270,51 @@ void AEnemySpawner::EnemyDeadFunction()
 {
     UE_LOG(LogEnemySpawner, Warning, TEXT("EnemyDeadFunction called"));
 
-    EnemyCount--;
-    LogCurrentEnemyCount();
-
-    if (EnemyCount <= 0)
+    if (PlayerSpline->IsMoving() == false)
     {
-        HandleEnemyCountZero();
+        EnemyCount--;
+        LogCurrentEnemyCount();
+
+        if (EnemyCount == 0)
+        {
+            HandleEnemyCountZero();
+        }
     }
 }
 
 void AEnemySpawner::HandleEnemyCountZero()
 {
-    APlayerSplinePath* PlayerActor = Cast<APlayerSplinePath>(UGameplayStatics::GetActorOfClass(GetWorld(), APlayerSplinePath::StaticClass()));
+    GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Yellow, TEXT("Call Handle -EnemyZero-"));
+
     EnemyCount = 0;
-    if (PlayerActor)
+    if (PlayerSpline)
     {
-        UFunction* StartMovementFunction = PlayerActor->FindFunction(TEXT("StartMovement"));
+        UFunction* StartMovementFunction = PlayerSpline->FindFunction(TEXT("StartMovement"));
         if (StartMovementFunction)
         {
-            PlayerActor->ProcessEvent(StartMovementFunction, nullptr);
+            PlayerSpline->ProcessEvent(StartMovementFunction, nullptr);
             AVRPlayerCharacter* Player = Cast<AVRPlayerCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(),0));
             Player->NextStage();
         }
     }
+    // タイマーをクリア
+    GetWorld()->GetTimerManager().ClearTimer(WaveTimerHandle);
 
-    TArray<AActor*> OverlappingActors;
-    if (PlayerActor)
-    {
-        PlayerActor->GetOverlappingActors(OverlappingActors);
+    //TArray<AActor*> OverlappingActors;
+    //if (PlayerActor)
+    //{
+    //    PlayerActor->GetOverlappingActors(OverlappingActors);
 
-        for (AActor* Actor : OverlappingActors)
-        {
-            if (Actor)
-            {
-                Actor->Destroy();
-            }
-        }
-    }
+    //    for (AActor* Actor : OverlappingActors)
+    //    {
+    //        if (Actor)
+    //        {
+    //            Actor->Destroy();
+    //        }
+    //    }
+    //}
+
+
 }
 
 AActor* AEnemySpawner::GetPlayerActor() const
