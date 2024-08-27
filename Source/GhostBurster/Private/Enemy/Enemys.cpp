@@ -91,7 +91,7 @@ float AEnemys::GetWorldFPS()
 }
 
 //HPの設定用関数
-void AEnemys::SetHP(float HPValue)
+void AEnemys::SetHP(int HPValue)
 {
 	this->Status.HP = HPValue;
 }
@@ -103,9 +103,9 @@ void AEnemys::SetAttackUpToTime(int SetTime)
 }
 
 //目標座標の設定用関数
-void AEnemys::SetGoalLocation(double SetX, double SetY, double SetZ)
+void AEnemys::SetGoalLocation(FVector SetLocation)
 {
-	this->GoalLocation = FVector(SetX, SetY, SetZ);
+	this->GoalLocation = SetLocation;
 }
 
 //移動時間の設定用
@@ -115,10 +115,10 @@ void AEnemys::SetMoveTime(int SetTime)
 }
 
 //生成されたときの設定用関数
-void AEnemys::SetInitialData(float HP, int AttackUpToTimeValue, double GoalX, double GoalY, double GoalZ, int MoveTimeValue)
+void AEnemys::SetInitialData(int HP, int AttackUpToTimeValue, FVector SetLocation, int MoveTimeValue)
 {
 	this->SetHP(HP);
 	this->SetAttackUpToTime(AttackUpToTimeValue);
-	this->SetGoalLocation(GoalX, GoalY, GoalZ);
+	this->SetGoalLocation(SetLocation);
 	this->SetMoveTime(MoveTimeValue);
 }

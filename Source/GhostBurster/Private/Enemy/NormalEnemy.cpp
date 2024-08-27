@@ -40,7 +40,6 @@ void ANormalEnemy::BeginPlay()
 	Super::BeginPlay();
 
 	//☆白い敵の設定
-	this->Status.HP = 100;
 	this->enemyColor = EnemyColor::White;
 
 	//☆マテリアル
@@ -150,7 +149,7 @@ void ANormalEnemy::ActProcess()
 //ダメージを受ける処理、引数でもらった数値分体力を減らす
 void ANormalEnemy::RecieveEnemyDamage(int DamageAmount, EFlashlight_Color Color)
 {
-	if (this->state != State::Appear)
+	if (this->state != State::Appear && this->state != State::Die)
 	{
 		if ((int)Color == (int)this->enemyColor)
 		{
@@ -169,16 +168,19 @@ void ANormalEnemy::RecieveItemDamage(int DamageAmount)
 bool ANormalEnemy::ProcessJustForFirst_Move()
 {
 	// 初期位置の設定
-	CurrentLocation = GetActorLocation();
+	this->CurrentLocation = GetActorLocation();
+
+	// 現在位置からの相対座標
+	this->GoalLocation += this->CurrentLocation;
 
 	// 方向ベクトルの計算
-	Direction = (GoalLocation - CurrentLocation).GetSafeNormal();
+	this->Direction = (this->GoalLocation - this->CurrentLocation).GetSafeNormal();
 
 	// 総移動距離の計算
-	TotalDistance = FVector::Dist(CurrentLocation, GoalLocation);
+	this->TotalDistance = FVector::Dist(this->CurrentLocation, this->GoalLocation);
 
 	// 目的地に着くまでの時間に合うように速度を計算
-	Speed = TotalDistance / this->MoveTime;
+	this->Speed = this->TotalDistance / this->MoveTime;
 
 	// 処理が終わったらtrueを返す
 	return true;
@@ -284,3 +286,17 @@ bool ANormalEnemy::Appear()
 
 	return false;
 }
+
+//メモ
+/*
+Move後の敵の行動を外部ファイルで制御したい
+・外部ファイルの内容をセットする関数の追加
+・Move後の状態遷移処理を外部ファイルの内容で決まるようにする
+
+switch(hoge)
+{
+	case 0:
+		State StateHoge1 = State::Wait;
+}
+みたいな感じ
+*/
