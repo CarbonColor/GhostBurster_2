@@ -79,7 +79,7 @@ void AEnemys::EnemyDead()
 }
 
 //Œ»Ý‚ÌFPS‚ðŽæ“¾‚·‚é
-int AEnemys::GetWorldFPS()
+float AEnemys::GetWorldFPS()
 {
 	//DeltaTimeŽæ“¾
 	float DeltaTime = GetWorld()->GetDeltaSeconds();

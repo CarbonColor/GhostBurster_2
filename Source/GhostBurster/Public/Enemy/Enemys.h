@@ -116,8 +116,8 @@ protected:
 	//HP‚ª0‚É‚È‚Á‚½‚çÁ–Å‚³‚¹‚é
 	void EnemyDead();
 
-	//Œ»İ‚ÌFPS‚ğæ“¾‚·‚é(intŒ^‚Å)
-	int GetWorldFPS();
+	//Œ»İ‚ÌFPS‚ğæ“¾‚·‚é
+	float GetWorldFPS();
 
 	//ó‘ÔFMove‚Åg‚¤ŠÖ”
 	virtual bool ProcessJustForFirst_Move() PURE_VIRTUAL(AEnemys::ProcessJustForFirst_Move, return false;);	// ó‘ÔMove‘JˆÚ‚É‚Ì‚İs‚¤ˆ—
