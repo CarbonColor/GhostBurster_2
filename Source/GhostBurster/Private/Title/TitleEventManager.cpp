@@ -124,6 +124,11 @@ void ATitleEventManager::ThirdEvent()
 
 	EnemyCount = 1;
 
+	//宝箱の生成
+	GetWorld()->SpawnActor<AActor>(TreasureBox, Third_Treasure_Location1, FRotator::ZeroRotator);
+	GetWorld()->SpawnActor<AActor>(TreasureBox, Third_Treasure_Location2, FRotator::ZeroRotator);
+
+
 	//アイテム使用状況の初期化
 	bIsUseBuffItem = false;
 }
