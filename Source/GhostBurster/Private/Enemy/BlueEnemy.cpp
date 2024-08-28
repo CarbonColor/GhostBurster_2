@@ -238,7 +238,7 @@ bool ABlueEnemy::Move()
 bool ABlueEnemy::Attack()
 {
 	//UŒ‚”»’è
-	if (MoveCount == AttackUpToTime * Gamefps)
+	if (MoveCount >= AttackUpToTime * Gamefps)
 	{
 		UKismetSystemLibrary::PrintString(this, TEXT("BlueEnemy Attack!"), true, true, FColor::Blue, 2.f, TEXT("None"));
 

@@ -238,7 +238,7 @@ bool ARedEnemy::Move()
 bool ARedEnemy::Attack()
 {
 	//UŒ‚”»’è
-	if (MoveCount == AttackUpToTime * Gamefps)
+	if (MoveCount >= AttackUpToTime * Gamefps)
 	{
 		UKismetSystemLibrary::PrintString(this, TEXT("RedEnemy Attack!"), true, true, FColor::Red, 2.f, TEXT("None"));
 
