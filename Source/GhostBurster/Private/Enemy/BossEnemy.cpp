@@ -36,7 +36,8 @@ ABossEnemy::ABossEnemy()
 	GhostCollision = CreateDefaultSubobject<USphereComponent>(TEXT("BossCollision"));
 	//GhostCollisionをルートコンポーネントにアタッチする
 	GhostCollision->SetupAttachment(RootComponent);
-
+	//GhostCollisionのコリジョンプリセットをOverlapAllDynamicにする
+	GhostCollision->SetCollisionProfileName("OverlapAllDynamic");
 }
 
 void ABossEnemy::BeginPlay()

@@ -32,6 +32,8 @@ ARedEnemy::ARedEnemy()
 	GhostCollision = CreateDefaultSubobject<USphereComponent>(TEXT("GhostCollision"));
 	//GhostCollisionをルートコンポーネントにアタッチする
 	GhostCollision->SetupAttachment(RootComponent);
+	//GhostCollisionのコリジョンプリセットをOverlapAllDynamicにする
+	GhostCollision->SetCollisionProfileName("OverlapAllDynamic");
 }
 
 void ARedEnemy::BeginPlay()

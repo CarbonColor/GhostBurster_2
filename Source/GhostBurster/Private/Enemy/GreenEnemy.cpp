@@ -32,6 +32,8 @@ AGreenEnemy::AGreenEnemy()
 	GhostCollision = CreateDefaultSubobject<USphereComponent>(TEXT("GhostCollision"));
 	//GhostCollisionをルートコンポーネントにアタッチする
 	GhostCollision->SetupAttachment(RootComponent);
+	//GhostCollisionのコリジョンプリセットをOverlapAllDynamicにする
+	GhostCollision->SetCollisionProfileName("OverlapAllDynamic");
 }
 
 void AGreenEnemy::BeginPlay()
