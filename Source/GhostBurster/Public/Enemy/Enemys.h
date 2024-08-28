@@ -73,13 +73,13 @@ protected:
 	int MoveCount = 0;
 
 	//ゲームのfps数値を設定
-	int Gamefps = 60;
+	float Gamefps = 60.f;
 
 	//敵が状態遷移したときに最初に行う処理を行ったらtrue
 	bool bShouldBeenProcessWhenFirstStateTransition = false;
 
 	//移動関係
-	int		MoveTime = 1;							// ゴーストの移動にかかる時間(秒)
+	float	MoveTime = 1.f;							// ゴーストの移動にかかる時間(秒)
 	FVector CurrentLocation = FVector(0, 0, 0);		// 敵の現在の座標
 	FVector GoalLocation = FVector(0, 0, 0);		// 敵の移動先座標(ローカル座標)
 	FVector GoalLocation_World = FVector(0, 0, 0);	// 敵の移動先座標(ワールド座標)
@@ -93,7 +93,7 @@ protected:
 
 	//攻撃関係
 	bool	bHasEndedAttack = false;					// 攻撃が終了したか
-	int		AttackUpToTime = 0;							// ゴーストの攻撃までの時間(秒)
+	float	AttackUpToTime = 0.f;							// ゴーストの攻撃までの時間(秒)
 
 	//出現関係
 	bool	bHasEndedAppear = false;	// 出現が終了したか
@@ -116,8 +116,8 @@ protected:
 	//HPが0になったら消滅させる
 	void EnemyDead();
 
-	//現在のFPSを取得する(int型で)
-	int GetWorldFPS();
+	//現在のFPSを取得する
+	float GetWorldFPS();
 
 	//状態：Moveで使う関数
 	virtual bool ProcessJustForFirst_Move() PURE_VIRTUAL(AEnemys::ProcessJustForFirst_Move, return false;);	// 状態Move遷移時にのみ行う処理
@@ -135,11 +135,11 @@ public:
 
 	//Setter関数
 	void SetHP(int HPValue);					//HPの設定用関数
-	void SetAttackUpToTime(int SetTime);		//攻撃までの時間設定用関数
+	void SetAttackUpToTime(float SetTime);		//攻撃までの時間設定用関数
 	void SetGoalLocation(FVector SetLocation);	//目標座標の設定用関数
-	void SetMoveTime(int SetTime);				//移動時間の設定用
+	void SetMoveTime(float SetTime);			//移動時間の設定用
 
 	UFUNCTION(BlueprintCallable, Category = "Enemy")
-	void SetInitialData(int HP, int AttackUpToTimeValue, FVector SetLocation, int MoveTimeValue); //生成されたときの設定用関数
+	void SetInitialData(int HP, float AttackUpToTimeValue, FVector SetLocation, float MoveTimeValue); //生成されたときの設定用関数
 
 };

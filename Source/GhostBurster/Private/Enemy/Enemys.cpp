@@ -79,7 +79,7 @@ void AEnemys::EnemyDead()
 }
 
 //現在のFPSを取得する
-int AEnemys::GetWorldFPS()
+float AEnemys::GetWorldFPS()
 {
 	//DeltaTime取得
 	float DeltaTime = GetWorld()->GetDeltaSeconds();
@@ -87,7 +87,7 @@ int AEnemys::GetWorldFPS()
 	//現在のFPSを計算して取得
 	float FPS = 1.f / DeltaTime;
 
-	return (int)FPS; //四捨五入にしたい
+	return FPS; //四捨五入にしたい
 }
 
 //HPの設定用関数
@@ -97,7 +97,7 @@ void AEnemys::SetHP(int HPValue)
 }
 
 //攻撃までの時間設定用関数
-void AEnemys::SetAttackUpToTime(int SetTime)
+void AEnemys::SetAttackUpToTime(float SetTime)
 {
 	this->AttackUpToTime = SetTime;
 }
@@ -109,13 +109,13 @@ void AEnemys::SetGoalLocation(FVector SetLocation)
 }
 
 //移動時間の設定用
-void AEnemys::SetMoveTime(int SetTime)
+void AEnemys::SetMoveTime(float SetTime)
 {
 	this->MoveTime = SetTime;
 }
 
 //生成されたときの設定用関数
-void AEnemys::SetInitialData(int HP, int AttackUpToTimeValue, FVector SetLocation, int MoveTimeValue)
+void AEnemys::SetInitialData(int HP, float AttackUpToTimeValue, FVector SetLocation, float MoveTimeValue)
 {
 	this->SetHP(HP);
 	this->SetAttackUpToTime(AttackUpToTimeValue);

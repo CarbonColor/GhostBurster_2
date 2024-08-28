@@ -243,7 +243,7 @@ bool ANormalEnemy::Move()
 bool ANormalEnemy::Attack()
 {
 	//UŒ‚”»’è
-	if (MoveCount == AttackUpToTime * Gamefps)
+	if (MoveCount >= AttackUpToTime * Gamefps)
 	{
 		UKismetSystemLibrary::PrintString(this, TEXT("WhiteEnemy Attack!"), true, true, FColor::White, 2.f, TEXT("None"));
 

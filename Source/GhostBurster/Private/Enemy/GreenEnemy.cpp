@@ -238,7 +238,7 @@ bool AGreenEnemy::Move()
 bool AGreenEnemy::Attack()
 {
 	//UŒ‚”»’è
-	if (MoveCount == AttackUpToTime * Gamefps)
+	if (MoveCount >= AttackUpToTime * Gamefps)
 	{
 		UKismetSystemLibrary::PrintString(this, TEXT("GreenEnemy Attack!"), true, true, FColor::Green, 2.f, TEXT("None"));
 
