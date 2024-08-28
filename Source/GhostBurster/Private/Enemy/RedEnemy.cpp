@@ -24,6 +24,8 @@ ARedEnemy::ARedEnemy()
 	GhostMesh->SetStaticMesh(GreenGMesh);
 	//GhostMeshをルートコンポーネントにアタッチする
 	GhostMesh->SetupAttachment(RootComponent);
+	//スタティックメッシュのコリジョンを無くす
+	GhostMesh->SetCollisionProfileName("NoCollision");
 
 	//☆コリジョン
 	//スフィアコリジョンの作成

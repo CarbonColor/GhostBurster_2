@@ -26,6 +26,8 @@ ANormalEnemy::ANormalEnemy()
 	GhostMesh->SetStaticMesh(GMesh);
 	//StaticMeshComponentをRootComponentにアタッチする
 	GhostMesh->SetupAttachment(RootComponent);
+	//スタティックメッシュのコリジョンを無くす
+	GhostMesh->SetCollisionProfileName("NoCollision");
 
 	//☆コリジョン
 	//スフィアコリジョンの作成
