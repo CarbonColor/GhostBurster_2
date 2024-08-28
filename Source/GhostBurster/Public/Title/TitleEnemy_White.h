@@ -24,8 +24,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	virtual void RecieveEnemyDamage(int DamageAmount, EFlashlight_Color Color) override;
-	virtual void RecieveItemDamage(int DamageAmount) override;
+	virtual void RecieveEnemyDamage(int DamageAmount) override;
 
 	UFUNCTION(BlueprintCallable)
 	void SetHP(int32 Value);

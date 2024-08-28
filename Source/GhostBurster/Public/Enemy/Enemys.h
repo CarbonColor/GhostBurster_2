@@ -142,4 +142,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Enemy")
 	void SetInitialData(int HP, float AttackUpToTimeValue, FVector SetLocation, float MoveTimeValue); //生成されたときの設定用関数
 
+	//プレイヤーのライトの色と敵のライトの色をチェックする関数
+	virtual bool CheckPlayerLightColor(EFlashlight_Color PlayerColor) const PURE_VIRTUAL(AEnemys::GetEnemyColor, return false;);
 };

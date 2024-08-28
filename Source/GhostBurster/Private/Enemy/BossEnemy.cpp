@@ -122,17 +122,14 @@ void ABossEnemy::ActProcess()
 }
 
 //ダメージを受ける処理、引数でもらった攻撃力分体力を減らす
-void ABossEnemy::RecieveEnemyDamage(int DamageAmount, EFlashlight_Color Color)
+void ABossEnemy::RecieveEnemyDamage(int DamageAmount)
 {
 	//ライトの色と敵の色が一致したときだけダメージを受ける
-	if ((int)Color == (int)this->enemyColor)
-	{
-		Status.HP -= DamageAmount;
-	}
+	Status.HP -= DamageAmount;
 }
 
-//アイテムでダメージを受ける処理、引数でもらった数値分体力を減らす
-void ABossEnemy::RecieveItemDamage(int DamageAmount)
+//プレイヤーのライトの色と敵のライトの色をチェックする関数
+bool ABossEnemy::CheckPlayerLightColor(EFlashlight_Color PlayerColor) const
 {
-	Status.HP -= DamageAmount;
+	return (int)PlayerColor == (int)this->enemyColor;
 }

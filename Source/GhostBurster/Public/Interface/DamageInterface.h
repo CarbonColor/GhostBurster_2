@@ -25,10 +25,7 @@ class GHOSTBURSTER_API IDamageInterface
 public:
 
 	//オバケが受けるダメージ
-	virtual void RecieveEnemyDamage(int DamageAmount, EFlashlight_Color Color) PURE_VIRTUAL(IDamageInterface::ReceiveEnemyDamage, );
-
-	//オバケに与えるアイテムのダメージ
-	virtual void RecieveItemDamage(int DamageAmount) PURE_VIRTUAL(IDamageInterface::RecieveItemDamage, );
+	virtual void RecieveEnemyDamage(int DamageAmount) PURE_VIRTUAL(IDamageInterface::ReceiveEnemyDamage, );
 
 	//プレイヤーが受けるダメージ
 	virtual void RecievePlayerDamage() PURE_VIRTUAL(IDamageInterface::RecievePlayerDamage, );
