@@ -33,11 +33,11 @@ private:
 	//経路上の現在地を0～1で表す
 	float CurrentSplineDistance;
 	//移動速度
-	const float DefaultSpeed = 100.0f;
-
 	UPROPERTY(EditAnywhere, Category = "Speed")
-	float MovementSpeed;
+	float DefaultSpeed = 100.0f;
 
+	UPROPERTY()
+	float MovementSpeed;
 
 	//プレイヤー
 	UPROPERTY()
@@ -57,6 +57,7 @@ private:
 	bool bIsRotatePoint;	//回転場所で回転したかどうか
 	bool bIsStairsPoint;	//階段を下りる場所かどうか
 
+	bool bIsMoving;	//動いているかどうか
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "Spline")
@@ -74,4 +75,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Spline")
 		void MoveAlongSpline(float DeltaTime);
 
+	UFUNCTION(BlueprintCallable, Category = "Spline")
+		bool IsMoving();
 };

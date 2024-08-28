@@ -36,6 +36,8 @@ APlayerSplinePath::APlayerSplinePath()
 	CurrentRotationTime = 0.0f;
 	bIsRotatePoint = false;
 	bIsStairsPoint = false;
+
+	bIsMoving = true;
 }
 
 // Called when the game starts or when spawned
@@ -84,11 +86,20 @@ void APlayerSplinePath::SetMovementSpeed(float Speed)
 void APlayerSplinePath::StopMovement()
 {
 	MovementSpeed = 0.0f;
+	GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Silver, FString::Printf(TEXT("Stop Movement (%f)"), MovementSpeed));
+	bIsMoving = false;
 }
 
 void APlayerSplinePath::StartMovement()
 {
 	MovementSpeed = DefaultSpeed; // ‰Šú’l‚ÉÝ’è
+	GEngine->AddOnScreenDebugMessage(-1, 03.0f, FColor::Silver, FString::Printf(TEXT("Start Movement (%f)"), MovementSpeed));
+	bIsMoving = true;
+}
+
+bool APlayerSplinePath::IsMoving()
+{
+	return bIsMoving;
 }
 
 FVector APlayerSplinePath::GetLocationAtCurrentDistance() const
@@ -98,7 +109,7 @@ FVector APlayerSplinePath::GetLocationAtCurrentDistance() const
 
 void APlayerSplinePath::MoveAlongSpline(float DeltaTime)
 {
-	if (MovementSpeed > 0.0f)
+	if (bIsMoving)
 	{
 		CurrentSplineDistance += MovementSpeed * DeltaTime;
 		FVector NewLocation = SplineComponent->GetLocationAtDistanceAlongSpline(CurrentSplineDistance, ESplineCoordinateSpace::World);

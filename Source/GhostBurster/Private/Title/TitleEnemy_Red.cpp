@@ -77,4 +77,10 @@ void ATitleEnemy_Red::RecieveEnemyDamage(int DamageAmount, EFlashlight_Color Col
 void ATitleEnemy_Red::RecieveItemDamage(int DamageAmount)
 {
 	HP -= DamageAmount;
+	GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Red, FString::Printf(TEXT("Title_Red is Damage (%d)"), HP));
+	if (HP <= 0)
+	{
+		EnemyDead();
+	}
+
 }

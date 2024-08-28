@@ -6,7 +6,6 @@
 #include "GameFramework/Actor.h"
 #include "Interface/DamageInterface.h"
 #include "Components/SphereComponent.h"
-#include "GameData/PlayerScoreInstance.h"
 
 #include "Enemys.generated.h"
 
@@ -143,7 +142,4 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Enemy")
 	void SetInitialData(int HP, int AttackUpToTimeValue, FVector SetLocation, int MoveTimeValue); //ê∂ê¨Ç≥ÇÍÇΩÇ∆Ç´ÇÃê›íËópä÷êî
 
-private:
-	UPROPERTY()
-	TObjectPtr<UPlayerScoreInstance> ScoreInstance;
 };

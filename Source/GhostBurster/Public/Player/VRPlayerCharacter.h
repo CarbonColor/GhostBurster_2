@@ -264,6 +264,11 @@ private:
 
 	//ライトの操作を受け付けているかどうか
 	bool bCanToggleLight;
+	//敵に当たっているときの振動が作動中かどうか
+	bool bIsEnemyHaptic;
+	//プレイヤーダメージの振動が作動中かどうか
+	bool bIsPlayerHaptic;
+	FTimerHandle HapticTimer;
 	
 	//グローブの曲げ具合設定
 	UPROPERTY(EditAnywhere)

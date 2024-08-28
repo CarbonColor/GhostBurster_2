@@ -100,16 +100,16 @@ void ATitleEventManager::SecondEvent()
 {
 	//敵の生成
 	GetWorld()->SpawnActor<ATitleEnemy_White>(WhiteEnemyClass, Second_White_Location1, FRotator::ZeroRotator);
-	//GetWorld()->SpawnActor<ATitleEnemy_Green>(GreenEnemyClass, Second_Green_Location1, FRotator::ZeroRotator);
-	//GetWorld()->SpawnActor<ATitleEnemy_Red>(RedEnemyClass, Second_Red_Location1, FRotator::ZeroRotator);
-	//GetWorld()->SpawnActor<ATitleEnemy_Blue>(BlueEnemyClass, Second_Blue_Location1, FRotator::ZeroRotator);
+	GetWorld()->SpawnActor<ATitleEnemy_Green>(GreenEnemyClass, Second_Green_Location1, FRotator::ZeroRotator);
+	GetWorld()->SpawnActor<ATitleEnemy_Red>(RedEnemyClass, Second_Red_Location1, FRotator::ZeroRotator);
+	GetWorld()->SpawnActor<ATitleEnemy_Blue>(BlueEnemyClass, Second_Blue_Location1, FRotator::ZeroRotator);
 
-	//GetWorld()->SpawnActor<ATitleEnemy_White>(WhiteEnemyClass, Second_White_Location2, FRotator::ZeroRotator);
-	//GetWorld()->SpawnActor<ATitleEnemy_Green>(GreenEnemyClass, Second_Green_Location2, FRotator::ZeroRotator);
-	//GetWorld()->SpawnActor<ATitleEnemy_Red>(RedEnemyClass, Second_Red_Location2, FRotator::ZeroRotator);
-	//GetWorld()->SpawnActor<ATitleEnemy_Blue>(BlueEnemyClass, Second_Blue_Location2, FRotator::ZeroRotator);
+	GetWorld()->SpawnActor<ATitleEnemy_White>(WhiteEnemyClass, Second_White_Location2, FRotator::ZeroRotator);
+	GetWorld()->SpawnActor<ATitleEnemy_Green>(GreenEnemyClass, Second_Green_Location2, FRotator::ZeroRotator);
+	GetWorld()->SpawnActor<ATitleEnemy_Red>(RedEnemyClass, Second_Red_Location2, FRotator::ZeroRotator);
+	GetWorld()->SpawnActor<ATitleEnemy_Blue>(BlueEnemyClass, Second_Blue_Location2, FRotator::ZeroRotator);
 
-	EnemyCount = 1;
+	EnemyCount = 8;
 
 	//アイテム使用状況の初期化
 	bIsUseAttackItem = false;
@@ -131,7 +131,8 @@ void ATitleEventManager::ThirdEvent()
 void ATitleEventManager::FourthEvent()
 {
 	//宝箱の生成
-	GetWorld()->SpawnActor<AActor>(TreasureBox, Fourth_Treasure_Location, FRotator::ZeroRotator);
+	GetWorld()->SpawnActor<AActor>(TreasureBox, Fourth_Treasure_Location1, FRotator::ZeroRotator);
+	GetWorld()->SpawnActor<AActor>(TreasureBox, Fourth_Treasure_Location2, FRotator::ZeroRotator);
 
 	//アイテム使用状況の初期化
 	bIsUseScoreItem = false;
