@@ -34,6 +34,8 @@ ANormalEnemy::ANormalEnemy()
 	GhostCollision = CreateDefaultSubobject<USphereComponent>(TEXT("GhostCollision"));
 	//GhostCollisionをルートコンポーネントにアタッチする
 	GhostCollision->SetupAttachment(RootComponent);
+	//GhostCollisionのコリジョンプリセットをOverlapAllDynamicにする
+	GhostCollision->SetCollisionProfileName("OverlapAllDynamic");
 }
 
 // Called when the game starts or when spawned
