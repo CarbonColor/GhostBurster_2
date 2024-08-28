@@ -23,6 +23,8 @@ ABossEnemy::ABossEnemy()
 	GhostMesh->SetStaticMesh(GreenGMesh);
 	//GhostMeshをルートコンポーネントにアタッチする
 	GhostMesh->SetupAttachment(RootComponent);
+	//スタティックメッシュのコリジョンを無くす
+	GhostMesh->SetCollisionProfileName("NoCollision");
 
 	//☆マテリアル
 	//マテリアルをロードしてGhostMeshに設定する
