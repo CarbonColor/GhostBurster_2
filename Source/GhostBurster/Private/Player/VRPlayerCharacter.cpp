@@ -224,7 +224,7 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
             IDamageInterface* DamageInterface = Cast<IDamageInterface>(Enemy);
             if (DamageInterface)
             {
-                DamageInterface->RecieveEnemyDamage(LightAttack, Flashlight_Color);
+                DamageInterface->RecieveEnemyDamage(LightAttack);
             }
         }
     }
@@ -494,8 +494,11 @@ void AVRPlayerCharacter::OnConeBeginOverlap(UPrimitiveComponent* OverlappedComp,
     // 接触したアクターがオバケかどうか判定する
     if (const AEnemys* Enemy = Cast<AEnemys>(OtherActor))
     {
-        OverlappingEnemies.Add(OtherActor);
-        //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Enemy is Overlapping"));
+        if (Enemy->CheckPlayerLightColor(Flashlight_Color))
+        {
+            OverlappingEnemies.Add(OtherActor);
+            //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Enemy is Overlapping"));
+        }
     }
     if (const ATitleEnemy* TitleEnemy = Cast<ATitleEnemy>(OtherActor))
     {
@@ -509,8 +512,11 @@ void AVRPlayerCharacter::OnConeEndOverlap(UPrimitiveComponent* OverlappedComp, A
     // オバケがコリジョンから抜けたかどうか判定する
     if (const AEnemys* Enemy = Cast<AEnemys>(OtherActor))
     {
-        OverlappingEnemies.Remove(OtherActor);
-        //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Enemy is not Overlapping"));
+        if (Enemy->CheckPlayerLightColor(Flashlight_Color))
+        {
+            OverlappingEnemies.Remove(OtherActor);
+            //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Enemy is not Overlapping"));
+        }
     }
     if (const ATitleEnemy* TitleEnemy = Cast<ATitleEnemy>(OtherActor))
     {
@@ -667,7 +673,7 @@ void AVRPlayerCharacter::UseItem_Attack()
             IDamageInterface* DamageInterface = Cast<IDamageInterface>(Enemy);
             if (DamageInterface)
             {
-                DamageInterface->RecieveItemDamage(100);
+                DamageInterface->RecieveEnemyDamage(100);
             }
         }
     }
@@ -682,7 +688,7 @@ void AVRPlayerCharacter::UseItem_Attack()
             IDamageInterface* DamageInterface = Cast<IDamageInterface>(Enemy);
             if (DamageInterface)
             {
-                DamageInterface->RecieveItemDamage(100);
+                DamageInterface->RecieveEnemyDamage(100);
             }
         }
     }

@@ -146,21 +146,18 @@ void ARedEnemy::ActProcess()
 }
 
 //ダメージを受ける処理、引数でもらった攻撃力分体力を減らす
-void ARedEnemy::RecieveEnemyDamage(int DamageAmount, EFlashlight_Color Color)
+void ARedEnemy::RecieveEnemyDamage(int DamageAmount)
 {
 	if (this->state != State::Appear && this->state != State::Die)
 	{
-		if ((int)Color == (int)this->enemyColor)
-		{
-			Status.HP -= DamageAmount;
-		}
+		Status.HP -= DamageAmount;
 	}
 }
 
-//アイテムでダメージを受ける処理、引数でもらった数値分体力を減らす
-void ARedEnemy::RecieveItemDamage(int DamageAmount)
+//プレイヤーのライトの色と敵のライトの色をチェックする関数
+bool ARedEnemy::CheckPlayerLightColor(EFlashlight_Color PlayerColor) const
 {
-	Status.HP -= DamageAmount;
+	return (int)PlayerColor == (int)this->enemyColor;
 }
 
 //状態Move遷移時にのみ行う処理

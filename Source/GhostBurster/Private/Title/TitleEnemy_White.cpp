@@ -61,20 +61,7 @@ void ATitleEnemy_White::Tick(float DeltaTime)
 	
 }
 
-void ATitleEnemy_White::RecieveEnemyDamage(int DamageAmount, EFlashlight_Color Color)
-{
-	if (Color == EFlashlight_Color::White)
-	{
-		HP -= DamageAmount;
-		GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Red, FString::Printf(TEXT("Title_White is Damage (%d)"), HP));
-		if (HP <= 0)
-		{
-			EnemyDead();
-		}
-	}
-}
-
-void ATitleEnemy_White::RecieveItemDamage(int DamageAmount)
+void ATitleEnemy_White::RecieveEnemyDamage(int DamageAmount)
 {
 	HP -= DamageAmount;
 	GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Red, FString::Printf(TEXT("Title_White is Damage (%d)"), HP));
