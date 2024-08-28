@@ -102,8 +102,10 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     Flashlight = CreateDefaultSubobject<USpotLightComponent>(TEXT("Flashlight"));
     // 右手にアタッチする
     Flashlight->SetupAttachment(MotionController_Right);
-    // 光を消す
+    // 光をつける
     Flashlight->SetVisibility(true);
+    // 光の位置を調整
+    Flashlight->SetRelativeLocation(FVector(0.0f, 0.0f, -50.0f));
     // 光の強さ・範囲の調整をする
     Flashlight->SetIntensity(20000.0f);  // Unitless状態での数値
     Flashlight->SetAttenuationRadius(1500.0f);
@@ -118,6 +120,8 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     FlashlightMesh->SetupAttachment(Flashlight);
     // メッシュの当たり判定をなくす
     FlashlightMesh->SetCollisionProfileName(TEXT("NoCollision"));
+    // メッシュの影をなくす
+    FlashlightMesh->SetCastShadow(false);
     // 位置・サイズ・向きの調整をする
     FlashlightMesh->SetRelativeLocation(FlashlightMeshLocation);
     FlashlightMesh->SetRelativeRotation(FlashlightMeshRotation);  // ※ FRotator は (Y, Z, X) の順
@@ -125,7 +129,7 @@ AVRPlayerCharacter::AVRPlayerCharacter()
 
     //ボックスコリジョンを作る
     PlayerCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("PlayerCollision"));
-    //ライトにアタッチしてみる
+    //プレイヤーにアタッチ
     PlayerCollision->SetupAttachment(VRRoot);
     PlayerCollision->SetBoxExtent(FVector(-50.0f, 0.0f, 50.0f));
     PlayerCollision->SetCollisionProfileName("PlayerTrigger");
@@ -256,7 +260,7 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
             //ライトを切り替える(OFF化)
             Flashlight->SetVisibility(false);
             //ライトの当たり判定を無効化
-            LightCollision->SetCollisionProfileName("NoCollision");
+            LightCollision->SetCollisionProfileName(TEXT("NoCollision"));
             //充電切れ直後はライトをつけられない
             bCanToggleLight = false;
             //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Yellow, TEXT("Battery is empty! You can't use Flashlight!"));
@@ -334,7 +338,7 @@ void AVRPlayerCharacter::ToggleFlashlight(const FInputActionValue& value)
         else
         {
             //ライトの当たり判定を無効化
-            LightCollision->SetCollisionProfileName("NoCollision");
+            LightCollision->SetCollisionProfileName(TEXT("NoCollision"));
         }
     }
     //else if (bCanToggleLight == false)
@@ -414,12 +418,12 @@ void AVRPlayerCharacter::SettingFlashlightColor()
 
 void AVRPlayerCharacter::CheckUsedItem(const TArray<int32> value)
 {
-    FString DebugValue = "";
-    for (int32 v : value)
-    {
-        DebugValue += FString::FromInt(v) + ", ";
-    }
-    GEngine->AddOnScreenDebugMessage(-1, 0.2f, FColor::Silver, DebugValue);
+    //FString DebugValue = "";
+    //for (int32 v : value)
+    //{
+    //    DebugValue += FString::FromInt(v) + ", ";
+    //}
+    //GEngine->AddOnScreenDebugMessage(-1, 0.2f, FColor::Silver, DebugValue);
 
     //使えない状態のときは即リターン
     if (bCanUseItem == false || ItemCount <= 0)
@@ -457,12 +461,10 @@ void AVRPlayerCharacter::CheckUsedItem(const TArray<int32> value)
         //スコアアイテムの処理
         UseItem_Score();
     }
-    //それ以外は何もせずリターン
-    else
-    {
-        return;
-    }
-
+}
+//アイテムを使用したときに行うメソッド
+void AVRPlayerCharacter::UseItem()
+{
     //アイテムを使えない状態にする
     bCanUseItem = false;
     //アイテムのクールタイムの設定
@@ -472,7 +474,6 @@ void AVRPlayerCharacter::CheckUsedItem(const TArray<int32> value)
     //UIの更新
     ItemCount--;
     UpdateItemUI();
-
 }
 //アイテムのクールタイムメソッド
 void AVRPlayerCharacter::ItemCoolTimeFunction()
@@ -489,19 +490,91 @@ void AVRPlayerCharacter::ItemCoolTimeFunction()
 //当たり判定のメソッド
 void AVRPlayerCharacter::OnConeBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-    //GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Cyan, FString::Printf(TEXT("Light BeginOverlap Called (%s)"), *OtherActor->GetActorNameOrLabel()));
-
+    //とりあえず当たり判定
     // 接触したアクターがオバケかどうか判定する
     if (const AEnemys* Enemy = Cast<AEnemys>(OtherActor))
     {
         OverlappingEnemies.Add(OtherActor);
         //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Enemy is Overlapping"));
     }
+
+    //チュートリアル用の敵に関する当たり判定処理
     if (const ATitleEnemy* TitleEnemy = Cast<ATitleEnemy>(OtherActor))
     {
         OverlappingEnemies.Add(OtherActor);
+        //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Enemy is Overlapping"));
     }
+
+    //壁貫通をなくす処理(β版)
+    /*
+    //GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Cyan, FString::Printf(TEXT("Light BeginOverlap Called (%s)"), *OtherActor->GetActorNameOrLabel()));
+    FHitResult HitResult = CheckHitEnemy(OtherActor);
+
+    // 接触したアクターがオバケかどうか判定する
+    if (const AEnemys* Enemy = Cast<AEnemys>(OtherActor))
+    {
+        //間に壁がないかどうかを調べる
+        if (HitResult.GetActor() == Enemy)
+        {
+            OverlappingEnemies.Add(OtherActor);
+            //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Enemy is Overlapping"));
+        }
+    }
+    //チュートリアル用の敵に関する当たり判定処理
+    if (const ATitleEnemy* TitleEnemy = Cast<ATitleEnemy>(OtherActor))
+    {
+        //間に壁がないかどうか調べる
+        if (HitResult.GetActor() == TitleEnemy)
+        {
+            OverlappingEnemies.Add(OtherActor);
+            //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Enemy is Overlapping"));
+        }
+    }
+    */
 }
+// 当たり判定の壁貫通をなくす処理
+FHitResult AVRPlayerCharacter::CheckHitEnemy(AActor* OtherActor)
+{
+    // 光源座標(Coneの先端)からコリジョンが当たった場所に向けてRayを飛ばす
+    FVector LightPoint = Flashlight->GetComponentLocation();
+    FHitResult HitResult;
+    FCollisionQueryParams CollisionParams;
+    CollisionParams.AddIgnoredActor(this);  //プレイヤー自身の当たり判定は無視
+    // ObjectTypeの設定
+    FCollisionObjectQueryParams ObjectParams;
+    ObjectParams.AddObjectTypesToQuery(ECC_WorldDynamic);
+
+    // Rayを飛ばす
+    bool bHit = GetWorld()->LineTraceSingleByObjectType(
+        HitResult,
+        LightPoint,
+        OtherActor->GetActorLocation(),
+        ObjectParams,
+        CollisionParams
+    );
+
+    // Rayを表示する
+    DrawDebugLine(
+        GetWorld(),
+        LightPoint,
+        OtherActor->GetActorLocation(),
+        FColor::Emerald,    // 線の色
+        false,              // 永続的に描画しない（一定時間後に消える）
+        2.0f,               // 描画時間（秒）
+        0,
+        2.0f                // 線の太さ
+    );
+
+    if (bHit)
+    {
+        //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Yellow, HitResult.GetActor()->GetName());
+        return HitResult;
+    }
+
+    return FHitResult();
+}
+
+
 void AVRPlayerCharacter::OnConeEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
     //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Light EndOverlap Called"));
@@ -691,6 +764,8 @@ void AVRPlayerCharacter::UseItem_Attack()
     {
         EventManager->IsUseAttackItem();
     }
+    //アイテム使用処理（クールタイムや所有数減少など）
+    UseItem();
 }
 void AVRPlayerCharacter::UseItem_Buff()
 {
@@ -710,6 +785,8 @@ void AVRPlayerCharacter::UseItem_Buff()
     {
         EventManager->IsUseBuffItem();
     }
+    //アイテム使用処理（クールタイムや所有数減少など）
+    UseItem();
 }
 void AVRPlayerCharacter::UseItem_Score()
 {
@@ -727,4 +804,6 @@ void AVRPlayerCharacter::UseItem_Score()
     {
         EventManager->IsUseScoreItem();
     }
+    //アイテム使用処理（クールタイムや所有数減少など）
+    UseItem();
 }
