@@ -24,7 +24,7 @@ ATitleEnemy_Red::ATitleEnemy_Red()
 	//StaticMeshComponentをRootComponentにアタッチする
 	GhostMesh->SetupAttachment(RootComponent);
 	GhostMesh->SetRelativeScale3D(FVector(0.5f, 0.5f, 0.5f));
-
+	GhostMesh->SetCollisionProfileName("NoCollision");
 
 	//☆コリジョン
 	//スフィアコリジョンの作成

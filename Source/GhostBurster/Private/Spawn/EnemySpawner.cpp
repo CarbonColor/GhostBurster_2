@@ -237,10 +237,11 @@ void AEnemySpawner::SpawnEnemiesForWave(int32 Wave)
                 //出現した敵のステータス設定
                 if (AEnemys* Enemy = Cast<AEnemys>(SpawnedEnemy))
                 {
-                    Enemy->SetHP(SpawnInfo.EnemyHP);
-                    Enemy->SetGoalLocation(SpawnInfo.GoalLocation);
-                    Enemy->SetMoveTime(SpawnInfo.MoveTime);
-                    Enemy->SetAttackUpToTime(SpawnInfo.AttackTime);
+                    Enemy->SetInitialData(SpawnInfo.EnemyHP, SpawnInfo.AttackTime, SpawnInfo.GoalLocation, SpawnInfo.MoveTime);
+                    //Enemy->SetHP(SpawnInfo.EnemyHP);
+                    //Enemy->SetGoalLocation(SpawnInfo.GoalLocation);
+                    //Enemy->SetMoveTime(SpawnInfo.MoveTime);
+                    //Enemy->SetAttackUpToTime(SpawnInfo.AttackTime);
                 }
 
                 if (SpawnedEnemy)

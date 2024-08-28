@@ -150,7 +150,7 @@ public:
 		void AddItem();
 	//スコアを増やす処理
 	UFUNCTION(BlueprintCallable)
-	void AddScore(int32 Value);
+		void AddScore(int32 Value);
 
 	//オバケからの攻撃(インターフェース)
 	virtual void RecievePlayerDamage() override;
@@ -199,15 +199,17 @@ private:
 	UPROPERTY()
 		TObjectPtr<UUserWidget> PlayerStatusWidget;
 
-
 	//スコアのインスタンス
 	UPROPERTY()
-	TObjectPtr<UPlayerScoreInstance> ScoreInstance;
-
+		TObjectPtr<UPlayerScoreInstance> ScoreInstance;
 
 	//ライトの色を設定するメソッド
 	UFUNCTION()
-	void SettingFlashlightColor();
+		void SettingFlashlightColor();
+
+	// 当たり判定の壁貫通をなくす処理
+	UFUNCTION()
+		FHitResult CheckHitEnemy(AActor* OtherActor);
 
 	//無敵状態
 	bool bIsDamageNow;
@@ -215,7 +217,7 @@ private:
 	FTimerHandle NoDamageTimerHandle;
 	//無敵時間の処理
 	UFUNCTION()
-	void NoDamageFunction();
+		void NoDamageFunction();
 
 	//スプライン経路を管理するアクター
 	TObjectPtr<APlayerSplinePath> SplinePathActor;
@@ -241,11 +243,11 @@ private:
 	int32 Battery;
 	//ライトバッテリーのUI
 	UPROPERTY()
-	TObjectPtr<UProgressBar> BatteryUI;
+		TObjectPtr<UProgressBar> BatteryUI;
 
 	//スコアのテキストUI
 	UPROPERTY()
-	TObjectPtr<UTextBlock> ScoreUI;
+		TObjectPtr<UTextBlock> ScoreUI;
 
 	//アイテムの所有数
 	int32 ItemCount;
@@ -253,14 +255,14 @@ private:
 	int32 ItemAttack;
 	//アイテム所有数のテキストUI
 	UPROPERTY()
-	TObjectPtr<UTextBlock> ItemUI;
+		TObjectPtr<UTextBlock> ItemUI;
 	//アイテム使用状態
 	bool bCanUseItem;
 	//アイテムクールタイム用タイマーハンドル
 	FTimerHandle ItemCoolTimeHandle;
 	//アイテムのクールタイム処理
 	UFUNCTION()
-	void ItemCoolTimeFunction();
+		void ItemCoolTimeFunction();
 
 	//ライトの操作を受け付けているかどうか
 	bool bCanToggleLight;
@@ -272,19 +274,21 @@ private:
 	
 	//グローブの曲げ具合設定
 	UPROPERTY(EditAnywhere)
-	int32 FingerBendingBorder;
+		int32 FingerBendingBorder;
 
 	//出現する敵を判別するステージ番号
 	UPROPERTY(BlueprintReadOnly, Category = "Stage", meta = (AllowPrivateAccess = "true"))
-	int32 StageNumber;
+		int32 StageNumber;
 
 	//アイテム処理メソッド
 	UFUNCTION()
-	void UseItem_Attack();
+		void UseItem();
 	UFUNCTION()
-	void UseItem_Buff();
+		void UseItem_Attack();
 	UFUNCTION()
-	void UseItem_Score();
+		void UseItem_Buff();
+	UFUNCTION()
+		void UseItem_Score();
 
 	//デバッグ用タイマー
 	int32 DebugTimer;

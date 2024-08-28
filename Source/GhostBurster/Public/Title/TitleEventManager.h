@@ -97,6 +97,11 @@ public:
 
     UPROPERTY(EditAnywhere, Category = "ThirdEvent")
     FVector Third_White_Location;
+    UPROPERTY(EditAnywhere, Category = "ThirdEvent")
+        FVector Third_Treasure_Location1;
+    UPROPERTY(EditAnywhere, Category = "ThirdEvent")
+        FVector Third_Treasure_Location2;
+
 
     UPROPERTY(EditAnywhere, Category = "FourthEvent")
     FVector Fourth_Treasure_Location1;
