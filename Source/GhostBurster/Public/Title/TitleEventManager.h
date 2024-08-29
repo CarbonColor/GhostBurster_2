@@ -4,10 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "TimerManager.h"
 #include "TitleEnemy_White.h"
 #include "TitleEnemy_Green.h"
 #include "TitleEnemy_Red.h"
 #include "TitleEnemy_Blue.h"
+#include "Player/VRPlayerCharacter.h"
 #include "TitleEventManager.generated.h"
 
 // デリゲート用のマクロ
@@ -62,8 +64,6 @@ public:
     void IsUseAttackItem();
     UFUNCTION(BlueprintCallable, Category = "Event")
     void IsUseBuffItem();
-    UFUNCTION(BlueprintCallable, Category = "Event")
-    void IsUseScoreItem();
 
     UFUNCTION(BlueprintCallable, Category = "Event")
     void NextEventNumber();
@@ -102,14 +102,7 @@ public:
     UPROPERTY(EditAnywhere, Category = "ThirdEvent")
         FVector Third_Treasure_Location2;
 
-
-    UPROPERTY(EditAnywhere, Category = "FourthEvent")
-    FVector Fourth_Treasure_Location1;
-    UPROPERTY(EditAnywhere, Category = "FourthEvent")
-    FVector Fourth_Treasure_Location2;
-
 private:
-
     //敵の数のカウント
     int32 EnemyCount;
     //イベントの進行状況
@@ -119,8 +112,6 @@ private:
     bool bIsUseAttackItem;
     //強化アイテムを使用したかどうか
     bool bIsUseBuffItem;
-    //スコアアイテムを使用したかどうか
-    bool bIsUseScoreItem;
 
     //敵のアクタークラス
     UPROPERTY(EditDefaultsOnly, Category = "Enemy")
@@ -137,4 +128,12 @@ private:
 
     UPROPERTY(EditDefaultsOnly, Category = "Treasure")
     TSubclassOf<AActor> TreasureBox;
+
+    //４つ目のイベントのタイマー制御
+    FTimerHandle StartFourthEventHandle;
+    FTimerHandle EndFourthEventHandle;
+    UFUNCTION()
+        void StartFourthEvent();
+    UFUNCTION()
+        void EndFourthEvent();
 };

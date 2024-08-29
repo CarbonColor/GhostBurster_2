@@ -27,6 +27,9 @@ public:
 	virtual void RecieveEnemyDamage(int DamageAmount) override;
 
 	UFUNCTION(BlueprintCallable)
-	void SetHP(int32 Value);
+		void SetHP(int32 Value);
+
+	//プレイヤーのライトの色と敵のライトの色をチェックする処理
+	virtual bool CheckPlayerLightColor(EFlashlight_Color PlayerColor) const override;
 
 };

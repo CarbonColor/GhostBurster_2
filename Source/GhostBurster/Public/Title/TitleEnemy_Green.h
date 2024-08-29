@@ -25,4 +25,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void RecieveEnemyDamage(int DamageAmount) override;
+
+	//プレイヤーのライトの色と敵のライトの色をチェックする処理
+	virtual bool CheckPlayerLightColor(EFlashlight_Color PlayerColor) const override;
+
 };
