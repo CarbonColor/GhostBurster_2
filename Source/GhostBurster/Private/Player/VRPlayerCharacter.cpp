@@ -830,6 +830,7 @@ void AVRPlayerCharacter::ChangeScore_Step()
     {
         AddScore(ItemScore);
         ItemCount--;
+        UpdateItemUI();
     }
     else
     {
