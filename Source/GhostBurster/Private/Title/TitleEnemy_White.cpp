@@ -75,10 +75,3 @@ void ATitleEnemy_White::SetHP(int32 Value)
 {
 	HP = Value;
 }
-
-//プレイヤーのライトの色と敵のライトの色をチェックする関数
-bool ATitleEnemy_White::CheckPlayerLightColor(EFlashlight_Color PlayerColor) const
-{
-	return PlayerColor == EFlashlight_Color::White;
-}
-

@@ -40,8 +40,4 @@ public:
 
 	UFUNCTION()
 	void EnemyDead();
-
-	//プレイヤーのライトの色と敵のライトの色をチェックする関数
-	virtual bool CheckPlayerLightColor(EFlashlight_Color PlayerColor) const PURE_VIRTUAL(ATitleEnemy::CheckPlayerLightColor, return false;);
-
 };
