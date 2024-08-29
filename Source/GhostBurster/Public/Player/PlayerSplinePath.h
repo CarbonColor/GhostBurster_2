@@ -26,6 +26,10 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	//スプラインのポイント
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spline Location")
+		TArray<FVector> SplinePointLocation;
+
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spline", meta = (AllowPrivateAccess = "true"))
 		TObjectPtr<USplineComponent> SplineComponent;

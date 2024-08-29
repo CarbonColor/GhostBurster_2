@@ -30,7 +30,7 @@ void ATitleEventManager::Tick(float DeltaTime)
 void ATitleEventManager::EnemyDeadFunction()
 {
 	EnemyCount--;
-	GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, TEXT("Call EnemyDeadFunction on Title"));
+	GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Call EnemyDeadFunction on Title"));
 
 	if (EnemyCount <= 0)
 	{
@@ -73,14 +73,6 @@ void ATitleEventManager::IsUseBuffItem()
 	if (EnemyCount <= 0 && EventNumber == 3)
 	{
 		ThirdEventDispatcher.Broadcast();
-	}
-}
-void ATitleEventManager::IsUseScoreItem()
-{
-	bIsUseScoreItem = true;
-	if (EventNumber == 4)
-	{
-		FourthEventDispatcher.Broadcast();
 	}
 }
 
@@ -135,14 +127,23 @@ void ATitleEventManager::ThirdEvent()
 
 void ATitleEventManager::FourthEvent()
 {
-	//宝箱の生成
-	GetWorld()->SpawnActor<AActor>(TreasureBox, Fourth_Treasure_Location1, FRotator::ZeroRotator);
-	GetWorld()->SpawnActor<AActor>(TreasureBox, Fourth_Treasure_Location2, FRotator::ZeroRotator);
+	//イベントタイマーの設定
+	GetWorld()->GetTimerManager().SetTimer(StartFourthEventHandle, this, &ATitleEventManager::StartFourthEvent, 1.5f, false);
+	GetWorld()->GetTimerManager().SetTimer(EndFourthEventHandle, this, &ATitleEventManager::EndFourthEvent, 4.5f, false);
 
-	//アイテム使用状況の初期化
-	bIsUseScoreItem = false;
 }
-
+void ATitleEventManager::StartFourthEvent()
+{
+	GetWorld()->GetTimerManager().ClearTimer(StartFourthEventHandle);
+	//余ったアイテムをスコアに変換
+	AVRPlayerCharacter* Player = Cast<AVRPlayerCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
+	Player->ChangeScore();
+}
+void ATitleEventManager::EndFourthEvent()
+{
+	GetWorld()->GetTimerManager().ClearTimer(EndFourthEventHandle);
+	FourthEventDispatcher.Broadcast();
+}
 
 void ATitleEventManager::NextEventNumber()
 {

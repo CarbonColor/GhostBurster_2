@@ -18,11 +18,10 @@ APlayerSplinePath::APlayerSplinePath()
 	MovementSpeed = DefaultSpeed; // 移動速度。あとで酔わない程度に変更する
 
 	// スプラインのポイントの設定
-	SplineComponent->AddSplinePoint(FVector(0, 100.0f, 200.0f), ESplineCoordinateSpace::World);				//スタート地点
-	SplineComponent->AddSplinePoint(FVector(6800.0f, 100.0f, 200.0f), ESplineCoordinateSpace::World);		//左に曲がる地点
-	SplineComponent->AddSplinePoint(FVector(6800.0f, -2850.0f, 200.0f), ESplineCoordinateSpace::World);		//階段を下りる直前
-	SplineComponent->AddSplinePoint(FVector(6800.0f, -3650.0f, -600.0f), ESplineCoordinateSpace::World);	//階段を下りた直後
-	SplineComponent->AddSplinePoint(FVector(6800.0f, -8200.0f, -600.0f), ESplineCoordinateSpace::World);	//ゴール地点
+	for (FVector Point : SplinePointLocation)
+	{
+		SplineComponent->AddSplinePoint(Point, ESplineCoordinateSpace::World);
+	}
 
 	// スプラインのタイプの設定
 	for (int i = 0; i < SplineComponent->GetNumberOfSplinePoints(); ++i)
@@ -88,6 +87,10 @@ void APlayerSplinePath::StopMovement()
 	MovementSpeed = 0.0f;
 	GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Silver, FString::Printf(TEXT("Stop Movement (%f)"), MovementSpeed));
 	bIsMoving = false;
+
+	//ボス戦だったらボスにプレイヤーの情報を渡す
+
+
 }
 
 void APlayerSplinePath::StartMovement()
@@ -119,41 +122,41 @@ void APlayerSplinePath::MoveAlongSpline(float DeltaTime)
 		{
 			PlayerCharacter->SetActorLocation(NewLocation);
 
-			//左に曲がる地点に到達したかチェック
-			if (bIsRotatePoint == false)
-			{
-				if (CurrentSplineDistance >= SplineComponent->GetDistanceAlongSplineAtSplinePoint(1))
-				{
-					//回転処理の準備
-					bIsRotating = true;
-					bIsRotatePoint = true;
-					StartRotation = PlayerCharacter->GetActorRotation();
-					TargetRotation = StartRotation + FRotator(0.0f, -90.0f, 0.0f);
-					CurrentRotationTime = 0.0f;
+			////左に曲がる地点に到達したかチェック
+			//if (bIsRotatePoint == false)
+			//{
+			//	if (CurrentSplineDistance >= SplineComponent->GetDistanceAlongSplineAtSplinePoint(1))
+			//	{
+			//		//回転処理の準備
+			//		bIsRotating = true;
+			//		bIsRotatePoint = true;
+			//		StartRotation = PlayerCharacter->GetActorRotation();
+			//		TargetRotation = StartRotation + FRotator(0.0f, -90.0f, 0.0f);
+			//		CurrentRotationTime = 0.0f;
 
-					//移動を止める
-					StopMovement();
-				}
-			}
-			//階段を下りる地点に到達したかチェック
-			if (bIsRotatePoint == false)
-			{
-				if (CurrentSplineDistance >= SplineComponent->GetDistanceAlongSplineAtSplinePoint(2))
-				{
-					//速度を半分に落とす
-					bIsStairsPoint = true;
-					SetMovementSpeed(DefaultSpeed / 2.0f);
-				}
-			}
-			//階段を下りきった地点に到達したかチェック
-			else
-			{
-				if (CurrentSplineDistance >= SplineComponent->GetDistanceAlongSplineAtSplinePoint(3))
-				{
-					//速度をもとに戻す
-					SetMovementSpeed(DefaultSpeed);
-				}
-			}
+			//		//移動を止める
+			//		StopMovement();
+			//	}
+			//}
+			////階段を下りる地点に到達したかチェック
+			//if (bIsRotatePoint == false)
+			//{
+			//	if (CurrentSplineDistance >= SplineComponent->GetDistanceAlongSplineAtSplinePoint(2))
+			//	{
+			//		//速度を半分に落とす
+			//		bIsStairsPoint = true;
+			//		SetMovementSpeed(DefaultSpeed / 2.0f);
+			//	}
+			//}
+			////階段を下りきった地点に到達したかチェック
+			//else
+			//{
+			//	if (CurrentSplineDistance >= SplineComponent->GetDistanceAlongSplineAtSplinePoint(3))
+			//	{
+			//		//速度をもとに戻す
+			//		SetMovementSpeed(DefaultSpeed);
+			//	}
+			//}
 		}
 		else
 		{
