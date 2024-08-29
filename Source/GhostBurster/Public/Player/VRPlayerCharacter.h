@@ -46,18 +46,6 @@ protected:
 	UFUNCTION()
 		void ChangeColorFlashlight(const FInputActionValue& value);
 
-	//バッテリーのUIを更新するメソッド
-	UFUNCTION()
-		void UpdateBatteryUI();
-
-	//アイテムの所有数のUIを更新するメソッド
-	UFUNCTION()
-		void UpdateItemUI();
-
-	//スコアのUIを更新するメソッド
-	UFUNCTION()
-		void UpdateScoreUI();
-
 	//アイテムが使用されたかどうかを確認するメソッド
 	UFUNCTION(BlueprintCallable)
 		void CheckUsedItem(const TArray<int> value);
@@ -86,16 +74,16 @@ public:
 		TObjectPtr<UInputAction> IA_Flashlight_ChangeColor;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-		TObjectPtr<UInputAction> IA_DebugTest;
+		TObjectPtr<UInputAction> IA_Glove_UseAttackItem;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-		TObjectPtr<UInputAction> IA_DebugTest1;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-		TObjectPtr<UInputAction> IA_DebugTest2;
+		TObjectPtr<UInputAction> IA_Glove_UseBuffItem;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 		TObjectPtr<UInputMappingContext> IMC_Flashlight;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+		TObjectPtr<UInputMappingContext> IMC_GloveDevice;
 
 	// Motion Controller
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
@@ -138,6 +126,11 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Mesh Parameter")
 		FVector FlashlightMeshScale;
 
+	//アイテムボーダーリスト
+	UPROPERTY()
+		TArray<int32> AttackItemBorder;
+	UPROPERTY()
+		TArray<int32> BuffItemBorder;
 
 	//ライトのコリジョンとの当たり判定
 	UFUNCTION()
@@ -151,6 +144,20 @@ public:
 	//スコアを増やす処理
 	UFUNCTION(BlueprintCallable)
 		void AddScore(int32 Value);
+
+	//バッテリーのUIを更新するメソッド
+	UFUNCTION()
+		void UpdateBatteryUI();
+	//アイテムの所有数のUIを更新するメソッド
+	UFUNCTION()
+		void UpdateItemUI();
+	//スコアのUIを更新するメソッド
+	UFUNCTION()
+		void UpdateScoreUI();
+	//余ったアイテムをスコアに変換するメソッド（タイトル用）
+	UFUNCTION()
+		void ChangeScore();
+
 
 	//オバケからの攻撃(インターフェース)
 	virtual void RecievePlayerDamage() override;
@@ -253,6 +260,8 @@ private:
 	int32 ItemCount;
 	//アイテムの攻撃力
 	int32 ItemAttack;
+	//アイテムのスコア
+	int32 ItemScore;
 	//アイテム所有数のテキストUI
 	UPROPERTY()
 		TObjectPtr<UTextBlock> ItemUI;
@@ -287,8 +296,11 @@ private:
 		void UseItem_Attack();
 	UFUNCTION()
 		void UseItem_Buff();
+
+	//スコア変換の遅延用タイマー
+	FTimerHandle ScoreChangeHandle;
 	UFUNCTION()
-		void UseItem_Score();
+		void ChangeScore_Step();
 
 	//デバッグ用タイマー
 	int32 DebugTimer;
