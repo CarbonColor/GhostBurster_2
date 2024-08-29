@@ -69,3 +69,10 @@ void ATitleEnemy_Green::RecieveEnemyDamage(int DamageAmount)
 		EnemyDead();
 	}
 }
+
+
+//プレイヤーのライトの色と敵のライトの色をチェックする関数
+bool ATitleEnemy_Green::CheckPlayerLightColor(EFlashlight_Color PlayerColor) const
+{
+	return PlayerColor == EFlashlight_Color::Green;
+}
