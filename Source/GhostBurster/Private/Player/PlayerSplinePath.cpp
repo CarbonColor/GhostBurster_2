@@ -13,22 +13,6 @@ APlayerSplinePath::APlayerSplinePath()
 	SplineComponent = CreateDefaultSubobject<USplineComponent>(TEXT("SplineComponent"));
 	RootComponent = SplineComponent;
 
-	// スプライン経路の現在地の初期化
-	CurrentSplineDistance = 0.0f; // スプラインが始まってからの距離。0が始点位置になる
-	MovementSpeed = DefaultSpeed; // 移動速度。あとで酔わない程度に変更する
-
-	// スプラインのポイントの設定
-	for (FVector Point : SplinePointLocation)
-	{
-		SplineComponent->AddSplinePoint(Point, ESplineCoordinateSpace::World);
-	}
-
-	// スプラインのタイプの設定
-	for (int i = 0; i < SplineComponent->GetNumberOfSplinePoints(); ++i)
-	{
-		SplineComponent->SetSplinePointType(i, ESplinePointType::Linear);	//移動経路が直線になるように設定
-	}
-
 	//回転変数の初期化
 	bIsRotating = false;
 	RotationDuration = 3.0f;
@@ -44,8 +28,31 @@ void APlayerSplinePath::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// スプライン経路の現在地の初期化
+	CurrentSplineDistance = 0.0f; // スプラインが始まってからの距離。0が始点位置になる
+	MovementSpeed = DefaultSpeed; // 移動速度。あとで酔わない程度に変更する
+
+	//一旦スプラインのポイントをすべてなくす
+	SplineComponent->ClearSplinePoints(true);
+
+	// スプラインのポイントの設定
+	for (FVector Point : SplinePointLocation)
+	{
+		SplineComponent->AddSplinePoint(Point, ESplineCoordinateSpace::World);
+	}
+
+	// スプラインのタイプの設定
+	for (int i = 0; i < SplineComponent->GetNumberOfSplinePoints(); ++i)
+	{
+		SplineComponent->SetSplinePointType(i, ESplinePointType::Linear);	//移動経路が直線になるように設定
+	}
+
+	//最初は動かない
+	StopMovement();
+
 	//プレイヤーポーンを取得
 	PlayerCharacter = Cast<AVRPlayerCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
+	
 	//カメラを取得
 	Camera = PlayerCharacter->FindComponentByClass<UCameraComponent>();
 }
@@ -85,7 +92,7 @@ void APlayerSplinePath::SetMovementSpeed(float Speed)
 void APlayerSplinePath::StopMovement()
 {
 	MovementSpeed = 0.0f;
-	GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Silver, FString::Printf(TEXT("Stop Movement (%f)"), MovementSpeed));
+	//GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Silver, FString::Printf(TEXT("Stop Movement (%f)"), MovementSpeed));
 	bIsMoving = false;
 
 	//ボス戦だったらボスにプレイヤーの情報を渡す
@@ -96,7 +103,7 @@ void APlayerSplinePath::StopMovement()
 void APlayerSplinePath::StartMovement()
 {
 	MovementSpeed = DefaultSpeed; // 初期値に設定
-	GEngine->AddOnScreenDebugMessage(-1, 03.0f, FColor::Silver, FString::Printf(TEXT("Start Movement (%f)"), MovementSpeed));
+	//GEngine->AddOnScreenDebugMessage(-1, 03.0f, FColor::Silver, FString::Printf(TEXT("Start Movement (%f)"), MovementSpeed));
 	bIsMoving = true;
 }
 
@@ -133,7 +140,6 @@ void APlayerSplinePath::MoveAlongSpline(float DeltaTime)
 			//		StartRotation = PlayerCharacter->GetActorRotation();
 			//		TargetRotation = StartRotation + FRotator(0.0f, -90.0f, 0.0f);
 			//		CurrentRotationTime = 0.0f;
-
 			//		//移動を止める
 			//		StopMovement();
 			//	}
