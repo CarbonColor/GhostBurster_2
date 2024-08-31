@@ -38,7 +38,7 @@ private:
 	float CurrentSplineDistance;
 	//ˆÚ“®‘¬“x
 	UPROPERTY(EditAnywhere, Category = "Speed")
-	float DefaultSpeed = 100.0f;
+	float DefaultSpeed;
 
 	UPROPERTY()
 	float MovementSpeed;
