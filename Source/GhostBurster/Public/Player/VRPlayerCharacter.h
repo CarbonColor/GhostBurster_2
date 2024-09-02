@@ -256,12 +256,8 @@ private:
 	UPROPERTY()
 		TObjectPtr<UTextBlock> ScoreUI;
 
-	//アイテムの所有数
-	int32 ItemCount;
 	//アイテムの攻撃力
 	int32 ItemAttack;
-	//アイテムのスコア
-	int32 ItemScore;
 	//アイテム所有数のテキストUI
 	UPROPERTY()
 		TObjectPtr<UTextBlock> ItemUI;

@@ -17,34 +17,98 @@ class GHOSTBURSTER_API UPlayerScoreInstance : public UGameInstance
 
 private:
 
+	// ------------------------------------------------------------------------------------	
+	//ダメージのスコア
+	const int32 DamageScore = -100;
+	//タイムのスコア
+	const int32 DefaultClearTime = 240;
+	const int32 TimeMaxScore = 10000;
+	const int32 TimeDecreaseScore = 80;
+	const int32 DecreasePer = 45;
+	//アイテムのスコア
+	const int32 ItemScore = 2000;
+	// ------------------------------------------------------------------------------------
+
 	// プレイヤーのスコア
 	UPROPERTY()
-	int32 PlayerScore;
+		int32 PlayerScore;
 
 	// ダメージカウント
 	UPROPERTY()
-	int32 PlayerDamageCount;
+		int32 PlayerDamageCount;
+
+	//プレイヤーのクリアタイム
+	UPROPERTY()
+		double StartTime;
+	UPROPERTY()
+		double EndTime;
+	UPROPERTY()
+		int32 Minute;
+	UPROPERTY()
+		int32 Second;
+
+	//ゲーム終了後のアイテム数
+	UPROPERTY()
+		int32 PlayerItem;
+
+protected:
+	// アイテムをスコアに変換するメソッド
+	UFUNCTION(Category = "PlayerData")
+		int32 ConvertItemToScore();
+
 
 public:
 
+	//全て初期化するメソッド
+	UFUNCTION(BlueprintCallable, Category = "PlayerData")
+		void AllDataResetFunction();
+
+
 	// スコアを取得するメソッド
 	UFUNCTION(BlueprintCallable, Category = "PlayerData")
-	int32 GetPlayerScore();
-	// スコアを初期化するメソッド
-	UFUNCTION(BlueprintCallable, Category = "PlayerData")
-	void ResetPlayerScore();
-	// スコアを加算するメソッド
-	UFUNCTION(BlueprintCallable, Category = "PlayerData")
-	void AddPlayerScore(int32 Value);
-
+		int32 GetPlayerScore();
 	// ダメージカウントを取得するメソッド
 	UFUNCTION(BlueprintCallable, Category = "PlayerData")
-	int32 GetPlayerDamageCount();
-	// ダメージカウントを初期化するメソッド
+		int32 GetPlayerDamageCount();
+	// アイテム数を取得するメソッド
 	UFUNCTION(BlueprintCallable, Category = "PlayerData")
-	void ResetPlayerDamageCount();
+		int32 GetPlayerItemCount();
+	// クリアタイム（分）を取得するメソッド
+	UFUNCTION(BlueprintCallable, Category = "PlayerData")
+		int32 GetGameTime_Minute();
+	// クリアタイム（秒）を取得するメソッド
+	UFUNCTION(BlueprintCallable, Category = "PlayerData")
+		int32 GetGameTime_Second();
+
+
+	// スコアを加算するメソッド
+	UFUNCTION(BlueprintCallable, Category = "PlayerData")
+		void AddPlayerScore(int32 Value);
 	// ダメージカウントを加算するメソッド
 	UFUNCTION(BlueprintCallable, Category = "PlayerData")
-	void AddPlayerDamageCount();
+		void AddPlayerDamageCount();
+	// アイテム数を加算するメソッド
+	UFUNCTION(BlueprintCallable, Category = "PlayerData")
+		void AddPlayerItem();
+	// アイテム数を減算するメソッド
+	UFUNCTION(BlueprintCallable, Category = "PlayerData")
+		void UsePlayerItem();
+
+
+	// ゲームスタートの時間をセットする
+	UFUNCTION(BlueprintCallable, Category = "PlayerData")
+		void SetGameStartTime();
+	// ゲームエンドの時間をセットする
+	UFUNCTION(BlueprintCallable, Category = "PlayerData")
+		void SetGameEndTime();
+
+
+	// アイテムをスコアに変換するメソッド（タイトル用）
+	UFUNCTION(BlueprintCallable, Category = "PlayerData")
+		void ConvertItemToScore_Title();
+
+	// スコアを計算して、その各スコアを送るメソッド
+	UFUNCTION(BlueprintCallable, Category = "PlayerData")
+		TArray<int32> ScoringFunction();
 
 };
