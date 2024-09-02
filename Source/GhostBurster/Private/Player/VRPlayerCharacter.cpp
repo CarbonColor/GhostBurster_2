@@ -37,12 +37,8 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     // ライトの攻撃力増加率の設定
     AddLightAttack = 2;
 
-    // アイテム数の初期値
-    ItemCount = 2;
     // アイテムの攻撃力の設定
     ItemAttack = 100;
-    // アイテムのスコア
-    ItemScore = 10000;
     // アイテム使用のボーダー設定
     FingerBendingBorder = 350;
 
@@ -193,11 +189,8 @@ void AVRPlayerCharacter::BeginPlay()
 
     //スコアのインスタンスを取得する
     ScoreInstance = Cast<UPlayerScoreInstance>(GetGameInstance());
-    //スコアの初期化
-    ScoreInstance->ResetPlayerScore();
-    //ダメージカウントの初期化
-    ScoreInstance->ResetPlayerDamageCount();
-
+    //データの初期化をする
+    ScoreInstance->AllDataResetFunction();
 
     //SplinePathActorを取得して設定する
     TArray<AActor*> FoundActors;
@@ -438,7 +431,7 @@ void AVRPlayerCharacter::CheckUsedItem(const TArray<int32> value)
     //GEngine->AddOnScreenDebugMessage(-1, 0.2f, FColor::Silver, DebugValue);
 
     //使えない状態のときは即リターン
-    if (bCanUseItem == false || ItemCount <= 0)
+    if (bCanUseItem == false || ScoreInstance->GetPlayerItemCount() <= 0)
     {
         return;
     }
@@ -467,7 +460,7 @@ void AVRPlayerCharacter::CheckUsedItem(const TArray<int32> value)
 //アイテム使用メソッド
 void AVRPlayerCharacter::UseItem_Attack()
 {
-    if (ItemCount <= 0)
+    if (ScoreInstance->GetPlayerItemCount() <= 0)
     {
         return;
     }
@@ -518,7 +511,7 @@ void AVRPlayerCharacter::UseItem_Attack()
 }
 void AVRPlayerCharacter::UseItem_Buff()
 {
-    if (ItemCount <= 0)
+    if (ScoreInstance->GetPlayerItemCount() <= 0)
     {
         return;
     }
@@ -553,7 +546,7 @@ void AVRPlayerCharacter::UseItem()
     //デバイスに振動要請を送る
     GloveDeviceVibration_UseItem();
     //UIの更新
-    ItemCount--;
+    ScoreInstance->UsePlayerItem();
     UpdateItemUI();
 }
 //アイテムのクールタイムメソッド
@@ -782,7 +775,8 @@ void AVRPlayerCharacter::UpdateItemUI()
 {
     if (ItemUI)
     {
-        ItemUI->SetText(FText::AsNumber(ItemCount));
+        int32 Item = ScoreInstance->GetPlayerItemCount();
+        ItemUI->SetText(FText::AsNumber(Item));
     }
     else
     {
@@ -806,7 +800,7 @@ void AVRPlayerCharacter::UpdateScoreUI()
 //アイテムを増やすメソッド
 void AVRPlayerCharacter::AddItem()
 {
-    ItemCount++;
+    ScoreInstance->AddPlayerItem();
     UpdateItemUI();
 }
 //スコアを増やすメソッド
@@ -819,17 +813,16 @@ void AVRPlayerCharacter::AddScore(int32 Value)
 //余ったアイテムをスコアに変換するメソッド
 void AVRPlayerCharacter::ChangeScore()
 {
-    if (ItemCount > 0)
+    if (ScoreInstance->GetPlayerItemCount() > 0)
     {
         GetWorld()->GetTimerManager().SetTimer(ScoreChangeHandle, this, &AVRPlayerCharacter::ChangeScore_Step, 0.5f, true);
     }
 }
 void AVRPlayerCharacter::ChangeScore_Step()
 {
-    if (ItemCount > 0)
+    if (ScoreInstance->GetPlayerItemCount() > 0)
     {
-        AddScore(ItemScore);
-        ItemCount--;
+        ScoreInstance->ConvertItemToScore_Title();
         UpdateItemUI();
     }
     else
