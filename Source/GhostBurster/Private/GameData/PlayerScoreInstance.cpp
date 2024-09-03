@@ -9,7 +9,12 @@
 // ------------------------------------------------------------------------------------
 void UPlayerScoreInstance::AllDataResetFunction()
 {
-	PlayerScore = 0;
+	PlayerDafaultScore = 0;
+	PlayerDamageScore = 0;
+	PlayerTimeScore = 0;
+	PlayerItemScore = 0;
+	TotalScore = 0;
+
 	PlayerDamageCount = 0;
 	StartTime = 0;
 	EndTime = 0;
@@ -21,9 +26,25 @@ void UPlayerScoreInstance::AllDataResetFunction()
 // ------------------------------------------------------------------------------------
 // 各データのゲッター
 // ------------------------------------------------------------------------------------
-int32 UPlayerScoreInstance::GetPlayerScore()
+int32 UPlayerScoreInstance::GetPlayerDefaultScore()
 {
-	return PlayerScore;
+	return PlayerDafaultScore;
+}
+int32 UPlayerScoreInstance::GetPlayerTimeScore()
+{
+	return PlayerTimeScore;
+}
+int32 UPlayerScoreInstance::GetPlayerDamageScore()
+{
+	return PlayerDamageScore;
+}
+int32 UPlayerScoreInstance::GetPlayerItemScore()
+{
+	return PlayerItemScore;
+}
+int32 UPlayerScoreInstance::GetTotalScore()
+{
+	return TotalScore;
 }
 
 int32 UPlayerScoreInstance::GetPlayerDamageCount()
@@ -52,7 +73,7 @@ int32 UPlayerScoreInstance::GetGameTime_Second()
 // ------------------------------------------------------------------------------------
 void UPlayerScoreInstance::AddPlayerScore(int32 Value)
 {
-	PlayerScore += Value;
+	PlayerDafaultScore += Value;
 }
 
 void UPlayerScoreInstance::AddPlayerDamageCount()
@@ -89,25 +110,8 @@ void UPlayerScoreInstance::ConvertItemToScore_Title()
 	UsePlayerItem();
 }
 
-int32 UPlayerScoreInstance::ConvertItemToScore()
+void UPlayerScoreInstance::ScoringFunction()
 {
-	UsePlayerItem();
-	return ItemScore;
-}
-
-TArray<int32> UPlayerScoreInstance::ScoringFunction()
-{
-	//------------------------------------------------------------
-	// リターン用
-	//------------------------------------------------------------
-	TArray<int32> Data;
-	Data.Empty();
-
-	//------------------------------------------------------------
-	//デフォルトスコア
-	//------------------------------------------------------------
-	Data.Add(PlayerScore);
-
 	//------------------------------------------------------------
 	//クリアタイムスコア
 	//------------------------------------------------------------
@@ -119,25 +123,26 @@ TArray<int32> UPlayerScoreInstance::ScoringFunction()
 	//減点倍率を決める
 	int32 Multiple = ClearTime / DecreasePer;
 	//スコア計算をする
-	int32 Tmp_TimeScore = TimeMaxScore - (TimeDecreaseScore * Multiple);
-	Data.Add(Tmp_TimeScore);
+	PlayerTimeScore = TimeMaxScore - (TimeDecreaseScore * Multiple);
 
 	//------------------------------------------------------------
 	//ダメージスコア
 	//------------------------------------------------------------
-	int32 Tmp_DamageScore = DamageScore * PlayerDamageCount;
-	Data.Add(Tmp_DamageScore);
+	PlayerDamageScore = DamageScore * PlayerDamageCount;
 
 	//------------------------------------------------------------
 	//アイテムスコア
 	//------------------------------------------------------------
-	int32 Tmp_ItemScore = 0;
-	while (PlayerItem > 0)
+	PlayerItemScore = 0;
+	for (int i = 0; i < PlayerItem; ++i)
 	{
-		Tmp_ItemScore += ConvertItemToScore();
+		PlayerItemScore += ItemScore;
 	}
-	Data.Add(Tmp_ItemScore);
 
 
-	return Data;
+	//------------------------------------------------------------
+	//合計スコア
+	//------------------------------------------------------------
+	TotalScore = PlayerDafaultScore + PlayerTimeScore + PlayerDamageScore + PlayerItemScore;
+
 }

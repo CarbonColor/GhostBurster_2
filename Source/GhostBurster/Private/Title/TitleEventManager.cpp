@@ -38,12 +38,14 @@ void ATitleEventManager::EnemyDeadFunction()
 		{
 		case 1:
 			FirstEventDispatcher.Broadcast();
+			FirstEventDispatcher.Clear();
 			break;
 
 		case 2:
 			if (bIsUseAttackItem)
 			{
 				SecondEventDispatcher.Broadcast();
+				SecondEventDispatcher.Clear();
 			}
 			break;
 
@@ -51,6 +53,7 @@ void ATitleEventManager::EnemyDeadFunction()
 			if (bIsUseBuffItem)
 			{
 				ThirdEventDispatcher.Broadcast();
+				ThirdEventDispatcher.Clear();
 			}
 			break;
 
@@ -65,6 +68,7 @@ void ATitleEventManager::IsUseAttackItem()
 	if (EnemyCount <= 0 && EventNumber == 2)
 	{
 		SecondEventDispatcher.Broadcast();
+		SecondEventDispatcher.Clear();
 	}
 }
 void ATitleEventManager::IsUseBuffItem()
@@ -73,6 +77,7 @@ void ATitleEventManager::IsUseBuffItem()
 	if (EnemyCount <= 0 && EventNumber == 3)
 	{
 		ThirdEventDispatcher.Broadcast();
+		ThirdEventDispatcher.Clear();
 	}
 }
 

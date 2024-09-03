@@ -116,15 +116,6 @@ public:
 	UPROPERTY(EditAnywhere, Category = "UI")
 		TObjectPtr<UWidgetComponent> PlayerStatusWidgetComponent;
 
-	// パラメーター系統
-	UPROPERTY(EditAnywhere, Category = "Mesh Parameter")
-		FVector FlashlightMeshLocation;
-
-	UPROPERTY(EditAnywhere, Category = "Mesh Parameter")
-		FRotator FlashlightMeshRotation;
-
-	UPROPERTY(EditAnywhere, Category = "Mesh Parameter")
-		FVector FlashlightMeshScale;
 
 	//アイテムボーダーリスト
 	UPROPERTY()
@@ -300,4 +291,7 @@ private:
 
 	//デバッグ用タイマー
 	int32 DebugTimer;
+
+	//現在のワールド名
+	FString LevelName;
 };
