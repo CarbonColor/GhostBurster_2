@@ -136,10 +136,6 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     FlashlightMesh->SetCollisionProfileName(TEXT("NoCollision"));
     // メッシュの影をなくす
     FlashlightMesh->SetCastShadow(false);
-    // 位置・サイズ・向きの調整をする
-    FlashlightMesh->SetRelativeLocation(FlashlightMeshLocation);
-    FlashlightMesh->SetRelativeRotation(FlashlightMeshRotation);  // ※ FRotator は (Y, Z, X) の順
-    FlashlightMesh->SetRelativeScale3D(FlashlightMeshScale);
 
     //ボックスコリジョンを作る
     PlayerCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("PlayerCollision"));
@@ -187,10 +183,12 @@ void AVRPlayerCharacter::BeginPlay()
 {
     Super::BeginPlay();
 
+    //レベル名を取得する
+    UWorld* World = GEngine->GetWorldFromContextObjectChecked(this);
+    LevelName = UGameplayStatics::GetCurrentLevelName(World);
+
     //スコアのインスタンスを取得する
     ScoreInstance = Cast<UPlayerScoreInstance>(GetGameInstance());
-    //データの初期化をする
-    ScoreInstance->AllDataResetFunction();
 
     //SplinePathActorを取得して設定する
     TArray<AActor*> FoundActors;
@@ -238,13 +236,47 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
     TmpEnemies = OverlappingEnemies;
     for (AActor* Enemy : TmpEnemies)
     {
-        if (Enemy && Enemy->GetClass()->ImplementsInterface(UDamageInterface::StaticClass()))
+        if (!Enemy)
         {
-            IDamageInterface* DamageInterface = Cast<IDamageInterface>(Enemy);
-            if (DamageInterface)
+            GEngine->AddOnScreenDebugMessage(-1, 0.2f, FColor::Silver, TEXT("Enemy is Null"));
+            continue;
+        }
+
+        //タイトルの場合
+        if (LevelName == "Title")
+        {
+            ATitleEnemy* CheckEnemy = Cast<ATitleEnemy>(Enemy);
+            if (CheckEnemy && CheckEnemy->CheckPlayerLightColor(Flashlight_Color))
             {
-                DamageInterface->RecieveEnemyDamage(LightAttack);
+                if (Enemy && Enemy->GetClass()->ImplementsInterface(UDamageInterface::StaticClass()))
+                {
+                    IDamageInterface* DamageInterface = Cast<IDamageInterface>(Enemy);
+                    if (DamageInterface)
+                    {
+                        DamageInterface->RecieveEnemyDamage(LightAttack);
+                    }
+                }
             }
+        }
+        //ゲームシーンの場合
+        else if (LevelName == "MainLevel")
+        {
+            AEnemys* CheckEnemy = Cast<AEnemys>(Enemy);
+            if (CheckEnemy && CheckEnemy->CheckPlayerLightColor(Flashlight_Color))
+            {
+                if (Enemy && Enemy->GetClass()->ImplementsInterface(UDamageInterface::StaticClass()))
+                {
+                    IDamageInterface* DamageInterface = Cast<IDamageInterface>(Enemy);
+                    if (DamageInterface)
+                    {
+                        DamageInterface->RecieveEnemyDamage(LightAttack);
+                    }
+                }
+            }
+        }
+        else
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 0.5f, FColor::Magenta, TEXT("Not Any Level !"));
         }
     }
 
@@ -471,34 +503,45 @@ void AVRPlayerCharacter::UseItem_Attack()
     //狐のモデルの出現
 
     //場にいるすべての敵にダメージを与える
-    TArray<AActor*> Enemies;
-    UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEnemys::StaticClass(), Enemies);
-    for (AActor* Enemy : Enemies)
+    //ゲーム画面での処理
+    if (LevelName == "MainLevel")
     {
-        if (Enemy && Enemy->GetClass()->ImplementsInterface(UDamageInterface::StaticClass()))
+        TArray<AActor*> Enemies;
+        UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEnemys::StaticClass(), Enemies);
+        for (AActor* Enemy : Enemies)
         {
-            IDamageInterface* DamageInterface = Cast<IDamageInterface>(Enemy);
-            if (DamageInterface)
+            if (Enemy && Enemy->GetClass()->ImplementsInterface(UDamageInterface::StaticClass()))
             {
-                DamageInterface->RecieveEnemyDamage(ItemAttack);
+                IDamageInterface* DamageInterface = Cast<IDamageInterface>(Enemy);
+                if (DamageInterface)
+                {
+                    DamageInterface->RecieveEnemyDamage(ItemAttack);
+                }
             }
         }
+    }
+    //タイトル画面での処理
+    else if(LevelName == "Title")
+    {
+        TArray<AActor*> TitleEnemies;
+        UGameplayStatics::GetAllActorsOfClass(GetWorld(), ATitleEnemy::StaticClass(), TitleEnemies);
+        for (AActor* Enemy : TitleEnemies)
+        {
+            if (Enemy && Enemy->GetClass()->ImplementsInterface(UDamageInterface::StaticClass()))
+            {
+                IDamageInterface* DamageInterface = Cast<IDamageInterface>(Enemy);
+                if (DamageInterface)
+                {
+                    DamageInterface->RecieveEnemyDamage(ItemAttack);
+                }
+            }
+        }
+    }
+    else
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 0.5f, FColor::Magenta, TEXT("Not Any Level !"));
     }
 
-    //タイトル画面での処理
-    TArray<AActor*> TitleEnemies;
-    UGameplayStatics::GetAllActorsOfClass(GetWorld(), ATitleEnemy::StaticClass(), TitleEnemies);
-    for (AActor* Enemy : TitleEnemies)
-    {
-        if (Enemy && Enemy->GetClass()->ImplementsInterface(UDamageInterface::StaticClass()))
-        {
-            IDamageInterface* DamageInterface = Cast<IDamageInterface>(Enemy);
-            if (DamageInterface)
-            {
-                DamageInterface->RecieveEnemyDamage(ItemAttack);
-            }
-        }
-    }
     
     //タイトル画面での処理
     ATitleEventManager* EventManager = Cast<ATitleEventManager>(UGameplayStatics::GetActorOfClass(GetWorld(), ATitleEventManager::StaticClass()));
@@ -527,10 +570,13 @@ void AVRPlayerCharacter::UseItem_Buff()
     MaxBattery = 60 * BatteryTime;
 
     //タイトル画面での処理
-    ATitleEventManager* EventManager = Cast<ATitleEventManager>(UGameplayStatics::GetActorOfClass(GetWorld(), ATitleEventManager::StaticClass()));
-    if (EventManager)
+    if (LevelName == "Title")
     {
-        EventManager->IsUseBuffItem();
+        ATitleEventManager* EventManager = Cast<ATitleEventManager>(UGameplayStatics::GetActorOfClass(GetWorld(), ATitleEventManager::StaticClass()));
+        if (EventManager)
+        {
+            EventManager->IsUseBuffItem();
+        }
     }
     //アイテム使用処理（クールタイムや所有数減少など）
     UseItem();
@@ -564,29 +610,22 @@ void AVRPlayerCharacter::ItemCoolTimeFunction()
 //当たり判定のメソッド
 void AVRPlayerCharacter::OnConeBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-    //とりあえず当たり判定
-    // 接触したアクターがオバケかどうか判定する
-    if (const AEnemys* Enemy = Cast<AEnemys>(OtherActor))
-    {
-        if (Enemy->CheckPlayerLightColor(Flashlight_Color))
-        {
-            OverlappingEnemies.Add(OtherActor);
-            //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Enemy is Overlapping"));
-        }
-    }
+    ////とりあえず当たり判定
+    //// 接触したアクターがオバケかどうか判定する
+    //if (const AEnemys* Enemy = Cast<AEnemys>(OtherActor))
+    //{
+    //    OverlappingEnemies.Add(OtherActor);
+    //    //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Enemy is Overlapping"));
+    //}
 
-    //チュートリアル用の敵に関する当たり判定処理
-    if (const ATitleEnemy* TitleEnemy = Cast<ATitleEnemy>(OtherActor))
-    {
-        if (TitleEnemy->CheckPlayerLightColor(Flashlight_Color))
-        {
-            OverlappingEnemies.Add(OtherActor);
-            //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Enemy is Overlapping"));
-        }
-    }
+    ////チュートリアル用の敵に関する当たり判定処理
+    //if (const ATitleEnemy* TitleEnemy = Cast<ATitleEnemy>(OtherActor))
+    //{
+    //    OverlappingEnemies.Add(OtherActor);
+    //    //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Enemy is Overlapping"));
+    //}
 
     //壁貫通をなくす処理(β版)
-    /*
     //GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Cyan, FString::Printf(TEXT("Light BeginOverlap Called (%s)"), *OtherActor->GetActorNameOrLabel()));
     FHitResult HitResult = CheckHitEnemy(OtherActor);
 
@@ -610,7 +649,7 @@ void AVRPlayerCharacter::OnConeBeginOverlap(UPrimitiveComponent* OverlappedComp,
             //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Enemy is Overlapping"));
         }
     }
-    */
+    
 }
 // 当たり判定の壁貫通をなくす処理
 FHitResult AVRPlayerCharacter::CheckHitEnemy(AActor* OtherActor)
@@ -662,11 +701,8 @@ void AVRPlayerCharacter::OnConeEndOverlap(UPrimitiveComponent* OverlappedComp, A
     // オバケがコリジョンから抜けたかどうか判定する
     if (const AEnemys* Enemy = Cast<AEnemys>(OtherActor))
     {
-        if (Enemy->CheckPlayerLightColor(Flashlight_Color))
-        {
-            OverlappingEnemies.Remove(OtherActor);
-            //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Enemy is not Overlapping"));
-        }
+        OverlappingEnemies.Remove(OtherActor);
+        //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Enemy is not Overlapping"));
     }
     if (const ATitleEnemy* TitleEnemy = Cast<ATitleEnemy>(OtherActor))
     {
@@ -788,7 +824,7 @@ void AVRPlayerCharacter::UpdateScoreUI()
 {
     if (ScoreUI)
     {
-        int32 Score = ScoreInstance->GetPlayerScore();
+        int32 Score = ScoreInstance->GetPlayerDefaultScore();
         ScoreUI->SetText(FText::AsNumber(Score));
     }
     else

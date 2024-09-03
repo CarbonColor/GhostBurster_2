@@ -29,15 +29,11 @@ private:
 	const int32 ItemScore = 2000;
 	// ------------------------------------------------------------------------------------
 
-	// プレイヤーのスコア
+	// プレイヤーのデフォルトスコア
 	UPROPERTY()
-		int32 PlayerScore;
+		int32 PlayerDafaultScore;
 
-	// ダメージカウント
-	UPROPERTY()
-		int32 PlayerDamageCount;
-
-	//プレイヤーのクリアタイム
+	// プレイヤーのクリアタイム
 	UPROPERTY()
 		double StartTime;
 	UPROPERTY()
@@ -46,16 +42,29 @@ private:
 		int32 Minute;
 	UPROPERTY()
 		int32 Second;
+	// クリアタイムスコア
+	UPROPERTY()
+		int32 PlayerTimeScore;
 
-	//ゲーム終了後のアイテム数
+	// ダメージカウント
+	UPROPERTY()
+		int32 PlayerDamageCount;
+	// ダメージスコア
+	UPROPERTY()
+		int32 PlayerDamageScore;
+
+	// ゲーム終了後のアイテム数
 	UPROPERTY()
 		int32 PlayerItem;
+	// アイテムスコア
+	UPROPERTY()
+		int32 PlayerItemScore;
+
+	//合計スコア
+	UPROPERTY()
+		int32 TotalScore;
 
 protected:
-	// アイテムをスコアに変換するメソッド
-	UFUNCTION(Category = "PlayerData")
-		int32 ConvertItemToScore();
-
 
 public:
 
@@ -66,7 +75,16 @@ public:
 
 	// スコアを取得するメソッド
 	UFUNCTION(BlueprintCallable, Category = "PlayerData")
-		int32 GetPlayerScore();
+		int32 GetPlayerDefaultScore();
+	UFUNCTION(BlueprintCallable, Category = "PlayerData")
+		int32 GetPlayerTimeScore();
+	UFUNCTION(BlueprintCallable, Category = "PlayerData")
+		int32 GetPlayerDamageScore();
+	UFUNCTION(BlueprintCallable, Category = "PlayerData")
+		int32 GetPlayerItemScore();
+	UFUNCTION(BlueprintCallable, Category = "PlayerData")
+		int32 GetTotalScore();
+
 	// ダメージカウントを取得するメソッド
 	UFUNCTION(BlueprintCallable, Category = "PlayerData")
 		int32 GetPlayerDamageCount();
@@ -109,6 +127,6 @@ public:
 
 	// スコアを計算して、その各スコアを送るメソッド
 	UFUNCTION(BlueprintCallable, Category = "PlayerData")
-		TArray<int32> ScoringFunction();
+		void ScoringFunction();
 
 };
