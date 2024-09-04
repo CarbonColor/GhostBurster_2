@@ -37,6 +37,10 @@ void ATitleEventManager::EnemyDeadFunction()
 		switch (EventNumber)
 		{
 		case 1:
+			if (PhaseClearSound)
+			{
+				UGameplayStatics::PlaySound2D(this, PhaseClearSound);
+			}
 			FirstEventDispatcher.Broadcast();
 			FirstEventDispatcher.Clear();
 			break;
@@ -44,6 +48,10 @@ void ATitleEventManager::EnemyDeadFunction()
 		case 2:
 			if (bIsUseAttackItem)
 			{
+				if (PhaseClearSound)
+				{
+					UGameplayStatics::PlaySound2D(this, PhaseClearSound);
+				}
 				SecondEventDispatcher.Broadcast();
 				SecondEventDispatcher.Clear();
 			}
@@ -52,6 +60,10 @@ void ATitleEventManager::EnemyDeadFunction()
 		case 3:
 			if (bIsUseBuffItem)
 			{
+				if (PhaseClearSound)
+				{
+					UGameplayStatics::PlaySound2D(this, PhaseClearSound);
+				}
 				ThirdEventDispatcher.Broadcast();
 				ThirdEventDispatcher.Clear();
 			}
@@ -67,6 +79,10 @@ void ATitleEventManager::IsUseAttackItem()
 	bIsUseAttackItem = true;
 	if (EnemyCount <= 0 && EventNumber == 2)
 	{
+		if (PhaseClearSound)
+		{
+			UGameplayStatics::PlaySound2D(this, PhaseClearSound);
+		}
 		SecondEventDispatcher.Broadcast();
 		SecondEventDispatcher.Clear();
 	}
@@ -76,6 +92,10 @@ void ATitleEventManager::IsUseBuffItem()
 	bIsUseBuffItem = true;
 	if (EnemyCount <= 0 && EventNumber == 3)
 	{
+		if (PhaseClearSound)
+		{
+			UGameplayStatics::PlaySound2D(this, PhaseClearSound);
+		}
 		ThirdEventDispatcher.Broadcast();
 		ThirdEventDispatcher.Clear();
 	}

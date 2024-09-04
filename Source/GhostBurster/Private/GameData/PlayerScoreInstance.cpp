@@ -67,6 +67,10 @@ int32 UPlayerScoreInstance::GetGameTime_Second()
 	return Second;
 }
 
+int32 UPlayerScoreInstance::GetItemPerScore()
+{
+	return ItemScore;
+}
 
 // ------------------------------------------------------------------------------------
 // 各データのセッター
@@ -102,14 +106,8 @@ void UPlayerScoreInstance::SetGameEndTime()
 }
 
 // ------------------------------------------------------------------------------------
-// スコア計算など
+// スコア計算
 // ------------------------------------------------------------------------------------
-void UPlayerScoreInstance::ConvertItemToScore_Title()
-{
-	AddPlayerScore(ItemScore);
-	UsePlayerItem();
-}
-
 void UPlayerScoreInstance::ScoringFunction()
 {
 	//------------------------------------------------------------
