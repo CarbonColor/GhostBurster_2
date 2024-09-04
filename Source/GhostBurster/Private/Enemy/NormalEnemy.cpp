@@ -12,30 +12,35 @@ ANormalEnemy::ANormalEnemy()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	//☆SceneComponent
-	//SceneComponentの作成
+	//☆シーンコンポーネント----------------------------------------------------------------------------------------------------
+	//シーンコンポーネントの作成
 	DefaultSceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
-	//SceneComponentをRootComponentに設定
+	//シーンコンポーネントをルートコンポーネントに設定
 	RootComponent = DefaultSceneRoot;
 
-	//☆StaticMeshComponent
-	//StaticMeshComponentの作成
+	//☆スタティックメッシュコンポーネント---------------------------------------------------------------------------------------
+	//スタティックメッシュコンポーネントの作成
 	GhostMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Ghost"));
-	//StaticMeshをロードしてStaticMeshComponentのStaticMeshに設定する
+	//スタティックメッシュをロードしてスタティックメッシュコンポーネントのスタティックメッシュに設定する
 	UStaticMesh* GMesh = LoadObject<UStaticMesh>(NULL, TEXT("/Engine/BasicShapes/Sphere"), NULL, LOAD_None, NULL);
 	GhostMesh->SetStaticMesh(GMesh);
-	//StaticMeshComponentをRootComponentにアタッチする
+	//スタティックメッシュコンポーネントをRootComponentにアタッチする
 	GhostMesh->SetupAttachment(RootComponent);
 	//スタティックメッシュのコリジョンを無くす
 	GhostMesh->SetCollisionProfileName("NoCollision");
 
-	//☆コリジョン
+	//☆コリジョン---------------------------------------------------------------------------------------------------------------
 	//スフィアコリジョンの作成
 	GhostCollision = CreateDefaultSubobject<USphereComponent>(TEXT("GhostCollision"));
 	//GhostCollisionをルートコンポーネントにアタッチする
 	GhostCollision->SetupAttachment(RootComponent);
 	//GhostCollisionのコリジョンプリセットをOverlapAllDynamicにする
 	GhostCollision->SetCollisionProfileName("OverlapAllDynamic");
+
+	//☆サウンド-----------------------------------------------------------------------------------------------------------------
+	AppearSound = LoadObject<USoundCue>(nullptr, TEXT("/Game/_TeamFolder/Sound/SE/SE_GhostAppear_Cue"));	//出現時の音設定
+	DisappearSound = LoadObject<USoundCue>(nullptr, TEXT("/Game/_TeamFolder/Sound/SE/SE_GhostDead_Cue"));	//消滅時の音設定
+
 }
 
 // Called when the game starts or when spawned
@@ -144,6 +149,12 @@ void ANormalEnemy::ActProcess()
 		break;
 
 	case State::Appear:	//出現
+		//状態Move遷移時にのみ行う処理
+		if (this->bShouldBeenProcessWhenFirstStateTransition == false)
+		{
+			ProcessJustForFirst_Appear();
+		}
+
 		//出現処理
 		this->bHasEndedAppear = this->Appear();
 		break;
@@ -261,7 +272,18 @@ bool ANormalEnemy::Attack()
 	return false;
 }
 
-// 敵出現処理
+//出現関係---------------------------------------------------------------------------------------------------------------------
+//状態：Appearで最初に一度だけする処理
+void ANormalEnemy::ProcessJustForFirst_Appear()
+{
+	//敵出現時の音を鳴らす
+	PlayAppearSound();
+
+	//複数回処理が行われないようにする
+	this->bShouldBeenProcessWhenFirstStateTransition = true;
+}
+
+//敵出現処理
 bool ANormalEnemy::Appear()
 {
 	//DeltaTimeの取得

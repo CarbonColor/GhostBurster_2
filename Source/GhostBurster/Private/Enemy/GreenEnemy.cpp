@@ -34,6 +34,10 @@ AGreenEnemy::AGreenEnemy()
 	GhostCollision->SetupAttachment(RootComponent);
 	//GhostCollisionのコリジョンプリセットをOverlapAllDynamicにする
 	GhostCollision->SetCollisionProfileName("OverlapAllDynamic");
+
+	//☆サウンド-----------------------------------------------------------------------------------------------------------------
+	AppearSound = LoadObject<USoundCue>(nullptr, TEXT("/Game/_TeamFolder/Sound/SE/SE_GhostAppear_Cue"));	//出現時の音設定
+	DisappearSound = LoadObject<USoundCue>(nullptr, TEXT("/Game/_TeamFolder/Sound/SE/SE_GhostDead_Cue"));	//消滅時の音設定
 }
 
 void AGreenEnemy::BeginPlay()
@@ -139,6 +143,12 @@ void AGreenEnemy::ActProcess()
 		break;
 
 	case State::Appear:	//出現
+		//状態Move遷移時にのみ行う処理
+		if (this->bShouldBeenProcessWhenFirstStateTransition == false)
+		{
+			ProcessJustForFirst_Appear();
+		}
+
 		//出現処理
 		this->bHasEndedAppear = this->Appear();
 		break;
@@ -256,7 +266,18 @@ bool AGreenEnemy::Attack()
 	return false;
 }
 
-// 敵出現処理
+//出現関係---------------------------------------------------------------------------------------------------------------------
+//状態：Appearで最初に一度だけする処理
+void AGreenEnemy::ProcessJustForFirst_Appear()
+{
+	//敵出現時の音を鳴らす
+	PlayAppearSound();
+
+	//複数回処理が行われないようにする
+	this->bShouldBeenProcessWhenFirstStateTransition = true;
+}
+
+//敵出現処理
 bool AGreenEnemy::Appear()
 {
 	//DeltaTimeの取得

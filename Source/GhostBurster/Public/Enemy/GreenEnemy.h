@@ -32,8 +32,9 @@ class GHOSTBURSTER_API AGreenEnemy : public AEnemys
 	//UŒ‚ŠÖŒW
 	virtual bool Attack() override;	// UŒ‚ˆ—
 
-	//oŒ»ŠÖŒW
-	virtual bool Appear() override;	// “GoŒ»ˆ—
+	//oŒ»ŠÖŒW---------------------------------------------------------------------------------------------------------------------
+	virtual void ProcessJustForFirst_Appear() override;	// ó‘ÔFAppear‚ÅÅ‰‚Éˆê“x‚¾‚¯s‚¤ˆ—
+	virtual bool Appear() override;						// “GoŒ»ˆ—
 
 protected:
 	virtual void BeginPlay() override;

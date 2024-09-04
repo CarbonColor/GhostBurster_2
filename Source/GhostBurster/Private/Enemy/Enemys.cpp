@@ -8,6 +8,9 @@
 
 // Sets default values
 AEnemys::AEnemys()
+	:
+	AppearSound(nullptr),
+	DisappearSound(nullptr)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -41,7 +44,6 @@ void AEnemys::UpdateState(State nowState)
 //HPが0になったら消滅させる
 void AEnemys::EnemyDead()
 {
-
 	//イベントに死亡通知を送る
 	// プレイヤーを取得
 	AVRPlayerCharacter* Player = Cast<AVRPlayerCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
@@ -71,6 +73,9 @@ void AEnemys::EnemyDead()
 		}
 	}
 
+	//敵消滅時の音を鳴らす
+	PlayDisappearSound();
+
 	//敵を消滅させる
 	this->Destroy();
 
@@ -89,6 +94,26 @@ float AEnemys::GetWorldFPS()
 	return FPS;
 }
 
+//サウンド関数-----------------------------------------------------------------------------------------------------------------
+//敵出現時の音を鳴らす
+void AEnemys::PlayAppearSound()
+{
+	if (this->AppearSound) // 設定されていなかったら鳴らないようにする
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, AppearSound, GetActorLocation());
+	}
+}
+
+//敵消滅時の音を鳴らす
+void AEnemys::PlayDisappearSound()
+{
+	if (DisappearSound) // 設定されていなかったら鳴らないようにする
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, DisappearSound, GetActorLocation());
+	}
+}
+
+//Setter関数-------------------------------------------------------------------------------------------------------------------
 //HPの設定用関数
 void AEnemys::SetHP(int HPValue)
 {
