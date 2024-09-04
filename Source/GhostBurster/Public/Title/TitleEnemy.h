@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Player/VRPlayerCharacter.h"
 #include "Interface/DamageInterface.h"
 #include "Components/SphereComponent.h"
 #include "TitleEnemy.generated.h"
@@ -43,5 +44,11 @@ public:
 
 	//プレイヤーのライトの色と敵のライトの色をチェックする関数
 	virtual bool CheckPlayerLightColor(EFlashlight_Color PlayerColor) const PURE_VIRTUAL(ATitleEnemy::CheckPlayerLightColor, return false;);
+
+private:
+
+	//スコアのインスタンス
+	UPROPERTY()
+		TObjectPtr<AVRPlayerCharacter> Player;
 
 };

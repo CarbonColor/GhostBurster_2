@@ -672,17 +672,17 @@ FHitResult AVRPlayerCharacter::CheckHitEnemy(AActor* OtherActor)
         CollisionParams
     );
 
-    // Rayを表示する
-    DrawDebugLine(
-        GetWorld(),
-        LightPoint,
-        OtherActor->GetActorLocation(),
-        FColor::Emerald,    // 線の色
-        false,              // 永続的に描画しない（一定時間後に消える）
-        2.0f,               // 描画時間（秒）
-        0,
-        2.0f                // 線の太さ
-    );
+    //// Rayを表示する
+    //DrawDebugLine(
+    //    GetWorld(),
+    //    LightPoint,
+    //    OtherActor->GetActorLocation(),
+    //    FColor::Emerald,    // 線の色
+    //    false,              // 永続的に描画しない（一定時間後に消える）
+    //    2.0f,               // 描画時間（秒）
+    //    0,
+    //    2.0f                // 線の太さ
+    //);
 
     if (bHit)
     {
