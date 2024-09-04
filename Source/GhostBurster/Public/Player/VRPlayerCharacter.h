@@ -231,6 +231,8 @@ private:
 	// “–‚½‚è”»’è‚Ì•ÇŠÑ’Ê‚ğ‚È‚­‚·ˆ—
 	UFUNCTION()
 		FHitResult CheckHitEnemy(AActor* OtherActor);
+	//UFUNCTION()
+	//	bool IgnoreActorClass(const AActor* Actor);
 
 	//–³“Gó‘Ô
 	bool bIsDamageNow;
