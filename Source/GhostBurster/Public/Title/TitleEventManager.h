@@ -10,6 +10,7 @@
 #include "TitleEnemy_Red.h"
 #include "TitleEnemy_Blue.h"
 #include "Player/VRPlayerCharacter.h"
+#include "Sound/SoundCue.h"
 #include "TitleEventManager.generated.h"
 
 // デリゲート用のマクロ
@@ -102,6 +103,11 @@ public:
     UPROPERTY(EditAnywhere, Category = "ThirdEvent")
         FVector Third_Treasure_Location2;
 
+    //SE
+    UPROPERTY(EditAnywhere, Category = "SE")
+        TObjectPtr<USoundCue> PhaseClearSound;
+
+
 private:
     //敵の数のカウント
     int32 EnemyCount;
@@ -136,4 +142,5 @@ private:
         void StartFourthEvent();
     UFUNCTION()
         void EndFourthEvent();
+
 };
