@@ -29,8 +29,9 @@ class GHOSTBURSTER_API ABossEnemy : public AEnemys
 	virtual bool ProcessJustForFirst_Move() { return false; } // 状態Move遷移時にのみ行う処理
 	virtual bool Move() { return false; } // 移動
 
-	//出現関係
-	virtual bool Appear() { return false; }	// 敵出現処理
+	//出現関係---------------------------------------------------------------------------------------------------------------------
+	virtual void ProcessJustForFirst_Appear() override {}	// 状態：Appearで最初に一度だけ行う処理
+	virtual bool Appear() { return false; }					// 敵出現処理
 
 protected:
 	virtual void BeginPlay() override;
