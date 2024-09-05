@@ -47,6 +47,8 @@ void AResultWidget::BeginPlay()
 
 	//スコアのインスタンスを取得する
 	ScoreInstance = Cast<UPlayerScoreInstance>(GetGameInstance());
+	//スコア計算をさせる
+	ScoreInstance->ScoringFunction();
 
 	//ウィジェットから各テキストを取得
 	ResultWidgetComponent->InitWidget();
@@ -118,7 +120,7 @@ void AResultWidget::BeginPlay()
 	GetWorld()->GetTimerManager().SetTimer(ThirdView,  this, &AResultWidget::ThirdViewFunction,  DelayTime + 1.0f, false);
 	GetWorld()->GetTimerManager().SetTimer(FourthView, this, &AResultWidget::FourthViewFunction, DelayTime + 1.5f, false);
 	GetWorld()->GetTimerManager().SetTimer(FifthView,  this, &AResultWidget::FifthViewFunction,  DelayTime + 2.0f, false);
-	GetWorld()->GetTimerManager().SetTimer(SixthView,  this, &AResultWidget::SIxthViewFunction,  DelayTime + 3.0f, false);
+	GetWorld()->GetTimerManager().SetTimer(SixthView,  this, &AResultWidget::SixthViewFunction,  DelayTime + 3.0f, false);
 
 }
 void AResultWidget::FirstViewFunction()
@@ -150,7 +152,7 @@ void AResultWidget::FifthViewFunction()
 	TotalScoreText->SetVisibility(ESlateVisibility::Visible);
 	GetWorld()->GetTimerManager().ClearTimer(FifthView);
 }
-void AResultWidget::SIxthViewFunction()
+void AResultWidget::SixthViewFunction()
 {
 	RankText->SetVisibility(ESlateVisibility::Visible);
 	GetWorld()->GetTimerManager().ClearTimer(SixthView);
