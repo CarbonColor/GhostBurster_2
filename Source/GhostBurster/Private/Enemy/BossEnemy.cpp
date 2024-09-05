@@ -46,7 +46,7 @@ void ABossEnemy::BeginPlay()
 
 	//ボス敵の設定
 	this->Status.HP = 300;
-	this->enemyColor = EnemyColor::White;
+	this->EnemyColor = EEnemyColor::White;
 }
 
 void ABossEnemy::Tick(float DeltaTime)
@@ -74,40 +74,40 @@ void ABossEnemy::TickProcess()
 //エネミーの状態判断
 void ABossEnemy::Think()
 {
-	State nowState = state;
-	switch (nowState)
+	EState NowState = this->State;
+	switch (NowState)
 	{
-	case State::Wait:	//立っている
-		if (MoveCount >= 60 * Gamefps / 60) { nowState = State::Attack; }
-		if (Status.HP <= 0) { nowState = State::Die; }
+	case EState::Wait:	//立っている
+		if (MoveCount >= 60 * Gamefps / 60) { NowState = EState::Attack; }
+		if (Status.HP <= 0) { NowState = EState::Die; }
 		break;
 
-	case State::Move:	//動く
-		if (MoveCount >= 60 * 5 * Gamefps / 60) { nowState = State::Attack; }
-		if (Status.HP <= 0) { nowState = State::Die; }
+	case EState::Move:	//動く
+		if (MoveCount >= 60 * 5 * Gamefps / 60) { NowState = EState::Attack; }
+		if (Status.HP <= 0) { NowState = EState::Die; }
 		break;
 
-	case State::Attack:	//攻撃
-		if (MoveCount >= 60 * Gamefps / 60) { nowState = State::Wait; }
-		if (Status.HP <= 0) { nowState = State::Die; }
+	case EState::Attack:	//攻撃
+		if (MoveCount >= 60 * Gamefps / 60) { NowState = EState::Wait; }
+		if (Status.HP <= 0) { NowState = EState::Die; }
 		break;
 	}
 
-	UpdateState(nowState);
+	UpdateState(NowState);
 }
 
 //状態に基づいた動きをする
 void ABossEnemy::ActProcess()
 {
-	switch (state)
+	switch (this->State)
 	{
-	case State::Wait:	//立っている		
+	case EState::Wait:	//立っている		
 		break;
 
-	case State::Move:	//動く
+	case EState::Move:	//動く
 		break;
 
-	case State::Attack:	//攻撃
+	case EState::Attack:	//攻撃
 		if (MoveCount == AttackUpToTime * Gamefps / 60) //15の部分は攻撃モーションに合わせて変更する
 		{
 			//攻撃する
@@ -115,7 +115,7 @@ void ABossEnemy::ActProcess()
 		}
 		break;
 
-	case State::Die:
+	case EState::Die:
 		EnemyDead();
 		break;
 	}
@@ -131,5 +131,5 @@ void ABossEnemy::RecieveEnemyDamage(int DamageAmount)
 //プレイヤーのライトの色と敵のライトの色をチェックする関数
 bool ABossEnemy::CheckPlayerLightColor(EFlashlight_Color PlayerColor) const
 {
-	return (int)PlayerColor == (int)this->enemyColor;
+	return (int)PlayerColor == (int)this->EnemyColor;
 }

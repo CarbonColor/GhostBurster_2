@@ -49,7 +49,7 @@ void ANormalEnemy::BeginPlay()
 	Super::BeginPlay();
 
 	//☆白い敵の設定
-	this->enemyColor = EnemyColor::White;
+	this->EnemyColor = EEnemyColor::White;
 
 	//☆マテリアル
 	//マテリアルをロード
@@ -93,42 +93,42 @@ void ANormalEnemy::TickProcess()
 //エネミーの状態判断
 void ANormalEnemy::Think()
 {
-	State nowState = state;
+	EState NowState = this->State;
 
-	switch (nowState)
+	switch (NowState)
 	{
-	case State::Wait:	//待機
-		if (MoveCount >= 1 * Gamefps) { nowState = State::Attack; }	// 攻撃へ
-		if (Status.HP <= 0) { nowState = State::Die; }				// 死亡へ
+	case EState::Wait:	//待機
+		if (MoveCount >= 1 * Gamefps) { NowState = EState::Attack; }	// 攻撃へ
+		if (Status.HP <= 0) { NowState = EState::Die; }				// 死亡へ
 		break;
 
-	case State::Move:	//移動
-		if (this->bHasEndedMoving) { nowState = State::Wait; }	// 待機へ
-		if (Status.HP <= 0) { nowState = State::Die; }			// 死亡へ
+	case EState::Move:	//移動
+		if (this->bHasEndedMoving) { NowState = EState::Wait; }	// 待機へ
+		if (Status.HP <= 0) { NowState = EState::Die; }			// 死亡へ
 		break;
 
-	case State::Attack:	//攻撃
-		if (this->bHasEndedAttack) { nowState = State::Wait; }	// 待機へ
-		if (Status.HP <= 0) { nowState = State::Die; }			// 死亡へ
+	case EState::Attack:	//攻撃
+		if (this->bHasEndedAttack) { NowState = EState::Wait; }	// 待機へ
+		if (Status.HP <= 0) { NowState = EState::Die; }			// 死亡へ
 		break;
 
-	case State::Appear:	//出現
-		if (this->bHasEndedAppear) { nowState = State::Move; }	// 移動へ
+	case EState::Appear:	//出現
+		if (this->bHasEndedAppear) { NowState = EState::Move; }	// 移動へ
 		break;
 	}
 
-	UpdateState(nowState);
+	UpdateState(NowState);
 }
 
 //状態に基づいた動きをする
 void ANormalEnemy::ActProcess()
 {
-	switch (state)
+	switch (this->State)
 	{
-	case State::Wait:	//待機		
+	case EState::Wait:	//待機		
 		break;
 
-	case State::Move:	//移動
+	case EState::Move:	//移動
 		//状態Move遷移時にのみ行う処理
 		if (this->bShouldBeenProcessWhenFirstStateTransition == false)
 		{
@@ -139,16 +139,16 @@ void ANormalEnemy::ActProcess()
 		this->bHasEndedMoving = Move();
 		break;
 
-	case State::Attack:	//攻撃
+	case EState::Attack:	//攻撃
 		//攻撃処理(攻撃が終わった後状態遷移する)
 		this->bHasEndedAttack = this->Attack();
 		break;
 
-	case State::Die:	//死亡
+	case EState::Die:	//死亡
 		EnemyDead();
 		break;
 
-	case State::Appear:	//出現
+	case EState::Appear:	//出現
 		//状態Move遷移時にのみ行う処理
 		if (this->bShouldBeenProcessWhenFirstStateTransition == false)
 		{
@@ -164,7 +164,7 @@ void ANormalEnemy::ActProcess()
 //ダメージを受ける処理、引数でもらった数値分体力を減らす
 void ANormalEnemy::RecieveEnemyDamage(int DamageAmount)
 {
-	if (this->state != State::Appear && this->state != State::Die)
+	if (this->State != EState::Appear && this->State != EState::Die)
 	{
 		Status.HP -= DamageAmount;
 	}
@@ -173,7 +173,7 @@ void ANormalEnemy::RecieveEnemyDamage(int DamageAmount)
 //プレイヤーのライトの色と敵のライトの色をチェックする関数
 bool ANormalEnemy::CheckPlayerLightColor(EFlashlight_Color PlayerColor) const
 {
-	return (int)PlayerColor == (int)this->enemyColor;
+	return (int)PlayerColor == (int)this->EnemyColor;
 }
 
 //状態Move遷移時にのみ行う処理
