@@ -12,6 +12,7 @@
 #include "Kismet/KismetStringLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "Enemy/Enemys.h"
+#include "Player/TreasureBox.h"
 #include "Spawn/EnemySpawner.h"
 #include "Title/TitleEnemy.h"
 #include "Title/TitleEventManager.h"
@@ -678,44 +679,56 @@ void AVRPlayerCharacter::ItemCoolTimeFunction()
 //当たり判定のメソッド
 void AVRPlayerCharacter::OnConeBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-    //とりあえず当たり判定
-    // 接触したアクターがオバケかどうか判定する
-    if (const AEnemys* Enemy = Cast<AEnemys>(OtherActor))
-    {
-        OverlappingEnemies.Add(OtherActor);
-        //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Enemy is Overlapping"));
-    }
-    //チュートリアル用の敵に関する当たり判定処理
-    if (const ATitleEnemy* TitleEnemy = Cast<ATitleEnemy>(OtherActor))
-    {
-        OverlappingEnemies.Add(OtherActor);
-        //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Enemy is Overlapping"));
-    }
-
-    ////壁貫通をなくす処理(β版)
-    ////GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, FString::Printf(TEXT("Light BeginOverlap Called (%s)"), *OtherActor->GetActorNameOrLabel()));
-    //FHitResult HitResult = CheckHitEnemy(OtherActor);
-
+    ////とりあえず当たり判定
     //// 接触したアクターがオバケかどうか判定する
     //if (const AEnemys* Enemy = Cast<AEnemys>(OtherActor))
     //{
-    //    //間に壁がないかどうかを調べる
-    //    if (HitResult.GetActor() == Enemy)
-    //    {
-    //        OverlappingEnemies.Add(OtherActor);
-    //        //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Enemy is Overlapping"));
-    //    }
+    //    OverlappingEnemies.Add(OtherActor);
+    //    //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Enemy is Overlapping"));
     //}
     ////チュートリアル用の敵に関する当たり判定処理
     //if (const ATitleEnemy* TitleEnemy = Cast<ATitleEnemy>(OtherActor))
     //{
-    //    //間に壁がないかどうか調べる
-    //    if (HitResult.GetActor() == TitleEnemy)
-    //    {
-    //        OverlappingEnemies.Add(OtherActor);
-    //        //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Enemy is Overlapping"));
-    //    }
+    //    OverlappingEnemies.Add(OtherActor);
+    //    //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Enemy is Overlapping"));
     //}
+
+    //壁貫通をなくす処理(β版)
+    //GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, FString::Printf(TEXT("Light BeginOverlap Called (%s)"), *OtherActor->GetActorNameOrLabel()));
+    FHitResult HitResult = CheckHitEnemy(OtherActor);
+
+    // 接触したアクターがオバケかどうか判定する
+    if (const AEnemys* Enemy = Cast<AEnemys>(OtherActor))
+    {
+        //間に壁がないかどうかを調べる
+        if (HitResult.GetActor() == Enemy)
+        {
+            OverlappingEnemies.Add(OtherActor);
+            FString Debug = "Overlap (" + OtherActor->GetName() + ")";
+            GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, Debug);
+        }
+    }
+    //チュートリアル用の敵に関する当たり判定処理
+    if (const ATitleEnemy* TitleEnemy = Cast<ATitleEnemy>(OtherActor))
+    {
+        //間に壁がないかどうか調べる
+        if (HitResult.GetActor() == TitleEnemy)
+        {
+            OverlappingEnemies.Add(OtherActor);
+            //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Enemy is Overlapping"));
+        }
+    }
+    if (ATreasureBox* Treasure = Cast<ATreasureBox>(OtherActor))
+    {
+        if (HitResult.GetActor() == Treasure)
+        {
+            if (Treasure->IsOpenedTreasure() == false)
+            {
+                Treasure->OpenTreasureBox();
+            }
+        }
+    }
+
     
 }
 // 当たり判定の壁貫通をなくす処理
@@ -729,8 +742,9 @@ FHitResult AVRPlayerCharacter::CheckHitEnemy(AActor* OtherActor)
     CollisionParams.AddIgnoredActor(this);
     if (OtherActor->ActorHasTag("IgnoreActor"))
     {
+        FString Debug = "Ignoring Actor with Tag (" + OtherActor->GetName() + ")";
         // Debug message to confirm tag presence
-        GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, TEXT("Ignoring Actor with Tag"));
+        GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, Debug);
         CollisionParams.AddIgnoredActor(OtherActor);
     }
 
@@ -761,7 +775,7 @@ FHitResult AVRPlayerCharacter::CheckHitEnemy(AActor* OtherActor)
         //    2.0f                // 線の太さ
         //);
 
-        GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, HitResult.GetActor()->GetName());
+        //GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, HitResult.GetActor()->GetName());
         return HitResult;
     }
 

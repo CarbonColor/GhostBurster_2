@@ -89,7 +89,7 @@ private:
 	void ThirdViewFunction();
 	void FourthViewFunction();
 	void FifthViewFunction();
-	void SIxthViewFunction();
+	void SixthViewFunction();
 
 	TMap<int32, FString> ScoreBorder;
 
