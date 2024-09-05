@@ -31,11 +31,11 @@ void AEnemys::Tick(float DeltaTime)
 }
 
 //ó‘Ô‚ÌXV
-void AEnemys::UpdateState(State nowState)
+void AEnemys::UpdateState(EState NowState)
 {
-	if (nowState != this->state)
+	if (NowState != this->State)
 	{
-		this->state = nowState;
+		this->State = NowState;
 		this->MoveCount = 0;
 		this->bShouldBeenProcessWhenFirstStateTransition = false;
 	}

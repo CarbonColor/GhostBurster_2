@@ -36,7 +36,7 @@ protected:
 
 	//™—ñ‹“Œ^
 	//“G‚Ìó‘Ô
-	enum class State
+	enum class EState
 	{
 		Wait,	//‘Ò‹@
 		Move,	//ˆÚ“®
@@ -44,16 +44,16 @@ protected:
 		Die,	//€–S
 		Appear,	//oŒ»
 	};
-	State state = State::Appear;
+	EState State = EState::Appear;
 
-	enum class EnemyColor : uint8
+	enum class EEnemyColor : uint8
 	{
 		White	= 0,
 		Green	= 1,
 		Red		= 2,
 		Blue	= 3,
 	};
-	EnemyColor enemyColor = EnemyColor::White;
+	EEnemyColor EnemyColor = EEnemyColor::White;
 
 	//™•Ï”éŒ¾
 	//SceneComponent‚Ì•Ï”éŒ¾
@@ -105,7 +105,7 @@ protected:
 	virtual void Think() PURE_VIRTUAL(AEnemys::Think, );
 
 	//ó‘Ô‚ÌXV
-	void UpdateState(State nowState);
+	void UpdateState(EState NowState);
 
 	//ó‘Ô‚ÉŠî‚Ã‚¢‚½“®‚«‚ğ‚·‚é
 	virtual void ActProcess() PURE_VIRTUAL(AEnemys::ActProcess, );
