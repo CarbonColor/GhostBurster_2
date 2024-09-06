@@ -7,6 +7,8 @@
 #include "Player/VRPlayerCharacter.h"
 #include "Camera/CameraComponent.h"
 #include "Components/SplineComponent.h"
+#include "Components/AudioComponent.h"
+#include "Sound/SoundCue.h"
 #include "PlayerSplinePath.generated.h"
 
 UCLASS()
@@ -30,7 +32,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spline Location")
 		TArray<FVector> SplinePointLocation;
 
+	//SE
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SE")
+		TObjectPtr<USoundCue> WalkSound;
+
+
 private:
+	//歩く音のオーディオコンポーネント
+	UPROPERTY()
+		TObjectPtr<UAudioComponent> WalkSoundEffect;
+
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spline", meta = (AllowPrivateAccess = "true"))
 		TObjectPtr<USplineComponent> SplineComponent;
 

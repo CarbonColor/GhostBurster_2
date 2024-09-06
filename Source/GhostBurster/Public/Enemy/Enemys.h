@@ -6,6 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "Interface/DamageInterface.h"
 #include "Components/SphereComponent.h"
+#include "Sound/SoundCue.h"
+#include "Kismet/GameplayStatics.h"
 
 #include "Enemys.generated.h"
 
@@ -34,7 +36,7 @@ protected:
 
 	//☆列挙型
 	//敵の状態
-	enum class State
+	enum class EState
 	{
 		Wait,	//待機
 		Move,	//移動
@@ -42,16 +44,16 @@ protected:
 		Die,	//死亡
 		Appear,	//出現
 	};
-	State state = State::Appear;
+	EState State = EState::Appear;
 
-	enum class EnemyColor : uint8
+	enum class EEnemyColor : uint8
 	{
-		White = 0,
-		Green = 1,
-		Red = 2,
-		Blue = 3,
+		White	= 0,
+		Green	= 1,
+		Red		= 2,
+		Blue	= 3,
 	};
-	EnemyColor enemyColor = EnemyColor::White;
+	EEnemyColor EnemyColor = EEnemyColor::White;
 
 	//☆変数宣言
 	//SceneComponentの変数宣言
@@ -95,11 +97,6 @@ protected:
 	bool	bHasEndedAttack = false;					// 攻撃が終了したか
 	float	AttackUpToTime = 0.f;							// ゴーストの攻撃までの時間(秒)
 
-	//出現関係
-	bool	bHasEndedAppear = false;	// 出現が終了したか
-	float	OpacityValue = 0.f;			// オパシティの値
-	int		TimeSpentInAppear = 1;		// 出現するのにかかる時間
-
 	//☆関数宣言
 	//Tickでの処理
 	virtual void TickProcess() PURE_VIRTUAL(AEnemys::TickProcess, );
@@ -108,7 +105,7 @@ protected:
 	virtual void Think() PURE_VIRTUAL(AEnemys::Think, );
 
 	//状態の更新
-	void UpdateState(State nowState);
+	void UpdateState(EState NowState);
 
 	//状態に基づいた動きをする
 	virtual void ActProcess() PURE_VIRTUAL(AEnemys::ActProcess, );
@@ -123,11 +120,28 @@ protected:
 	virtual bool ProcessJustForFirst_Move() PURE_VIRTUAL(AEnemys::ProcessJustForFirst_Move, return false;);	// 状態Move遷移時にのみ行う処理
 	virtual bool Move() PURE_VIRTUAL(AEnemys::Move, return false;);											// 移動処理
 
+	//攻撃関係
 	//状態：Attackで使う関数
-	virtual bool Attack() PURE_VIRTUAL(AEnemys::Move, return false;);											// 攻撃処理
+	virtual bool Attack() PURE_VIRTUAL(AEnemys::Move, return false;);										// 攻撃処理
 
-	//状態：Appearで使う関数
-	virtual bool Appear() PURE_VIRTUAL(AEnemys::Appear, return false;);	// 敵出現処理
+	//出現関係---------------------------------------------------------------------------------------------------------------------
+	//☆変数 
+	bool	bHasEndedAppear = false;	// 出現が終了したか
+	float	OpacityValue = 0.f;			// オパシティの値
+	int		TimeSpentInAppear = 1;		// 出現するのにかかる時間
+
+	//☆関数
+	virtual void ProcessJustForFirst_Appear() PURE_VIRTUAL(AEnemys::ProcessJustForFirst_Appear, );	// 状態：Appearで最初に一度だけする処理
+	virtual bool Appear() PURE_VIRTUAL(AEnemys::Appear, return false;);								// 敵出現処理
+
+	//サウンド関係-----------------------------------------------------------------------------------------------------------------
+	//☆変数
+	TObjectPtr<USoundCue> AppearSound;		// 敵出現時の音
+	TObjectPtr<USoundCue> DisappearSound;	// 敵消滅時の音 
+	
+	//☆関数
+	void PlayAppearSound();					// 敵出現時の音を鳴らす
+	void PlayDisappearSound();				// 敵消滅時の音を鳴らす
 
 public:	
 	// Called every frame

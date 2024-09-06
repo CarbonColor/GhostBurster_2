@@ -12,6 +12,8 @@
 #include "Kismet/KismetStringLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "Enemy/Enemys.h"
+#include "Player/TreasureBox.h"
+#include "Spawn/EnemySpawner.h"
 #include "Title/TitleEnemy.h"
 #include "Title/TitleEventManager.h"
 #include "Haptics/HapticFeedbackEffect_Base.h"
@@ -22,55 +24,6 @@ DEFINE_LOG_CATEGORY_STATIC(PlayerScript, Log, All);
 // Sets default values
 AVRPlayerCharacter::AVRPlayerCharacter()
 {
-    // ------------------------------------------------------------------------------------
-    // 変更可能な初期値設定
-    // ------------------------------------------------------------------------------------
-    
-    // ライトバッテリーの秒数設定
-    BatteryTime = 10;
-    // バッテリー秒数の増加率設定
-    AddBatteryTime = 5;
-    // 最大値をセット
-    MaxBattery = 60 * BatteryTime;
-    // ライトの攻撃力設定
-    LightAttack = 1;
-    // ライトの攻撃力増加率の設定
-    AddLightAttack = 2;
-
-    // アイテムの攻撃力の設定
-    ItemAttack = 100;
-    // アイテム使用のボーダー設定
-    FingerBendingBorder = 350;
-
-    // デバッグ
-    DebugTimer = 0;
-
-    // ------------------------------------------------------------------------------------
-    // 変更不可能な初期値設定
-    // ------------------------------------------------------------------------------------
-    
-    // ライトの色を設定する
-    Flashlight_Color = EFlashlight_Color::White;
-    // バッテリーの初期値
-    Battery = MaxBattery;
-    //ステージ番号を初期化する
-    StageNumber = 1;
-    //ライトのON/OFF切り替えを可能の状態にする
-    bCanToggleLight = true;
-    //アイテムの使用状態を可能にする
-    bCanUseItem = true;
-    // 無敵時間の初期化
-    bIsDamageNow = false;
-    //振動状態の初期化
-    bIsEnemyHaptic = false;
-    //アイテムのボーダー
-    AttackItemBorder = { 450, 0, 450, 450, 0 };
-    BuffItemBorder = { 0, 0, 450, 450, 450 };
-
-    // ------------------------------------------------------------------------------------
-    // コンポーネント関係
-    // ------------------------------------------------------------------------------------
-
     // Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
     PrimaryActorTick.bCanEverTick = true;
 
@@ -107,7 +60,7 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     //左手のメッシュを作る
     HandMesh_Left = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("HandMesh_Left"));
     //メッシュを読み込んでセットする
-    USkeletalMesh* HandMesh = LoadObject<USkeletalMesh>(NULL, TEXT("/Game/_TeamFolder/Player/SKM_LeftHand"), NULL, LOAD_None, NULL);
+    USkeletalMesh* HandMesh = LoadObject<USkeletalMesh>(nullptr, TEXT("/Game/_TeamFolder/Player/SKM_LeftHand"));
     HandMesh_Left->SetSkeletalMesh(HandMesh);
     //左手にアタッチする
     HandMesh_Left->SetupAttachment(MotionController_Left);
@@ -116,8 +69,8 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     Flashlight = CreateDefaultSubobject<USpotLightComponent>(TEXT("Flashlight"));
     // 右手にアタッチする
     Flashlight->SetupAttachment(MotionController_Right);
-    // 光をつける
-    Flashlight->SetVisibility(true);
+    // 光を消しておく
+    Flashlight->SetVisibility(false);
     // 光の位置を調整
     Flashlight->SetRelativeLocation(FVector(0.0f, 0.0f, -50.0f));
     // 光の強さ・範囲の調整をする
@@ -128,7 +81,7 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     // 右手のライトのスタティックメッシュコンポーネントを作る
     FlashlightMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("FlashlightMesh"));
     // 懐中電灯のメッシュを読み込んでセットする
-    UStaticMesh* LightMesh = LoadObject<UStaticMesh>(NULL, TEXT("/Game/_TeamFolder/Player/SM_Light"), NULL, LOAD_None, NULL);
+    UStaticMesh* LightMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/_TeamFolder/Player/SM_Light"));
     FlashlightMesh->SetStaticMesh(LightMesh);
     // 右手にアタッチする
     FlashlightMesh->SetupAttachment(Flashlight);
@@ -147,14 +100,14 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     // スタティックメッシュコンポーネント(ライトコリジョン)を作る
     LightCollision = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LightCollision"));
     // 当たり判定用のメッシュを読み込んで LightCollision に設定する
-    UStaticMesh* ConeMesh = LoadObject<UStaticMesh>(NULL, TEXT("/Game/_TeamFolder/Player/SM_Cone"), NULL, LOAD_None, NULL);
+    UStaticMesh* ConeMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/_TeamFolder/Player/SM_Cone"));
     LightCollision->SetStaticMesh(ConeMesh);
     // ライトにアタッチする
     LightCollision->SetupAttachment(Flashlight);
     // メッシュを見えないようにさせる
     LightCollision->SetVisibility(false);
     //コリジョンのプリセットを設定
-    LightCollision->SetCollisionProfileName(TEXT("BlockAllDynamic"));
+    LightCollision->SetCollisionProfileName(TEXT("NoCollision"));
     // 位置・サイズ・向きの調整をする
     LightCollision->SetRelativeLocation(FVector(700.0f, 0.0f, 0.0f));
     LightCollision->SetRelativeRotation(FRotator(90.0f, 0.0f, 0.0f));  // ※ FRotator は (Y, Z, X) の順
@@ -176,6 +129,26 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     UHapticFeedbackEffect_Base* Haptic_PD = LoadObject<UHapticFeedbackEffect_Base>(nullptr, TEXT("/Game/_TeamFolder/Player/Input/PlayerDamage"));
     HapticEffect_PlayerDamage = Haptic_PD;
 
+    //SEのロード
+    EnemyHitSound = LoadObject<USoundCue>(nullptr, TEXT("/Game/_TeamFolder/Sound/SE/SE_EnemyHit_Cue"));
+    LightSwitchSound = LoadObject<USoundCue>(nullptr, TEXT("/Game/_TeamFolder/Sound/SE/SE_LightSwitch_Cue"));
+    PlayerDamageSound = LoadObject<USoundCue>(nullptr, TEXT("/Game/_TeamFolder/Sound/SE/SE_PlayerDamage_Cue"));
+    UseAttackItemSound = LoadObject<USoundCue>(nullptr, TEXT("/Game/_TeamFolder/Sound/SE/SE_UseAttackItem_Cue"));
+    UseBuffItemSound = LoadObject<USoundCue>(nullptr, TEXT("/Game/_TeamFolder/Sound/SE/SE_UseBuffItem_Cue"));
+
+    //オーディオコンポーネントの作成
+    EnemyDamageSoundEffect = CreateDefaultSubobject<UAudioComponent>(TEXT("AudioComponent"));
+    EnemyDamageSoundEffect->bAutoActivate = false;     //自動再生を無効にする
+    EnemyDamageSoundEffect->SetupAttachment(VRRoot);
+    if (EnemyHitSound)
+    {
+        EnemyDamageSoundEffect->SetSound(EnemyHitSound);
+    }
+    else
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Silver, TEXT("Not SoundEffect ! -EnemyHitSound-"));
+    }
+
 }
 
 // Called when the game starts or when spawned
@@ -187,8 +160,58 @@ void AVRPlayerCharacter::BeginPlay()
     UWorld* World = GEngine->GetWorldFromContextObjectChecked(this);
     LevelName = UGameplayStatics::GetCurrentLevelName(World);
 
+    // ------------------------------------------------------------------------------------
+    // 変更可能な初期値設定
+    // ------------------------------------------------------------------------------------
+
+    // ライトバッテリーの秒数設定　※タイトルの時は緩くする
+    BatteryTime = 15;
+    if (LevelName == "Title")
+    {
+        BatteryTime *= 2;
+    }
+    // バッテリー秒数の増加率設定
+    AddBatteryTime = 5;
+    // 最大値をセット
+    MaxBattery = 60 * BatteryTime;
+    // ライトの攻撃力設定
+    LightAttack = 1;
+    // ライトの攻撃力増加率の設定
+    AddLightAttack = 2;
+
+    // アイテムの攻撃力の設定
+    ItemAttack = 100;
+    // アイテム使用のボーダー設定
+    FingerBendingBorder = 350;
+
+    // デバッグ
+    DebugTimer = 0;
+
+    // ------------------------------------------------------------------------------------
+    // 変更不可能な初期値設定
+    // ------------------------------------------------------------------------------------
+
+    // ライトの色を設定する
+    Flashlight_Color = EFlashlight_Color::White;
+    // バッテリーの初期値
+    Battery = MaxBattery;
+    //ステージ番号を初期化する
+    StageNumber = 1;
+    //ライトのON/OFF切り替えを可能の状態にする
+    bCanToggleLight = true;
+    //アイテムの使用状態を可能にする
+    bCanUseItem = true;
+    // 無敵時間の初期化
+    bIsDamageNow = false;
+    //振動状態の初期化
+    bIsEnemyHaptic = false;
+    //アイテムのボーダー
+    AttackItemBorder = { 450, 0, 450, 450, 0 };
+    BuffItemBorder = { 0, 0, 450, 450, 450 };
+
     //スコアのインスタンスを取得する
     ScoreInstance = Cast<UPlayerScoreInstance>(GetGameInstance());
+    ScoreInstance->AllDataResetFunction();
 
     //SplinePathActorを取得して設定する
     TArray<AActor*> FoundActors;
@@ -224,38 +247,23 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
-    //振動処理が全くないときに敵に当たっていたら振動を開始
-    if (bIsEnemyHaptic == false && bIsPlayerHaptic == false)
-    {
-        if (OverlappingEnemies.Num() > 0)
-        {
-            StartHaptic_EnemyDamage();
-        }
-    }
-
-    TmpEnemies = OverlappingEnemies;
-    for (AActor* Enemy : TmpEnemies)
+    //ダメージが入る敵だけ抽出
+    TmpOverlapEnemies = OverlappingEnemies;
+    DamageEnemies.Empty();
+    for (AActor* Enemy : TmpOverlapEnemies)
     {
         if (!Enemy)
         {
-            GEngine->AddOnScreenDebugMessage(-1, 0.2f, FColor::Silver, TEXT("Enemy is Null"));
+            GEngine->AddOnScreenDebugMessage(-1, 0.2f, FColor::Red, TEXT("OverlapEnemy is Null"));
             continue;
         }
-
         //タイトルの場合
         if (LevelName == "Title")
         {
             ATitleEnemy* CheckEnemy = Cast<ATitleEnemy>(Enemy);
             if (CheckEnemy && CheckEnemy->CheckPlayerLightColor(Flashlight_Color))
             {
-                if (Enemy && Enemy->GetClass()->ImplementsInterface(UDamageInterface::StaticClass()))
-                {
-                    IDamageInterface* DamageInterface = Cast<IDamageInterface>(Enemy);
-                    if (DamageInterface)
-                    {
-                        DamageInterface->RecieveEnemyDamage(LightAttack);
-                    }
-                }
+                DamageEnemies.Add(Enemy);
             }
         }
         //ゲームシーンの場合
@@ -264,19 +272,53 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
             AEnemys* CheckEnemy = Cast<AEnemys>(Enemy);
             if (CheckEnemy && CheckEnemy->CheckPlayerLightColor(Flashlight_Color))
             {
-                if (Enemy && Enemy->GetClass()->ImplementsInterface(UDamageInterface::StaticClass()))
-                {
-                    IDamageInterface* DamageInterface = Cast<IDamageInterface>(Enemy);
-                    if (DamageInterface)
-                    {
-                        DamageInterface->RecieveEnemyDamage(LightAttack);
-                    }
-                }
+                DamageEnemies.Add(Enemy);
             }
         }
         else
         {
-            GEngine->AddOnScreenDebugMessage(-1, 0.5f, FColor::Magenta, TEXT("Not Any Level !"));
+            GEngine->AddOnScreenDebugMessage(-1, 0.5f, FColor::Red, TEXT("Not Any Level ! -Overlap-"));
+        }
+    }
+
+    //振動処理が全くないときに敵にダメージが入っていたら振動を開始
+    if (bIsEnemyHaptic == false && bIsPlayerHaptic == false)
+    {
+        if (DamageEnemies.Num() > 0)
+        {
+            StartHaptic_EnemyDamage();
+            EnemyDamageSoundEffect->Play();
+        }
+    }
+    else if (bIsEnemyHaptic)
+    {
+        if (DamageEnemies.Num() <= 0)
+        {
+            StopHapticEffect();
+            EnemyDamageSoundEffect->Stop();
+        }
+    }
+
+    //ダメージを与える
+    TmpDamageEnemies = DamageEnemies;
+    for (AActor* Enemy : TmpDamageEnemies)
+    {
+        if (!Enemy)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 0.2f, FColor::Red, TEXT("DamageEnemy is Null"));
+            continue;
+        }
+        else if (Enemy->GetClass()->ImplementsInterface(UDamageInterface::StaticClass()))
+        {
+            IDamageInterface* DamageInterface = Cast<IDamageInterface>(Enemy);
+            if (DamageInterface)
+            {
+                DamageInterface->RecieveEnemyDamage(LightAttack);
+            }
+        }
+        else
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 0.5f, FColor::Red, TEXT("Not Any Level ! -Damage-"));
         }
     }
 
@@ -292,7 +334,7 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
             Battery = MaxBattery;
             //ライトがつけられるようになる
             bCanToggleLight = true;
-            //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Yellow, TEXT("Battery is fill! You can't use Flashlight!"));
+            //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Battery is fill! You can't use Flashlight!"));
         }
         UpdateBatteryUI();
     }
@@ -310,7 +352,7 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
             LightCollision->SetCollisionProfileName(TEXT("NoCollision"));
             //充電切れ直後はライトをつけられない
             bCanToggleLight = false;
-            //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Yellow, TEXT("Battery is empty! You can't use Flashlight!"));
+            //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Battery is empty! You can't use Flashlight!"));
         }
         UpdateBatteryUI();
     }
@@ -364,8 +406,16 @@ void AVRPlayerCharacter::ToggleFlashlight(const FInputActionValue& value)
 
     if (bIsPressed && bCanToggleLight)
     {
-        //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, TEXT("Light ON/OFF"));
+        //ライトのON/OFFを切り替えて、SEを鳴らす
         Flashlight->ToggleVisibility();
+        if (LightSwitchSound)
+        {
+            UGameplayStatics::PlaySoundAtLocation(this, LightSwitchSound, GetActorLocation());
+        }
+        else
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Silver, TEXT("Not SoundEffect ! -LightSwitchSound-"));
+        }
         //ライトの電源変更後、ONになったなら
         if (Flashlight->GetVisibleFlag())
         {
@@ -377,23 +427,12 @@ void AVRPlayerCharacter::ToggleFlashlight(const FInputActionValue& value)
             //ライトの当たり判定を無効化
             LightCollision->SetCollisionProfileName(TEXT("NoCollision"));
         }
+        //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Light ON/OFF"));
     }
     //else if (bCanToggleLight == false)
     //{
-    //    GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Yellow, TEXT("Battery is Charging! Wait until the battery is full."));
+    //    GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Battery is Charging! Wait until the battery is full."));
     //}
-
-    //ライトの変更後、OFFの状態ならコーンコリジョンのプリセットを NoCollision にする
-    if (Flashlight->GetVisibleFlag() == false)
-    {
-        LightCollision->SetCollisionProfileName(TEXT("NoCollision"));
-    }
-    //ONの状態ならコーンコリジョンのプリセットを BlockAllDynamic にする
-    else
-    {
-        LightCollision->SetCollisionProfileName(TEXT("BlockAllDynamic"));
-    }
-
 }
 
 //ライトの色を切り替えるメソッド
@@ -425,8 +464,18 @@ void AVRPlayerCharacter::ChangeColorFlashlight(const FInputActionValue& value)
         }
         // ライトの色を変更
         SettingFlashlightColor();
+        //SEを鳴らす
+        if (LightSwitchSound)
+        {
+            UGameplayStatics::PlaySoundAtLocation(this, LightSwitchSound, GetActorLocation());
+        }
+        else
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Silver, TEXT("Not SoundEffect ! -LightSwitchSound-"));
+        }
 
-        //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, TEXT("Light ChangeColor"));
+
+        //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Light ChangeColor"));
     }
 }
 
@@ -460,7 +509,7 @@ void AVRPlayerCharacter::CheckUsedItem(const TArray<int32> value)
     //{
     //    DebugValue += FString::FromInt(v) + ", ";
     //}
-    //GEngine->AddOnScreenDebugMessage(-1, 0.2f, FColor::Silver, DebugValue);
+    //GEngine->AddOnScreenDebugMessage(-1, 0.2f, FColor::Red, DebugValue);
 
     //使えない状態のときは即リターン
     if (bCanUseItem == false || ScoreInstance->GetPlayerItemCount() <= 0)
@@ -498,9 +547,19 @@ void AVRPlayerCharacter::UseItem_Attack()
     }
 
     //デバッグ
-    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Purple, TEXT("Used Item ( Enemy Damage )"));
+    GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Used Item ( Enemy Damage )"));
 
     //狐のモデルの出現
+
+    //SEを鳴らす
+    if (UseAttackItemSound)
+    {
+        UGameplayStatics::PlaySoundAtLocation(this, UseAttackItemSound, GetActorLocation());
+    }
+    else
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Silver, TEXT("Not SoundEffect ! -UseAttackItemSound-"));
+    }
 
     //場にいるすべての敵にダメージを与える
     //ゲーム画面での処理
@@ -539,7 +598,7 @@ void AVRPlayerCharacter::UseItem_Attack()
     }
     else
     {
-        GEngine->AddOnScreenDebugMessage(-1, 0.5f, FColor::Magenta, TEXT("Not Any Level !"));
+        GEngine->AddOnScreenDebugMessage(-1, 0.5f, FColor::Red, TEXT("Not Any Level !"));
     }
 
     
@@ -560,7 +619,17 @@ void AVRPlayerCharacter::UseItem_Buff()
     }
 
     //デバッグ
-    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Purple, TEXT("Used Item ( Light Enhanced )"));
+    GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Used Item ( Light Enhanced )"));
+
+    //SEを鳴らす
+    if (UseBuffItemSound)
+    {
+        UGameplayStatics::PlaySoundAtLocation(this, UseBuffItemSound, GetActorLocation());
+    }
+    else
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Silver, TEXT("Not SoundEffect ! -UseBuffItemSound-"));
+    }
 
     //ライトのバッテリー時間を増加
     BatteryTime += AddBatteryTime;
@@ -602,7 +671,7 @@ void AVRPlayerCharacter::ItemCoolTimeFunction()
     // タイマーをクリア
     GetWorld()->GetTimerManager().ClearTimer(ItemCoolTimeHandle);
 
-    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Purple, TEXT("You Can Use Item"));
+    GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("You Can Use Item"));
 
 }
 
@@ -615,18 +684,17 @@ void AVRPlayerCharacter::OnConeBeginOverlap(UPrimitiveComponent* OverlappedComp,
     //if (const AEnemys* Enemy = Cast<AEnemys>(OtherActor))
     //{
     //    OverlappingEnemies.Add(OtherActor);
-    //    //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Enemy is Overlapping"));
+    //    //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Enemy is Overlapping"));
     //}
-
     ////チュートリアル用の敵に関する当たり判定処理
     //if (const ATitleEnemy* TitleEnemy = Cast<ATitleEnemy>(OtherActor))
     //{
     //    OverlappingEnemies.Add(OtherActor);
-    //    //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Enemy is Overlapping"));
+    //    //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Enemy is Overlapping"));
     //}
 
     //壁貫通をなくす処理(β版)
-    //GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Cyan, FString::Printf(TEXT("Light BeginOverlap Called (%s)"), *OtherActor->GetActorNameOrLabel()));
+    //GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, FString::Printf(TEXT("Light BeginOverlap Called (%s)"), *OtherActor->GetActorNameOrLabel()));
     FHitResult HitResult = CheckHitEnemy(OtherActor);
 
     // 接触したアクターがオバケかどうか判定する
@@ -636,7 +704,8 @@ void AVRPlayerCharacter::OnConeBeginOverlap(UPrimitiveComponent* OverlappedComp,
         if (HitResult.GetActor() == Enemy)
         {
             OverlappingEnemies.Add(OtherActor);
-            //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Enemy is Overlapping"));
+            FString Debug = "Overlap (" + OtherActor->GetName() + ")";
+            GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, Debug);
         }
     }
     //チュートリアル用の敵に関する当たり判定処理
@@ -646,9 +715,20 @@ void AVRPlayerCharacter::OnConeBeginOverlap(UPrimitiveComponent* OverlappedComp,
         if (HitResult.GetActor() == TitleEnemy)
         {
             OverlappingEnemies.Add(OtherActor);
-            //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Enemy is Overlapping"));
+            //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Enemy is Overlapping"));
         }
     }
+    if (ATreasureBox* Treasure = Cast<ATreasureBox>(OtherActor))
+    {
+        if (HitResult.GetActor() == Treasure)
+        {
+            if (Treasure->IsOpenedTreasure() == false)
+            {
+                Treasure->OpenTreasureBox();
+            }
+        }
+    }
+
     
 }
 // 当たり判定の壁貫通をなくす処理
@@ -658,7 +738,16 @@ FHitResult AVRPlayerCharacter::CheckHitEnemy(AActor* OtherActor)
     FVector LightPoint = Flashlight->GetComponentLocation();
     FHitResult HitResult;
     FCollisionQueryParams CollisionParams;
-    CollisionParams.AddIgnoredActor(this);  //プレイヤー自身の当たり判定は無視
+    //無視する当たり判定
+    CollisionParams.AddIgnoredActor(this);
+    if (OtherActor->ActorHasTag("IgnoreActor"))
+    {
+        FString Debug = "Ignoring Actor with Tag (" + OtherActor->GetName() + ")";
+        // Debug message to confirm tag presence
+        GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, Debug);
+        CollisionParams.AddIgnoredActor(OtherActor);
+    }
+
     // ObjectTypeの設定
     FCollisionObjectQueryParams ObjectParams;
     ObjectParams.AddObjectTypesToQuery(ECC_WorldDynamic);
@@ -672,46 +761,48 @@ FHitResult AVRPlayerCharacter::CheckHitEnemy(AActor* OtherActor)
         CollisionParams
     );
 
-    // Rayを表示する
-    DrawDebugLine(
-        GetWorld(),
-        LightPoint,
-        OtherActor->GetActorLocation(),
-        FColor::Emerald,    // 線の色
-        false,              // 永続的に描画しない（一定時間後に消える）
-        2.0f,               // 描画時間（秒）
-        0,
-        2.0f                // 線の太さ
-    );
-
     if (bHit)
     {
-        //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Yellow, HitResult.GetActor()->GetName());
+        //// Rayを表示する
+        //DrawDebugLine(
+        //    GetWorld(),
+        //    LightPoint,
+        //    OtherActor->GetActorLocation(),
+        //    FColor::Emerald,    // 線の色
+        //    false,              // 永続的に描画しない（一定時間後に消える）
+        //    2.0f,               // 描画時間（秒）
+        //    0,
+        //    2.0f                // 線の太さ
+        //);
+
+        //GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, HitResult.GetActor()->GetName());
         return HitResult;
     }
 
     return FHitResult();
 }
-
+//bool AVRPlayerCharacter::IgnoreActorClass(const AActor* Actor)
+//{
+//    if (Actor->ActorHasTag("IgnoreActor"))
+//    {
+//        return true;
+//    }
+//    return false;
+//}
 
 void AVRPlayerCharacter::OnConeEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-    //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Light EndOverlap Called"));
+    //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Light EndOverlap Called"));
 
     // オバケがコリジョンから抜けたかどうか判定する
     if (const AEnemys* Enemy = Cast<AEnemys>(OtherActor))
     {
         OverlappingEnemies.Remove(OtherActor);
-        //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, TEXT("Enemy is not Overlapping"));
+        //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Enemy is not Overlapping"));
     }
     if (const ATitleEnemy* TitleEnemy = Cast<ATitleEnemy>(OtherActor))
     {
         OverlappingEnemies.Remove(OtherActor);
-    }
-
-    if (OverlappingEnemies.Num() <= 0)
-    {
-        StopHapticEffect();
     }
 }
 
@@ -726,14 +817,23 @@ void AVRPlayerCharacter::RecievePlayerDamage()
         bIsDamageNow = true;
         //無敵時間の設定 (3秒後に無敵状態を解除)
         GetWorld()->GetTimerManager().SetTimer(NoDamageTimerHandle, this, &AVRPlayerCharacter::NoDamageFunction, 3.0f, false);
-        GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, TEXT("Player damage !"));
+        GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Player damage !"));
         //デバイスを振動させる
         StartHaptic_PlayerDamage();
         GloveDeviceVibration_Damage();
+        //SEを鳴らす
+        if (PlayerDamageSound)
+        {
+            UGameplayStatics::PlaySoundAtLocation(this, PlayerDamageSound, GetActorLocation());
+        }
+        else
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Silver, TEXT("Not SoundEffect ! -PlayerDamageSound-"));
+        }
     }
     else
     {
-        GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, TEXT("Player takes no damage !"));
+        GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Player takes no damage !"));
     }
 }
 //無敵時間のメソッド
@@ -755,7 +855,7 @@ void AVRPlayerCharacter::StartHaptic_EnemyDamage()
         PlayerController->PlayHapticEffect(HapticEffect_EnemyDamage, EControllerHand::Left, 1.0f, true);
         bIsEnemyHaptic = true;
         bIsPlayerHaptic = false;
-        //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, TEXT("Device Vibration (Enemy)"));
+        //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Device Vibration (Enemy)"));
     }
 }
 void AVRPlayerCharacter::StartHaptic_PlayerDamage()
@@ -767,7 +867,7 @@ void AVRPlayerCharacter::StartHaptic_PlayerDamage()
         bIsEnemyHaptic = false;
         bIsPlayerHaptic = true;
         GetWorld()->GetTimerManager().SetTimer(HapticTimer, this, &AVRPlayerCharacter::StopHapticEffect, 1.5f, false);
-        //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Red, TEXT("Device Vibration (Player)"));
+        //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Device Vibration (Player)"));
     }
 }
 // 振動を停止するメソッド
@@ -858,7 +958,8 @@ void AVRPlayerCharacter::ChangeScore_Step()
 {
     if (ScoreInstance->GetPlayerItemCount() > 0)
     {
-        ScoreInstance->ConvertItemToScore_Title();
+        AddScore(ScoreInstance->GetItemPerScore());
+        ScoreInstance->UsePlayerItem();
         UpdateItemUI();
     }
     else

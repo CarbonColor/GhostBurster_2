@@ -97,7 +97,9 @@ public:
 	// クリアタイム（秒）を取得するメソッド
 	UFUNCTION(BlueprintCallable, Category = "PlayerData")
 		int32 GetGameTime_Second();
-
+	// アイテムスコアを取得するメソッド
+	UFUNCTION(BlueprintCallable, Category = "PlayerData")
+		int32 GetItemPerScore();
 
 	// スコアを加算するメソッド
 	UFUNCTION(BlueprintCallable, Category = "PlayerData")
@@ -119,11 +121,6 @@ public:
 	// ゲームエンドの時間をセットする
 	UFUNCTION(BlueprintCallable, Category = "PlayerData")
 		void SetGameEndTime();
-
-
-	// アイテムをスコアに変換するメソッド（タイトル用）
-	UFUNCTION(BlueprintCallable, Category = "PlayerData")
-		void ConvertItemToScore_Title();
 
 	// スコアを計算して、その各スコアを送るメソッド
 	UFUNCTION(BlueprintCallable, Category = "PlayerData")

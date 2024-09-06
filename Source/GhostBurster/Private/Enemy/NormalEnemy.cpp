@@ -12,30 +12,35 @@ ANormalEnemy::ANormalEnemy()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	//☆SceneComponent
-	//SceneComponentの作成
+	//☆シーンコンポーネント----------------------------------------------------------------------------------------------------
+	//シーンコンポーネントの作成
 	DefaultSceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
-	//SceneComponentをRootComponentに設定
+	//シーンコンポーネントをルートコンポーネントに設定
 	RootComponent = DefaultSceneRoot;
 
-	//☆StaticMeshComponent
-	//StaticMeshComponentの作成
+	//☆スタティックメッシュコンポーネント---------------------------------------------------------------------------------------
+	//スタティックメッシュコンポーネントの作成
 	GhostMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Ghost"));
-	//StaticMeshをロードしてStaticMeshComponentのStaticMeshに設定する
+	//スタティックメッシュをロードしてスタティックメッシュコンポーネントのスタティックメッシュに設定する
 	UStaticMesh* GMesh = LoadObject<UStaticMesh>(NULL, TEXT("/Engine/BasicShapes/Sphere"), NULL, LOAD_None, NULL);
 	GhostMesh->SetStaticMesh(GMesh);
-	//StaticMeshComponentをRootComponentにアタッチする
+	//スタティックメッシュコンポーネントをRootComponentにアタッチする
 	GhostMesh->SetupAttachment(RootComponent);
 	//スタティックメッシュのコリジョンを無くす
 	GhostMesh->SetCollisionProfileName("NoCollision");
 
-	//☆コリジョン
+	//☆コリジョン---------------------------------------------------------------------------------------------------------------
 	//スフィアコリジョンの作成
 	GhostCollision = CreateDefaultSubobject<USphereComponent>(TEXT("GhostCollision"));
 	//GhostCollisionをルートコンポーネントにアタッチする
 	GhostCollision->SetupAttachment(RootComponent);
 	//GhostCollisionのコリジョンプリセットをOverlapAllDynamicにする
 	GhostCollision->SetCollisionProfileName("OverlapAllDynamic");
+
+	//☆サウンド-----------------------------------------------------------------------------------------------------------------
+	AppearSound = LoadObject<USoundCue>(nullptr, TEXT("/Game/_TeamFolder/Sound/SE/SE_GhostAppear_Cue"));	//出現時の音設定
+	DisappearSound = LoadObject<USoundCue>(nullptr, TEXT("/Game/_TeamFolder/Sound/SE/SE_GhostDead_Cue"));	//消滅時の音設定
+
 }
 
 // Called when the game starts or when spawned
@@ -44,7 +49,7 @@ void ANormalEnemy::BeginPlay()
 	Super::BeginPlay();
 
 	//☆白い敵の設定
-	this->enemyColor = EnemyColor::White;
+	this->EnemyColor = EEnemyColor::White;
 
 	//☆マテリアル
 	//マテリアルをロード
@@ -88,42 +93,42 @@ void ANormalEnemy::TickProcess()
 //エネミーの状態判断
 void ANormalEnemy::Think()
 {
-	State nowState = state;
+	EState NowState = this->State;
 
-	switch (nowState)
+	switch (NowState)
 	{
-	case State::Wait:	//待機
-		if (MoveCount >= 1 * Gamefps) { nowState = State::Attack; }	// 攻撃へ
-		if (Status.HP <= 0) { nowState = State::Die; }				// 死亡へ
+	case EState::Wait:	//待機
+		if (MoveCount >= 1 * Gamefps) { NowState = EState::Attack; }	// 攻撃へ
+		if (Status.HP <= 0) { NowState = EState::Die; }				// 死亡へ
 		break;
 
-	case State::Move:	//移動
-		if (this->bHasEndedMoving) { nowState = State::Wait; }	// 待機へ
-		if (Status.HP <= 0) { nowState = State::Die; }			// 死亡へ
+	case EState::Move:	//移動
+		if (this->bHasEndedMoving) { NowState = EState::Wait; }	// 待機へ
+		if (Status.HP <= 0) { NowState = EState::Die; }			// 死亡へ
 		break;
 
-	case State::Attack:	//攻撃
-		if (this->bHasEndedAttack) { nowState = State::Wait; }	// 待機へ
-		if (Status.HP <= 0) { nowState = State::Die; }			// 死亡へ
+	case EState::Attack:	//攻撃
+		if (this->bHasEndedAttack) { NowState = EState::Wait; }	// 待機へ
+		if (Status.HP <= 0) { NowState = EState::Die; }			// 死亡へ
 		break;
 
-	case State::Appear:	//出現
-		if (this->bHasEndedAppear) { nowState = State::Move; }	// 移動へ
+	case EState::Appear:	//出現
+		if (this->bHasEndedAppear) { NowState = EState::Move; }	// 移動へ
 		break;
 	}
 
-	UpdateState(nowState);
+	UpdateState(NowState);
 }
 
 //状態に基づいた動きをする
 void ANormalEnemy::ActProcess()
 {
-	switch (state)
+	switch (this->State)
 	{
-	case State::Wait:	//待機		
+	case EState::Wait:	//待機		
 		break;
 
-	case State::Move:	//移動
+	case EState::Move:	//移動
 		//状態Move遷移時にのみ行う処理
 		if (this->bShouldBeenProcessWhenFirstStateTransition == false)
 		{
@@ -134,16 +139,22 @@ void ANormalEnemy::ActProcess()
 		this->bHasEndedMoving = Move();
 		break;
 
-	case State::Attack:	//攻撃
+	case EState::Attack:	//攻撃
 		//攻撃処理(攻撃が終わった後状態遷移する)
 		this->bHasEndedAttack = this->Attack();
 		break;
 
-	case State::Die:	//死亡
+	case EState::Die:	//死亡
 		EnemyDead();
 		break;
 
-	case State::Appear:	//出現
+	case EState::Appear:	//出現
+		//状態Move遷移時にのみ行う処理
+		if (this->bShouldBeenProcessWhenFirstStateTransition == false)
+		{
+			ProcessJustForFirst_Appear();
+		}
+
 		//出現処理
 		this->bHasEndedAppear = this->Appear();
 		break;
@@ -153,7 +164,7 @@ void ANormalEnemy::ActProcess()
 //ダメージを受ける処理、引数でもらった数値分体力を減らす
 void ANormalEnemy::RecieveEnemyDamage(int DamageAmount)
 {
-	if (this->state != State::Appear && this->state != State::Die)
+	if (this->State != EState::Appear && this->State != EState::Die)
 	{
 		Status.HP -= DamageAmount;
 	}
@@ -162,7 +173,7 @@ void ANormalEnemy::RecieveEnemyDamage(int DamageAmount)
 //プレイヤーのライトの色と敵のライトの色をチェックする関数
 bool ANormalEnemy::CheckPlayerLightColor(EFlashlight_Color PlayerColor) const
 {
-	return (int)PlayerColor == (int)this->enemyColor;
+	return (int)PlayerColor == (int)this->EnemyColor;
 }
 
 //状態Move遷移時にのみ行う処理
@@ -261,7 +272,18 @@ bool ANormalEnemy::Attack()
 	return false;
 }
 
-// 敵出現処理
+//出現関係---------------------------------------------------------------------------------------------------------------------
+//状態：Appearで最初に一度だけする処理
+void ANormalEnemy::ProcessJustForFirst_Appear()
+{
+	//敵出現時の音を鳴らす
+	PlayAppearSound();
+
+	//複数回処理が行われないようにする
+	this->bShouldBeenProcessWhenFirstStateTransition = true;
+}
+
+//敵出現処理
 bool ANormalEnemy::Appear()
 {
 	//DeltaTimeの取得

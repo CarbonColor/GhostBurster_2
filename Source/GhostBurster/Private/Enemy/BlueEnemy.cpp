@@ -34,6 +34,10 @@ ABlueEnemy::ABlueEnemy()
 	GhostCollision->SetupAttachment(RootComponent);
 	//GhostCollisionのコリジョンプリセットをOverlapAllDynamicにする
 	GhostCollision->SetCollisionProfileName("OverlapAllDynamic");
+
+	//☆サウンド-----------------------------------------------------------------------------------------------------------------
+	AppearSound = LoadObject<USoundCue>(nullptr, TEXT("/Game/_TeamFolder/Sound/SE/SE_GhostAppear_Cue"));	//出現時の音設定
+	DisappearSound = LoadObject<USoundCue>(nullptr, TEXT("/Game/_TeamFolder/Sound/SE/SE_GhostDead_Cue"));	//消滅時の音設定
 }
 
 void ABlueEnemy::BeginPlay()
@@ -41,7 +45,7 @@ void ABlueEnemy::BeginPlay()
 	Super::BeginPlay();
 
 	//青の敵の設定
-	this->enemyColor = EnemyColor::Blue;
+	this->EnemyColor = EEnemyColor::Blue;
 
 	//☆マテリアル
 	//マテリアルをロード
@@ -84,41 +88,41 @@ void ABlueEnemy::TickProcess()
 //エネミーの状態判断
 void ABlueEnemy::Think()
 {
-	State nowState = state;
-	switch (nowState)
+	EState NowState = this->State;
+	switch (NowState)
 	{
-	case State::Wait:	//待機
-		if (MoveCount >= 1 * Gamefps) { nowState = State::Attack; }	// 攻撃へ
-		if (Status.HP <= 0) { nowState = State::Die; }				// 死亡へ
+	case EState::Wait:	//待機
+		if (MoveCount >= 1 * Gamefps) { NowState = EState::Attack; }	// 攻撃へ
+		if (Status.HP <= 0) { NowState = EState::Die; }				// 死亡へ
 		break;
 
-	case State::Move:	//移動
-		if (this->bHasEndedMoving) { nowState = State::Wait; }	// 待機へ
-		if (Status.HP <= 0) { nowState = State::Die; }			// 死亡へ
+	case EState::Move:	//移動
+		if (this->bHasEndedMoving) { NowState = EState::Wait; }	// 待機へ
+		if (Status.HP <= 0) { NowState = EState::Die; }			// 死亡へ
 		break;
 
-	case State::Attack:	//攻撃
-		if (this->bHasEndedAttack) { nowState = State::Wait; }	// 待機へ
-		if (Status.HP <= 0) { nowState = State::Die; }			// 死亡へ
+	case EState::Attack:	//攻撃
+		if (this->bHasEndedAttack) { NowState = EState::Wait; }	// 待機へ
+		if (Status.HP <= 0) { NowState = EState::Die; }			// 死亡へ
 		break;
 
-	case State::Appear:	//出現
-		if (this->bHasEndedAppear) { nowState = State::Move; }	// 移動へ
+	case EState::Appear:	//出現
+		if (this->bHasEndedAppear) { NowState = EState::Move; }	// 移動へ
 		break;
 	}
 
-	UpdateState(nowState);
+	UpdateState(NowState);
 }
 
 //状態に基づいた動きをする
 void ABlueEnemy::ActProcess()
 {
-	switch (state)
+	switch (this->State)
 	{
-	case State::Wait:	//待機		
+	case EState::Wait:	//待機		
 		break;
 
-	case State::Move:	//移動
+	case EState::Move:	//移動
 		//状態Move遷移時にのみ行う処理
 		if (this->bShouldBeenProcessWhenFirstStateTransition == false)
 		{
@@ -129,16 +133,22 @@ void ABlueEnemy::ActProcess()
 		this->bHasEndedMoving = Move();
 		break;
 
-	case State::Attack:	//攻撃
+	case EState::Attack:	//攻撃
 		//攻撃処理
 		this->bHasEndedAttack = this->Attack();
 		break;
 
-	case State::Die:
+	case EState::Die:
 		EnemyDead();
 		break;
 
-	case State::Appear:	//出現
+	case EState::Appear:	//出現
+		//状態Move遷移時にのみ行う処理
+		if (this->bShouldBeenProcessWhenFirstStateTransition == false)
+		{
+			ProcessJustForFirst_Appear();
+		}
+
 		//出現処理
 		this->bHasEndedAppear = this->Appear();
 		break;
@@ -148,7 +158,7 @@ void ABlueEnemy::ActProcess()
 //ダメージを受ける処理、引数でもらった攻撃力分体力を減らす
 void ABlueEnemy::RecieveEnemyDamage(int DamageAmount)
 {
-	if (this->state != State::Appear && this->state != State::Die)
+	if (this->State != EState::Appear && this->State != EState::Die)
 	{
 		Status.HP -= DamageAmount;
 	}
@@ -157,7 +167,7 @@ void ABlueEnemy::RecieveEnemyDamage(int DamageAmount)
 //プレイヤーのライトの色と敵のライトの色をチェックする関数
 bool ABlueEnemy::CheckPlayerLightColor(EFlashlight_Color PlayerColor) const
 {
-	return (int)PlayerColor == (int)this->enemyColor;
+	return (int)PlayerColor == (int)this->EnemyColor;
 }
 
 //状態Move遷移時にのみ行う処理
@@ -254,6 +264,17 @@ bool ABlueEnemy::Attack()
 	}
 
 	return false;
+}
+
+//出現関係---------------------------------------------------------------------------------------------------------------------
+//状態：Appearで最初に一度だけする処理
+void ABlueEnemy::ProcessJustForFirst_Appear()
+{
+	//敵出現時の音を鳴らす
+	PlayAppearSound();
+
+	//複数回処理が行われないようにする
+	this->bShouldBeenProcessWhenFirstStateTransition = true;
 }
 
 // 敵出現処理

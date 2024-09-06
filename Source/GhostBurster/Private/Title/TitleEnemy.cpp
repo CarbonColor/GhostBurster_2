@@ -16,7 +16,13 @@ ATitleEnemy::ATitleEnemy()
 void ATitleEnemy::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	Player = Cast<AVRPlayerCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
+
+	HP = 60 * 1.5f;
+	RunningTime = 0;
+	InitialLocation = GetActorLocation();
+
 }
 
 // Called every frame
@@ -32,6 +38,7 @@ void ATitleEnemy::EnemyDead()
 	if (EventManager)
 	{
 		EventManager->EnemyDeadFunction();
+		Player->AddScore(100);
 	}
 
 	this->Destroy();

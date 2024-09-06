@@ -39,9 +39,9 @@ void ATitleEnemy_Green::BeginPlay()
 {
 	Super::BeginPlay();
 
-	HP = 60 * 3;
-	RunningTime = 0;
-	InitialLocation = GetActorLocation();
+	//HP = 60 * 3;
+	//RunningTime = 0;
+	//InitialLocation = GetActorLocation();
 }
 
 // Called every frame

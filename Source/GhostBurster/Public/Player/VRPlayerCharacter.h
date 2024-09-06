@@ -13,6 +13,8 @@
 #include "Components/WidgetComponent.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
+#include "Components/AudioComponent.h"
+#include "Sound/SoundCue.h"
 #include "Camera/CameraComponent.h"
 #include "Blueprint/UserWidget.h"
 #include "Interface/DamageInterface.h"
@@ -183,8 +185,25 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Stage")
 		int32 GetStageNumber();
 
+	//SE
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SE")
+		TObjectPtr<USoundCue> EnemyHitSound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SE")
+		TObjectPtr<USoundCue> LightSwitchSound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SE")
+		TObjectPtr<USoundCue> PlayerDamageSound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SE")
+		TObjectPtr<USoundCue> UseAttackItemSound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SE")
+		TObjectPtr<USoundCue> UseBuffItemSound;
+
 
 private:
+	
 	//シーンコンポーネント
 	UPROPERTY(VisibleAnywhere)
 		TObjectPtr<USceneComponent> VRRoot;
@@ -201,6 +220,10 @@ private:
 	UPROPERTY()
 		TObjectPtr<UPlayerScoreInstance> ScoreInstance;
 
+	//敵へのダメージ音のオーディオコンポーネント
+	UPROPERTY()
+		TObjectPtr<UAudioComponent> EnemyDamageSoundEffect;
+
 	//ライトの色を設定するメソッド
 	UFUNCTION()
 		void SettingFlashlightColor();
@@ -208,6 +231,8 @@ private:
 	// 当たり判定の壁貫通をなくす処理
 	UFUNCTION()
 		FHitResult CheckHitEnemy(AActor* OtherActor);
+	//UFUNCTION()
+	//	bool IgnoreActorClass(const AActor* Actor);
 
 	//無敵状態
 	bool bIsDamageNow;
@@ -222,7 +247,9 @@ private:
 
 	//ライト内(コーンのコリジョン)に入っているオバケを格納するリスト
 	TSet<AActor*> OverlappingEnemies;
-	TSet<AActor*> TmpEnemies;
+	TSet<AActor*> TmpOverlapEnemies;
+	TSet<AActor*> DamageEnemies;
+	TSet<AActor*> TmpDamageEnemies;
 
 	//ライトの色を保持する変数
 	EFlashlight_Color Flashlight_Color;
