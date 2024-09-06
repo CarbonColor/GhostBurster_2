@@ -9,6 +9,7 @@
 #include "TitleEnemy_Green.h"
 #include "TitleEnemy_Red.h"
 #include "TitleEnemy_Blue.h"
+#include "Player/TreasureBox.h"
 #include "Player/VRPlayerCharacter.h"
 #include "Sound/SoundCue.h"
 #include "TitleEventManager.generated.h"
@@ -106,6 +107,8 @@ public:
     //SE
     UPROPERTY(EditAnywhere, Category = "SE")
         TObjectPtr<USoundCue> PhaseClearSound;
+    UPROPERTY(EditAnywhere, Category = "SE")
+        TObjectPtr<USoundCue> EnemySpawnSound;
 
 
 private:
@@ -133,7 +136,15 @@ private:
     TSubclassOf<ATitleEnemy_Blue> BlueEnemyClass;
 
     UPROPERTY(EditDefaultsOnly, Category = "Treasure")
-    TSubclassOf<AActor> TreasureBox;
+    TObjectPtr<UClass> TreasureBox;
+
+    UPROPERTY()
+    TObjectPtr<ATreasureBox> Box1;
+    UPROPERTY()
+    TObjectPtr<ATreasureBox> Box2;
+
+    UPROPERTY()
+    TObjectPtr<AVRPlayerCharacter> Player;
 
     //４つ目のイベントのタイマー制御
     FTimerHandle StartFourthEventHandle;
