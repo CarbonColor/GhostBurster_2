@@ -11,12 +11,19 @@ ATitleEventManager::ATitleEventManager()
 	PrimaryActorTick.bCanEverTick = true;
 	EnemyCount = 0;
 	EventNumber = 1;
+
+	//宝箱のクラス取得
+	TreasureBox = LoadObject<UClass>(nullptr, TEXT("/Game/_TeamFolder/Player/Blueprint/BP_TreasureBox.BP_TreasureBox_C"));
+
 }
 
 // Called when the game starts or when spawned
 void ATitleEventManager::BeginPlay()
 {
 	Super::BeginPlay();
+
+	//プレイヤーの取得
+	Player = Cast<AVRPlayerCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
 
 }
 
@@ -111,6 +118,13 @@ void ATitleEventManager::FirstEvent()
 	GetWorld()->SpawnActor<ATitleEnemy_Blue>(BlueEnemyClass, First_Blue_Location, FRotator::ZeroRotator);
 
 	EnemyCount = 4;
+
+	//SEの再生
+	if (EnemySpawnSound)
+	{
+		UGameplayStatics::PlaySound2D(this, EnemySpawnSound);
+	}
+
 }
 
 void ATitleEventManager::SecondEvent()
@@ -130,6 +144,18 @@ void ATitleEventManager::SecondEvent()
 
 	//アイテム使用状況の初期化
 	bIsUseAttackItem = false;
+
+	//SEの再生
+	if (EnemySpawnSound)
+	{
+		UGameplayStatics::PlaySound2D(this, EnemySpawnSound);
+	}
+
+	for (int i = 0; i < 3; ++i)
+	{
+		Player->AddItem();
+	}
+
 }
 
 void ATitleEventManager::ThirdEvent()
@@ -142,12 +168,18 @@ void ATitleEventManager::ThirdEvent()
 	EnemyCount = 1;
 
 	//宝箱の生成
-	GetWorld()->SpawnActor<AActor>(TreasureBox, Third_Treasure_Location1, FRotator::ZeroRotator);
-	GetWorld()->SpawnActor<AActor>(TreasureBox, Third_Treasure_Location2, FRotator::ZeroRotator);
-
+	Box1 = GetWorld()->SpawnActor<ATreasureBox>(TreasureBox, Third_Treasure_Location1, FRotator::ZeroRotator);
+	Box2 = GetWorld()->SpawnActor<ATreasureBox>(TreasureBox, Third_Treasure_Location2, FRotator::ZeroRotator);
 
 	//アイテム使用状況の初期化
 	bIsUseBuffItem = false;
+
+	//SEの再生
+	if (EnemySpawnSound)
+	{
+		UGameplayStatics::PlaySound2D(this, EnemySpawnSound);
+	}
+
 }
 
 void ATitleEventManager::FourthEvent()
@@ -156,12 +188,15 @@ void ATitleEventManager::FourthEvent()
 	GetWorld()->GetTimerManager().SetTimer(StartFourthEventHandle, this, &ATitleEventManager::StartFourthEvent, 1.5f, false);
 	GetWorld()->GetTimerManager().SetTimer(EndFourthEventHandle, this, &ATitleEventManager::EndFourthEvent, 4.5f, false);
 
+	//宝箱を消す
+	Box1->Destroy();
+	Box2->Destroy();
+
 }
 void ATitleEventManager::StartFourthEvent()
 {
 	GetWorld()->GetTimerManager().ClearTimer(StartFourthEventHandle);
 	//余ったアイテムをスコアに変換
-	AVRPlayerCharacter* Player = Cast<AVRPlayerCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
 	Player->ChangeScore();
 }
 void ATitleEventManager::EndFourthEvent()
