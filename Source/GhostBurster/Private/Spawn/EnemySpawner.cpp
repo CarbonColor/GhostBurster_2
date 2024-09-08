@@ -16,8 +16,9 @@ DEFINE_LOG_CATEGORY_STATIC(LogEnemySpawner, Log, All);
 AEnemySpawner::AEnemySpawner()
 {
     PrimaryActorTick.bCanEverTick = true;
-    EnemyCount = 0;
     Tags.Add(FName("Spawner"));
+
+    MaxStageNumber = 6 + 1;
 }
 
 void AEnemySpawner::BeginPlay()
@@ -26,6 +27,15 @@ void AEnemySpawner::BeginPlay()
 
     //スプラインの取得
     PlayerSpline = Cast<APlayerSplinePath>(UGameplayStatics::GetActorOfClass(GetWorld(), APlayerSplinePath::StaticClass()));
+    //プレイヤーの取得
+    Player = Cast<AVRPlayerCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
+
+    //敵の数の初期化
+    WaveEnemyCount.SetNum(MaxStageNumber);
+    for (int i = 0; i < MaxStageNumber; ++i)
+    {
+        WaveEnemyCount[i] = 0;
+    }
 
     // 旧スポーンデータ
     //FString FilePath = FPaths::ProjectContentDir() + TEXT("_TeamFolder/map/enemy_spawn_data.csv");
@@ -76,6 +86,8 @@ TArray<FEnemySpawnInfo> AEnemySpawner::ParseCSV_SpawnData(const FString& FilePat
             FEnemySpawnInfo SpawnInfo;
             //出現するステージ番号
             SpawnInfo.Wave = FCString::Atoi(*Values[0]);
+            WaveEnemyCount[SpawnInfo.Wave]++;
+
             //出現する敵の種類
             SpawnInfo.Type = Values[1];
             //出現する座標
@@ -95,6 +107,10 @@ TArray<FEnemySpawnInfo> AEnemySpawner::ParseCSV_SpawnData(const FString& FilePat
             SpawnInfo.EnemyHP = FCString::Atoi(*Values[9]);
             //敵の移動が終わってから攻撃するまでの時間
             SpawnInfo.AttackTime = FCString::Atoi(*Values[10]);
+            //生成にかかる時間
+            SpawnInfo.DelayTime = FCString::Atof(*Values[11]);
+            //最後の敵かどうか
+            SpawnInfo.LastEnemy = FStringToBool(Values[12]);
             //以下、必要に応じて追加
 
 
@@ -103,7 +119,30 @@ TArray<FEnemySpawnInfo> AEnemySpawner::ParseCSV_SpawnData(const FString& FilePat
         }
     }
 
+    ////デバッグ
+    //for (int i = 1; i < MaxStageNumber; ++i)
+    //{
+    //    GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Blue, this->GetName());
+    //    GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Yellow, FString::Printf(TEXT("SpawnEnemyCount:%d -Stage %d- "), WaveEnemyCount[i], i));
+    //}
+
+
     return ParsedSpawnInfoArray;
+}
+bool AEnemySpawner::FStringToBool(const FString& String) const
+{
+    if (String.Equals("TRUE", ESearchCase::IgnoreCase))
+    {
+        //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Yellow, TEXT("Return True"));
+        return true;
+    }
+    else if (String.Equals("FALSE", ESearchCase::IgnoreCase))
+    {
+        //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Blue, TEXT("Return False"));
+        return false;
+    }
+
+    return false;
 }
 
 TArray<int32> AEnemySpawner::ParseCSV_StageTime(const FString& FilePath) const
@@ -135,9 +174,9 @@ TArray<int32> AEnemySpawner::ParseCSV_StageTime(const FString& FilePath) const
     return ParsedStageTimer;
 }
 
-void AEnemySpawner::LogCurrentEnemyCount() const
+void AEnemySpawner::LogCurrentEnemyCount(const int32& Wave) const
 {
-    UE_LOG(LogEnemySpawner, Warning, TEXT("Current EnemyCount: %d"), EnemyCount);
+    UE_LOG(LogEnemySpawner, Warning, TEXT("Current EnemyCount: %d"), WaveEnemyCount[Wave]);
 }
 
 void AEnemySpawner::LogAttemptingToSpawn(const FString& EnemyType, const FVector& Location) const
@@ -196,74 +235,114 @@ void AEnemySpawner::SpawnEnemiesForWave(int32 Wave)
     //LoadSpawnInfoFromCSV(FPaths::ProjectContentDir() + TEXT("_TeamFolder/map/enemy_spawn_data.csv"));
     //LogSpawnInfoArray();
 
+    //前のステージの敵をすべて消す
+    if (SpawnEnemies.Num() != 0)
+    {
+        for (int i = SpawnEnemies.Num() - 1; i >= 0; --i)
+        {
+            SpawnEnemies[i]->Destroy();
+        }
+        if (SpawnEnemies.Num() == 0)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Yellow, TEXT("All Enemy Destroy"));
+        }
+    }
+
+    //遅延用タイマーハンドルのサイズ調整
+    EnemyTimerHandles.SetNum(WaveEnemyCount[Wave]);
+    int32 TimerIndex = 0;
+
     //敵の生成
     for (const FEnemySpawnInfo& SpawnInfo : SpawnInfoArray)
     {
+        //同じウェーブ数なら
         if (SpawnInfo.Wave == Wave)
         {
-            EnemyCount += 1;
-            LogCurrentEnemyCount();
-            LogAttemptingToSpawn(SpawnInfo.Type, SpawnInfo.StartLocation);
-
-            TSubclassOf<AActor> EnemyClass = nullptr;
-
-            if (SpawnInfo.Type == "White")
+            if (SpawnInfo.DelayTime != 0)
             {
-                EnemyClass = ANormalEnemy::StaticClass();
-            }
-            else if (SpawnInfo.Type == "Green")
-            {
-                EnemyClass = AGreenEnemy::StaticClass();
-            }
-            else if (SpawnInfo.Type == "Red")
-            {
-                EnemyClass = ARedEnemy::StaticClass();
-            }
-            else if (SpawnInfo.Type == "Blue")
-            {
-                EnemyClass = ABlueEnemy::StaticClass();
-            }
-            else if (SpawnInfo.Type == "Boss")
-            {
-                EnemyClass = ABossEnemy::StaticClass();
-            }
-
-            if (EnemyClass)
-            {
-                UE_LOG(LogEnemySpawner, Warning, TEXT("Spawning enemy class: %s"), *EnemyClass->GetName());
-
-                //敵の出現
-                AActor* SpawnedEnemy = GetWorld()->SpawnActor<AActor>(EnemyClass, GetActorLocation() + SpawnInfo.StartLocation, FRotator::ZeroRotator);
-                //出現した敵のステータス設定
-                if (AEnemys* Enemy = Cast<AEnemys>(SpawnedEnemy))
-                {
-                    Enemy->SetInitialData(SpawnInfo.EnemyHP, SpawnInfo.AttackTime, SpawnInfo.GoalLocation, SpawnInfo.MoveTime);
-                    //Enemy->SetHP(SpawnInfo.EnemyHP);
-                    //Enemy->SetGoalLocation(SpawnInfo.GoalLocation);
-                    //Enemy->SetMoveTime(SpawnInfo.MoveTime);
-                    //Enemy->SetAttackUpToTime(SpawnInfo.AttackTime);
-                }
-
-                if (SpawnedEnemy)
-                {
-                    LogSpawnedEnemy(SpawnInfo.Type, SpawnInfo.StartLocation);
-                }
-                else
-                {
-                    LogFailedSpawn(SpawnInfo.Type, SpawnInfo.StartLocation);
-                }
+                //タイマーをセット
+                GetWorld()->GetTimerManager().SetTimer(
+                    EnemyTimerHandles[TimerIndex],
+                    [this, SpawnInfo]() {SpawnEnemy(SpawnInfo); },
+                    SpawnInfo.DelayTime,
+                    false
+                );
+                //インデックスを進める
+                TimerIndex++;
             }
             else
             {
-                LogEnemyClassNotFound(SpawnInfo.Type);
+                SpawnEnemy(SpawnInfo);
             }
+            LogCurrentEnemyCount(Wave);
+            LogAttemptingToSpawn(SpawnInfo.Type, SpawnInfo.StartLocation);
         }
     }
-    // タイマーの設定
-    if (WaveTime.Num() != 0 && WaveTime[Wave - 1] != -1)
+}
+void AEnemySpawner::SpawnEnemy(const FEnemySpawnInfo& SpawnInfo)
+{
+    TSubclassOf<AActor> EnemyClass = nullptr;
+
+    if (SpawnInfo.Type == "White")
     {
-        GetWorld()->GetTimerManager().SetTimer(WaveTimerHandle, this, &AEnemySpawner::HandleEnemyCountZero, WaveTime[Wave - 1], false);
-        GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, FString::Printf(TEXT("Setting Timer : %d second"), WaveTime[Wave - 1]));
+        EnemyClass = ANormalEnemy::StaticClass();
+    }
+    else if (SpawnInfo.Type == "Green")
+    {
+        EnemyClass = AGreenEnemy::StaticClass();
+    }
+    else if (SpawnInfo.Type == "Red")
+    {
+        EnemyClass = ARedEnemy::StaticClass();
+    }
+    else if (SpawnInfo.Type == "Blue")
+    {
+        EnemyClass = ABlueEnemy::StaticClass();
+    }
+    else if (SpawnInfo.Type == "Boss")
+    {
+        EnemyClass = ABossEnemy::StaticClass();
+    }
+
+    if (EnemyClass)
+    {
+        UE_LOG(LogEnemySpawner, Warning, TEXT("Spawning enemy class: %s"), *EnemyClass->GetName());
+
+        //敵の出現
+        AActor* SpawnedEnemy = GetWorld()->SpawnActor<AActor>(EnemyClass, GetActorLocation() + SpawnInfo.StartLocation, FRotator::ZeroRotator);
+        //出現した敵のステータス設定
+        if (AEnemys* Enemy = Cast<AEnemys>(SpawnedEnemy))
+        {
+            Enemy->SetInitialData(SpawnInfo.EnemyHP, SpawnInfo.AttackTime, SpawnInfo.GoalLocation, SpawnInfo.MoveTime);
+            //Enemy->SetHP(SpawnInfo.EnemyHP);
+            //Enemy->SetGoalLocation(SpawnInfo.GoalLocation);
+            //Enemy->SetMoveTime(SpawnInfo.MoveTime);
+            //Enemy->SetAttackUpToTime(SpawnInfo.AttackTime);
+
+            SpawnEnemies.Add(Enemy);
+        }
+
+        if (SpawnedEnemy)
+        {
+            LogSpawnedEnemy(SpawnInfo.Type, SpawnInfo.StartLocation);
+        }
+        else
+        {
+            LogFailedSpawn(SpawnInfo.Type, SpawnInfo.StartLocation);
+        }
+    }
+    else
+    {
+        LogEnemyClassNotFound(SpawnInfo.Type);
+    }
+    // 最後の敵だったらステージタイマーの設定
+    if (SpawnInfo.LastEnemy)
+    {
+        if (WaveTime.Num() != 0 && WaveTime[SpawnInfo.Wave - 1] != -1)
+        {
+            GetWorld()->GetTimerManager().SetTimer(WaveTimerHandle, this, &AEnemySpawner::HandleEnemyCountZero, WaveTime[SpawnInfo.Wave - 1], false);
+            GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, FString::Printf(TEXT("Setting Timer : %d second"), WaveTime[SpawnInfo.Wave - 1]));
+        }
     }
 }
 
@@ -273,10 +352,11 @@ void AEnemySpawner::EnemyDeadFunction()
 
     if (PlayerSpline->IsMoving() == false)
     {
-        EnemyCount--;
-        LogCurrentEnemyCount();
+        int32 Wave = Player->GetStageNumber();
+        WaveEnemyCount[Wave]--;
+        LogCurrentEnemyCount(Wave);
 
-        if (EnemyCount == 0)
+        if (WaveEnemyCount[Wave] == 0)
         {
             HandleEnemyCountZero();
         }
@@ -287,38 +367,15 @@ void AEnemySpawner::HandleEnemyCountZero()
 {
     GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Yellow, TEXT("Call Handle -EnemyZero-"));
 
-    EnemyCount = 0;
     if (PlayerSpline)
     {
         UFunction* StartMovementFunction = PlayerSpline->FindFunction(TEXT("StartMovement"));
         if (StartMovementFunction)
         {
             PlayerSpline->ProcessEvent(StartMovementFunction, nullptr);
-            AVRPlayerCharacter* Player = Cast<AVRPlayerCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(),0));
             Player->NextStage();
         }
     }
     // タイマーをクリア
     GetWorld()->GetTimerManager().ClearTimer(WaveTimerHandle);
-
-    //TArray<AActor*> OverlappingActors;
-    //if (PlayerActor)
-    //{
-    //    PlayerActor->GetOverlappingActors(OverlappingActors);
-
-    //    for (AActor* Actor : OverlappingActors)
-    //    {
-    //        if (Actor)
-    //        {
-    //            Actor->Destroy();
-    //        }
-    //    }
-    //}
-
-
-}
-
-AActor* AEnemySpawner::GetPlayerActor() const
-{
-    return GetWorld() ? GetWorld()->GetFirstPlayerController()->GetPawn() : nullptr;
 }

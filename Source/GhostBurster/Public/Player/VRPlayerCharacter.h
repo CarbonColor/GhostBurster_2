@@ -102,6 +102,10 @@ public:
 	UPROPERTY(EditAnyWhere, BlueprintReadOnly, Category = "Mesh")
 		TObjectPtr<UStaticMeshComponent> FlashlightMesh;
 
+	//狐の霊のメッシュ
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Blueprint")
+		TSubclassOf<AActor> FoxGhostModel;
+
 	//プレイヤーのコリジョン(キューブ型)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Collision")
 		TObjectPtr<UBoxComponent> PlayerCollision;
@@ -286,6 +290,11 @@ private:
 	//アイテムのクールタイム処理
 	UFUNCTION()
 		void ItemCoolTimeFunction();
+
+	//攻撃アイテムのタイマーハンドル
+	FTimerHandle AttackItemTimeHandle;
+	UFUNCTION()
+		void AttackItemFunction();
 
 	//ライトの操作を受け付けているかどうか
 	bool bCanToggleLight;
