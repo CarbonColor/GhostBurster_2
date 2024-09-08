@@ -541,7 +541,7 @@ void AVRPlayerCharacter::CheckUsedItem(const TArray<int32> value)
 //アイテム使用メソッド
 void AVRPlayerCharacter::UseItem_Attack()
 {
-    if (ScoreInstance->GetPlayerItemCount() <= 0)
+    if (bCanUseItem == false || ScoreInstance->GetPlayerItemCount() <= 0)
     {
         return;
     }
@@ -549,8 +549,32 @@ void AVRPlayerCharacter::UseItem_Attack()
     //デバッグ
     GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Used Item ( Enemy Damage )"));
 
-    //狐のモデルの出現
 
+    //狐のモデルの出現
+    if (FoxGhostModel)
+    {
+        FActorSpawnParameters SpawnParams;
+        FVector PlayerLocation = GetActorLocation();
+        FRotator PlayerRotation = GetActorRotation();
+
+        // プレイヤーの前方に100ユニット、左方向に100ユニットずらした位置を計算
+        FVector ForwardVector = PlayerRotation.Vector();  // プレイヤーの前方方向
+        FVector RightVector = FRotationMatrix(PlayerRotation).GetUnitAxis(EAxis::Y); // プレイヤーの右方向
+        //生成座標の設定
+        FVector SpawnLocation = PlayerLocation + ForwardVector * 100.0f - RightVector * 100.0f;
+        SpawnLocation.Z = 0;
+        FRotator SpawnRotation = PlayerRotation + FRotator(0.0f, -90.0f, 0.0f);
+        // Fox_BPをワールドに生成
+        AActor* SpawnedFox = GetWorld()->SpawnActor<AActor>(FoxGhostModel, SpawnLocation, SpawnRotation, SpawnParams);
+    }
+
+    GetWorld()->GetTimerManager().SetTimer(AttackItemTimeHandle, this, &AVRPlayerCharacter::AttackItemFunction, 1.0f, false);
+    //遅延中に再度使われたら困るので
+    bCanUseItem = true;
+
+}
+void AVRPlayerCharacter::AttackItemFunction()
+{
     //SEを鳴らす
     if (UseAttackItemSound)
     {
@@ -580,7 +604,7 @@ void AVRPlayerCharacter::UseItem_Attack()
         }
     }
     //タイトル画面での処理
-    else if(LevelName == "Title")
+    else if (LevelName == "Title")
     {
         TArray<AActor*> TitleEnemies;
         UGameplayStatics::GetAllActorsOfClass(GetWorld(), ATitleEnemy::StaticClass(), TitleEnemies);
@@ -601,7 +625,7 @@ void AVRPlayerCharacter::UseItem_Attack()
         GEngine->AddOnScreenDebugMessage(-1, 0.5f, FColor::Red, TEXT("Not Any Level !"));
     }
 
-    
+
     //タイトル画面での処理
     ATitleEventManager* EventManager = Cast<ATitleEventManager>(UGameplayStatics::GetActorOfClass(GetWorld(), ATitleEventManager::StaticClass()));
     if (EventManager)
@@ -611,15 +635,16 @@ void AVRPlayerCharacter::UseItem_Attack()
     //アイテム使用処理（クールタイムや所有数減少など）
     UseItem();
 }
+
 void AVRPlayerCharacter::UseItem_Buff()
 {
-    if (ScoreInstance->GetPlayerItemCount() <= 0)
+    if (bCanUseItem == false || ScoreInstance->GetPlayerItemCount() <= 0)
     {
         return;
     }
 
     //デバッグ
-    GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Used Item ( Light Enhanced )"));
+    //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Used Item ( Light Enhanced )"));
 
     //SEを鳴らす
     if (UseBuffItemSound)
@@ -628,7 +653,7 @@ void AVRPlayerCharacter::UseItem_Buff()
     }
     else
     {
-        GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Silver, TEXT("Not SoundEffect ! -UseBuffItemSound-"));
+        //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Silver, TEXT("Not SoundEffect ! -UseBuffItemSound-"));
     }
 
     //ライトのバッテリー時間を増加
@@ -671,7 +696,7 @@ void AVRPlayerCharacter::ItemCoolTimeFunction()
     // タイマーをクリア
     GetWorld()->GetTimerManager().ClearTimer(ItemCoolTimeHandle);
 
-    GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("You Can Use Item"));
+    //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("You Can Use Item"));
 
 }
 
@@ -704,8 +729,8 @@ void AVRPlayerCharacter::OnConeBeginOverlap(UPrimitiveComponent* OverlappedComp,
         if (HitResult.GetActor() == Enemy)
         {
             OverlappingEnemies.Add(OtherActor);
-            FString Debug = "Overlap (" + OtherActor->GetName() + ")";
-            GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, Debug);
+            //FString Debug = "Overlap (" + OtherActor->GetName() + ")";
+            //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, Debug);
         }
     }
     //チュートリアル用の敵に関する当たり判定処理
@@ -742,9 +767,8 @@ FHitResult AVRPlayerCharacter::CheckHitEnemy(AActor* OtherActor)
     CollisionParams.AddIgnoredActor(this);
     if (OtherActor->ActorHasTag("IgnoreActor"))
     {
-        FString Debug = "Ignoring Actor with Tag (" + OtherActor->GetName() + ")";
-        // Debug message to confirm tag presence
-        GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, Debug);
+        //FString Debug = "Ignoring Actor with Tag (" + OtherActor->GetName() + ")";
+        //GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, Debug);
         CollisionParams.AddIgnoredActor(OtherActor);
     }
 
@@ -817,7 +841,7 @@ void AVRPlayerCharacter::RecievePlayerDamage()
         bIsDamageNow = true;
         //無敵時間の設定 (3秒後に無敵状態を解除)
         GetWorld()->GetTimerManager().SetTimer(NoDamageTimerHandle, this, &AVRPlayerCharacter::NoDamageFunction, 3.0f, false);
-        GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Player damage !"));
+        //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Player damage !"));
         //デバイスを振動させる
         StartHaptic_PlayerDamage();
         GloveDeviceVibration_Damage();
@@ -833,7 +857,7 @@ void AVRPlayerCharacter::RecievePlayerDamage()
     }
     else
     {
-        GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Player takes no damage !"));
+        //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Player takes no damage !"));
     }
 }
 //無敵時間のメソッド
