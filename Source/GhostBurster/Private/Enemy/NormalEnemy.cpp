@@ -12,24 +12,24 @@ ANormalEnemy::ANormalEnemy()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	//☆シーンコンポーネント----------------------------------------------------------------------------------------------------
+	//シーンコンポーネント------------------------------------------------------------------------------------------------------
 	//シーンコンポーネントの作成
 	DefaultSceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
 	//シーンコンポーネントをルートコンポーネントに設定
 	RootComponent = DefaultSceneRoot;
 
-	//☆スタティックメッシュコンポーネント---------------------------------------------------------------------------------------
+	//スタティックメッシュコンポーネント----------------------------------------------------------------------------------------
 	//スタティックメッシュコンポーネントの作成
 	GhostMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Ghost"));
 	//スタティックメッシュをロードしてスタティックメッシュコンポーネントのスタティックメッシュに設定する
 	UStaticMesh* GMesh = LoadObject<UStaticMesh>(NULL, TEXT("/Engine/BasicShapes/Sphere"), NULL, LOAD_None, NULL);
 	GhostMesh->SetStaticMesh(GMesh);
-	//スタティックメッシュコンポーネントをRootComponentにアタッチする
+	//スタティックメッシュコンポーネントをルートコンポーネントにアタッチする
 	GhostMesh->SetupAttachment(RootComponent);
 	//スタティックメッシュのコリジョンを無くす
 	GhostMesh->SetCollisionProfileName("NoCollision");
 
-	//☆コリジョン---------------------------------------------------------------------------------------------------------------
+	//コリジョン-----------------------------------------------------------------------------------------------------------------
 	//スフィアコリジョンの作成
 	GhostCollision = CreateDefaultSubobject<USphereComponent>(TEXT("GhostCollision"));
 	//GhostCollisionをルートコンポーネントにアタッチする
@@ -37,9 +37,15 @@ ANormalEnemy::ANormalEnemy()
 	//GhostCollisionのコリジョンプリセットをOverlapAllDynamicにする
 	GhostCollision->SetCollisionProfileName("OverlapAllDynamic");
 
-	//☆サウンド-----------------------------------------------------------------------------------------------------------------
-	AppearSound = LoadObject<USoundCue>(nullptr, TEXT("/Game/_TeamFolder/Sound/SE/SE_GhostAppear_Cue"));	//出現時の音設定
-	DisappearSound = LoadObject<USoundCue>(nullptr, TEXT("/Game/_TeamFolder/Sound/SE/SE_GhostDead_Cue"));	//消滅時の音設定
+	//スプラインコンポーネント---------------------------------------------------------------------------------------------------
+	//スプラインコンポーネントの作成
+	SplineComponent = CreateDefaultSubobject<USplineComponent>(TEXT("EnemySplineComponent"));
+	//スプラインコンポーネントをルートコンポーネントにアタッチする
+	SplineComponent->SetupAttachment(RootComponent);
+
+	//サウンド-------------------------------------------------------------------------------------------------------------------
+	AppearSound = LoadObject<USoundCue>(nullptr, TEXT("/Game/_TeamFolder/Sound/SE/SE_GhostAppear_2_Cue"));	//出現時の音設定
+	DisappearSound = LoadObject<USoundCue>(nullptr, TEXT("/Game/_TeamFolder/Sound/SE/SE_GhostDead_2_Cue"));	//消滅時の音設定
 
 }
 
@@ -132,7 +138,7 @@ void ANormalEnemy::ActProcess()
 		//状態Move遷移時にのみ行う処理
 		if (this->bShouldBeenProcessWhenFirstStateTransition == false)
 		{
-			this->bShouldBeenProcessWhenFirstStateTransition = ProcessJustForFirst_Move();
+			ProcessJustForFirst_Move();
 		}
 
 		//移動処理(移動処理が終わったら状態遷移する)
@@ -177,31 +183,37 @@ bool ANormalEnemy::CheckPlayerLightColor(EFlashlight_Color PlayerColor) const
 }
 
 //状態Move遷移時にのみ行う処理
-bool ANormalEnemy::ProcessJustForFirst_Move()
+void ANormalEnemy::ProcessJustForFirst_Move()
 {
-	//ゼロクリアする
-	this->TraveledDistance = 0.f;
+	//スプラインの設定
+	if (SplineComponent)	// スプラインが格納されていたら
+	{
+		//スプラインの開始地点設定(現在の敵の位置)
+		FVector StartLocation = GetActorLocation();
 
-	// 初期位置の設定
-	this->CurrentLocation = GetActorLocation();
 
-	// 目標座標の設定
-	/*もし移動が複数回行われるようになった時、外部ファイルから読み込んで設定*/
+	}
 
-	// ワールド座標への変換
-	this->GoalLocation_World = this->CurrentLocation + this->GoalLocation;
+	////ゼロクリアする
+	//this->TraveledDistance = 0.f;
 
-	// 方向ベクトルの計算
-	this->Direction = (this->GoalLocation_World - this->CurrentLocation).GetSafeNormal();
+	////初期位置の設定
+	//this->CurrentLocation = GetActorLocation();
 
-	// 総移動距離の計算
-	this->TotalDistance = FVector::Dist(this->CurrentLocation, this->GoalLocation_World);
+	////ワールド座標への変換
+	//this->GoalLocation_World = this->CurrentLocation + this->GoalLocation;
 
-	// 目的地に着くまでの時間に合うように速度を計算
-	this->Speed = this->TotalDistance / this->MoveTime;
+	////方向ベクトルの計算
+	//this->Direction = (this->GoalLocation_World - this->CurrentLocation).GetSafeNormal();
 
-	// 処理が終わったらtrueを返す
-	return true;
+	////総移動距離の計算
+	//this->TotalDistance = FVector::Dist(this->CurrentLocation, this->GoalLocation_World);
+
+	////目的地に着くまでの時間に合うように速度を計算
+	//this->Speed = this->TotalDistance / this->MoveTime;
+
+	//複数回処理が行われないようにする
+	this->bShouldBeenProcessWhenFirstStateTransition = true;
 }
 
 //移動処理
@@ -210,41 +222,41 @@ bool ANormalEnemy::Move()
 	//DeltaTimeの取得
 	float DeltaTime = GetWorld()->GetDeltaSeconds();
 
-	//目的地までの残り距離を計算
-	float RemainingDistance = TotalDistance - TraveledDistance;
+	////目的地までの残り距離を計算
+	//float RemainingDistance = TotalDistance - TraveledDistance;
 
-	//現在の速度での移動距離を計算
-	float DeltaDistance = Speed * DeltaTime;
+	////現在の速度での移動距離を計算
+	//float DeltaDistance = Speed * DeltaTime;
 
-	//目的地に近づきすぎたら、残りの距離だけ進むように調整
-	if (DeltaDistance >= RemainingDistance)
-	{
-		DeltaDistance = RemainingDistance;
-		TraveledDistance = TotalDistance;
-	}
-	else
-	{
-		TraveledDistance += DeltaDistance;
-	}
+	////目的地に近づきすぎたら、残りの距離だけ進むように調整
+	//if (DeltaDistance >= RemainingDistance)
+	//{
+	//	DeltaDistance = RemainingDistance;
+	//	TraveledDistance = TotalDistance;
+	//}
+	//else
+	//{
+	//	TraveledDistance += DeltaDistance;
+	//}
 
-	//正弦波に基づいてオフセットを計算(目的地に瞬間移動して着かないように調整する計算)
-	float Offset_Z = Amplitude * FMath::Sin(2.0f * PI * (TraveledDistance / TotalDistance));
+	////正弦波に基づいてオフセットを計算(目的地に瞬間移動して着かないように調整する計算)
+	//float Offset_Z = Amplitude * FMath::Sin(2.0f * PI * (TraveledDistance / TotalDistance));
 
-	// 新しい位置を計算
-	FVector NewLocation = CurrentLocation + (Direction * TraveledDistance);
-	NewLocation.Z += Offset_Z;
+	//// 新しい位置を計算
+	//FVector NewLocation = CurrentLocation + (Direction * TraveledDistance);
+	//NewLocation.Z += Offset_Z;
 
-	// 新しい位置に移動
-	SetActorLocation(NewLocation);
+	//// 新しい位置に移動
+	//SetActorLocation(NewLocation);
 
-	// 目的地に到達したら処理を終了
-	if (TraveledDistance >= TotalDistance)
-	{
-		SetActorLocation(this->GoalLocation_World);
+	//// 目的地に到達したら処理を終了
+	//if (TraveledDistance >= TotalDistance)
+	//{
+	//	SetActorLocation(this->GoalLocation_World);
 
-		//状態遷移できるようにする
-		return true;
-	}
+	//	//状態遷移できるようにする
+	//	return true;
+	//}
 
 	return false;
 }

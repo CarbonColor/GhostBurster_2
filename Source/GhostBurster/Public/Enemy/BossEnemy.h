@@ -26,8 +26,8 @@ class GHOSTBURSTER_API ABossEnemy : public AEnemys
 	virtual void ActProcess() override;
 
 	//移動関係
-	virtual bool ProcessJustForFirst_Move() { return false; } // 状態Move遷移時にのみ行う処理
-	virtual bool Move() { return false; } // 移動
+	virtual void ProcessJustForFirst_Move() override {} // 状態Move遷移時にのみ行う処理
+	virtual bool Move() override { return false; }		// 移動
 
 	//出現関係---------------------------------------------------------------------------------------------------------------------
 	virtual void ProcessJustForFirst_Appear() override {}	// 状態：Appearで最初に一度だけ行う処理

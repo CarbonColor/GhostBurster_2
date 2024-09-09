@@ -36,8 +36,8 @@ ARedEnemy::ARedEnemy()
 	GhostCollision->SetCollisionProfileName("OverlapAllDynamic");
 
 	//☆サウンド-----------------------------------------------------------------------------------------------------------------
-	AppearSound = LoadObject<USoundCue>(nullptr, TEXT("/Game/_TeamFolder/Sound/SE/SE_GhostAppear_Cue"));	//出現時の音設定
-	DisappearSound = LoadObject<USoundCue>(nullptr, TEXT("/Game/_TeamFolder/Sound/SE/SE_GhostDead_Cue"));	//消滅時の音設定
+	AppearSound = LoadObject<USoundCue>(nullptr, TEXT("/Game/_TeamFolder/Sound/SE/SE_GhostAppear_2_Cue"));	//出現時の音設定
+	DisappearSound = LoadObject<USoundCue>(nullptr, TEXT("/Game/_TeamFolder/Sound/SE/SE_GhostDead_2_Cue"));	//消滅時の音設定
 }
 
 void ARedEnemy::BeginPlay()
@@ -126,7 +126,7 @@ void ARedEnemy::ActProcess()
 		//状態Move遷移時にのみ行う処理
 		if (this->bShouldBeenProcessWhenFirstStateTransition == false)
 		{
-			this->bShouldBeenProcessWhenFirstStateTransition = ProcessJustForFirst_Move();
+			ProcessJustForFirst_Move();
 		}
 
 		//移動処理(移動処理が終わったら状態遷移する)
@@ -171,7 +171,7 @@ bool ARedEnemy::CheckPlayerLightColor(EFlashlight_Color PlayerColor) const
 }
 
 //状態Move遷移時にのみ行う処理
-bool ARedEnemy::ProcessJustForFirst_Move()
+void ARedEnemy::ProcessJustForFirst_Move()
 {
 	//ゼロクリアする
 	this->TraveledDistance = 0.f;
@@ -194,8 +194,8 @@ bool ARedEnemy::ProcessJustForFirst_Move()
 	// 目的地に着くまでの時間に合うように速度を計算
 	this->Speed = this->TotalDistance / this->MoveTime;
 
-	// 処理が終わったらtrueを返す
-	return true;
+	//複数回処理が行われないようにする
+	this->bShouldBeenProcessWhenFirstStateTransition = true;
 }
 
 //移動処理
