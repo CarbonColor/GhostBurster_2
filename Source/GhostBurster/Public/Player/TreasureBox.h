@@ -15,10 +15,10 @@ UENUM(BlueprintType)
 enum class ETreasureBoxDirection : uint8
 {
 	//列挙子を記述する
-	Y = 0	UMETA(DisplayName = "Y"),
-	X_ = 1	UMETA(DisplayName = "-X"),
-	Y_ = 2	UMETA(DisplayName = "-Y"),
-	X = 3	UMETA(DisplayName = "X")
+	Y = 0	UMETA(DisplayName = "Y (0)"),
+	X_ = 1	UMETA(DisplayName = "-X (90)"),
+	Y_ = 2	UMETA(DisplayName = "-Y (180)"),
+	X = 3	UMETA(DisplayName = "X (270)")
 };
 
 
@@ -65,12 +65,14 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	//蓋に攻撃を当てる関数
+	UFUNCTION(BlueprintCallable, Category = "Treasure")
+		void OpenChargeBox();
+
 	//蓋を開ける関数
 	UFUNCTION(BlueprintCallable, Category = "Treasure")
 		void OpenTreasureBox();
 
-	UFUNCTION(BlueprintCallable, Category = "Treasure")
-		bool IsOpenedTreasure();
 
 private:
 
@@ -83,10 +85,8 @@ private:
 	//蓋の初期角度
 	FRotator InitialCoverRotation;
 
-
 	//アイテムの座標プリセット
 	FVector ItemLocationPreset;
-
 
 	//すでに開けたかどうか
 	bool bIsOpened;
@@ -112,4 +112,6 @@ private:
 	UFUNCTION()
 		void OnTimelineFinished();
 
+	//宝箱の体力
+	int32 HP;
 };

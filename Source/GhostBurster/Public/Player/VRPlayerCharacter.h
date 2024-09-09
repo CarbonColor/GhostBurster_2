@@ -250,10 +250,12 @@ private:
 	TObjectPtr<APlayerSplinePath> SplinePathActor;
 
 	//ライト内(コーンのコリジョン)に入っているオバケを格納するリスト
-	TSet<AActor*> OverlappingEnemies;
-	TSet<AActor*> TmpOverlapEnemies;
-	TSet<AActor*> DamageEnemies;
-	TSet<AActor*> TmpDamageEnemies;
+	TArray<AActor*> OverlappingEnemies;
+	TArray<AActor*> TmpOverlapEnemies;
+	TArray<AActor*> DamageEnemies;
+	TArray<AActor*> TmpDamageEnemies;
+	//ライト内(コーンのコリジョン)に入っている宝箱を格納するリスト
+	TArray<AActor*> TreasureBoxes;
 
 	//ライトの色を保持する変数
 	EFlashlight_Color Flashlight_Color;

@@ -171,16 +171,16 @@ void AVRPlayerCharacter::BeginPlay()
         BatteryTime *= 2;
     }
     // バッテリー秒数の増加率設定
-    AddBatteryTime = 5;
+    AddBatteryTime = 3;
     // 最大値をセット
     MaxBattery = 60 * BatteryTime;
     // ライトの攻撃力設定
-    LightAttack = 1;
+    LightAttack = 10;
     // ライトの攻撃力増加率の設定
-    AddLightAttack = 2;
+    AddLightAttack = 1;
 
     // アイテムの攻撃力の設定
-    ItemAttack = 100;
+    ItemAttack = 1000;
     // アイテム使用のボーダー設定
     FingerBendingBorder = 350;
 
@@ -298,7 +298,6 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
             EnemyDamageSoundEffect->Stop();
         }
     }
-
     //ダメージを与える
     TmpDamageEnemies = DamageEnemies;
     for (AActor* Enemy : TmpDamageEnemies)
@@ -319,6 +318,21 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
         else
         {
             GEngine->AddOnScreenDebugMessage(-1, 0.5f, FColor::Red, TEXT("Not Any Level ! -Damage-"));
+        }
+    }
+
+    //宝箱に対する処理
+    for (int i = TreasureBoxes.Num() - 1; i >= 0; --i)
+    {
+        ATreasureBox* Box = Cast<ATreasureBox>(TreasureBoxes[i]);
+        if (!Box)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 0.2f, FColor::Red, TEXT("TreasureBox is Null"));
+            continue;
+        }
+        else
+        {
+            Box->OpenChargeBox();
         }
     }
 
@@ -718,11 +732,11 @@ void AVRPlayerCharacter::OnConeBeginOverlap(UPrimitiveComponent* OverlappedComp,
     //    //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Enemy is Overlapping"));
     //}
 
-    //壁貫通をなくす処理(β版)
+    //壁貫通をなくす処理
     //GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, FString::Printf(TEXT("Light BeginOverlap Called (%s)"), *OtherActor->GetActorNameOrLabel()));
     FHitResult HitResult = CheckHitEnemy(OtherActor);
 
-    // 接触したアクターがオバケかどうか判定する
+    //敵の当たり判定処理
     if (const AEnemys* Enemy = Cast<AEnemys>(OtherActor))
     {
         //間に壁がないかどうかを調べる
@@ -743,14 +757,12 @@ void AVRPlayerCharacter::OnConeBeginOverlap(UPrimitiveComponent* OverlappedComp,
             //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Enemy is Overlapping"));
         }
     }
+    //宝箱の当たり判定処理
     if (ATreasureBox* Treasure = Cast<ATreasureBox>(OtherActor))
     {
         if (HitResult.GetActor() == Treasure)
         {
-            if (Treasure->IsOpenedTreasure() == false)
-            {
-                Treasure->OpenTreasureBox();
-            }
+            TreasureBoxes.Add(OtherActor);
         }
     }
 
@@ -827,6 +839,10 @@ void AVRPlayerCharacter::OnConeEndOverlap(UPrimitiveComponent* OverlappedComp, A
     if (const ATitleEnemy* TitleEnemy = Cast<ATitleEnemy>(OtherActor))
     {
         OverlappingEnemies.Remove(OtherActor);
+    }
+    if (ATreasureBox* Treasure = Cast<ATreasureBox>(OtherActor))
+    {
+        TreasureBoxes.Remove(OtherActor);
     }
 }
 
