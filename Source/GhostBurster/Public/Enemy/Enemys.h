@@ -31,9 +31,10 @@ protected:
 	//ステータス
 	struct FStatus
 	{
-		FStatus() : HP(1) {}
+		FStatus() : HP(1), Speed(0.f) {}
 
-		int HP;	//ゴーストの体力
+		int		HP;		// ゴーストの体力
+		float	Speed;	// 目的地までの移動速度
 	};
 
 	//☆列挙型
@@ -111,21 +112,18 @@ protected:
 
 	//移動関係---------------------------------------------------------------------------------------------------------------------
 	//☆変数
-	float	MoveTime;			// ゴーストの移動にかかる時間(秒)
-	FVector CurrentLocation;	// 敵の現在の座標
-	FVector GoalLocation;		// 敵の移動先座標(ローカル座標)
-	FVector GoalLocation_World;	// 敵の移動先座標(ワールド座標)
-	bool	bHasEndedMoving;	// 移動が終了したか
-	FVector Direction;			// GoalLocationへ向かう単位ベクトル
-	float	TotalDistance;		// 開始位置から目的地までの直線距離
-	float	TraveledDistance;	// これまでに進んだ距離
-	float	Amplitude;			// 振幅
-	float	Frequency;			// 波の速さ
-	float	Speed;				// 目的地までの移動速度
+	//FVector CurrentLocation;	// 敵の現在の座標
+	//FVector GoalLocation;		// 敵の移動先座標(ローカル座標)
+	//FVector GoalLocation_World;	// 敵の移動先座標(ワールド座標)
+	//FVector Direction;			// GoalLocationへ向かう単位ベクトル
+	//float	TotalDistance;		// 開始位置から目的地までの直線距離
+	
+	//float	Amplitude;			// 振幅
+	//float	Frequency;			// 波の速さ
 
 	//☆関数
 	virtual void ProcessJustForFirst_Move() PURE_VIRTUAL(AEnemys::ProcessJustForFirst_Move, );	// 状態Move遷移時にのみ行う処理
-	virtual bool Move() PURE_VIRTUAL(AEnemys::Move, return false;);											// 移動処理
+	virtual bool Move() PURE_VIRTUAL(AEnemys::Move, return false;);								// 移動処理
 
 	//攻撃関係---------------------------------------------------------------------------------------------------------------------
 	//☆変数
@@ -149,10 +147,12 @@ protected:
 	virtual bool Appear() PURE_VIRTUAL(AEnemys::Appear, return false;);								// 敵出現処理
 
 	//移動関係(Spline使用)---------------------------------------------------------------------------------------------------------
-	float			NowEnemyLocation;		// 現在敵がいるスプライン上の位置
+	float			MoveTime;				// ゴーストの移動にかかる時間(秒)
+	float			TraveledDistance;		// これまでに進んだ距離
 	float			SplineLength;			// スプラインの全長
-	int				CountGotInMoveState;	// 移動状態になった回数のカウント(何回目の移動か)
-	TArray<FVector> GoalLocations;			// 敵の移動先座標(ローカル座標)
+	int				CountGotInMoveState;	// 移動状態になった回数のカウント(何回目の移動か、1回目を0とする)
+	TArray<FVector> GoalLocations;			// 敵の移動先座標(ローカル座標、向きは考慮しない)
+	bool			bHasEndedMoving;		// 移動が終了したか
 
 public:	
 	// Called every frame

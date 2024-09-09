@@ -21,8 +21,8 @@ AEnemys::AEnemys()
 	//ÉTÉEÉìÉhä÷åW
 	AppearSound(nullptr), DisappearSound(nullptr),
 	//à⁄ìÆä÷åW
-	MoveTime(1.f), CurrentLocation(FVector(0.f, 0.f, 0.f)), GoalLocation(FVector(0.f, 0.f, 0.f)), GoalLocation_World(FVector(0.f, 0.f, 0.f)), bHasEndedMoving(false),
-	Direction(FVector(0.f, 0.f, 0.f)), TotalDistance(0.f), TraveledDistance(0.f), Amplitude(40.f), Frequency(1.f), Speed(0.f), NowEnemyLocation(0.f), SplineLength(0.f), GoalLocations(),
+	/*CurrentLocation(FVector(0.f, 0.f, 0.f)), GoalLocation(FVector(0.f, 0.f, 0.f)), GoalLocation_World(FVector(0.f, 0.f, 0.f)), bHasEndedMoving(false), Direction(FVector(0.f, 0.f, 0.f)), TotalDistance(0.f), Amplitude(40.f), Frequency(1.f),*/
+	MoveTime(1.f), TraveledDistance(0.f), SplineLength(0.f), CountGotInMoveState(0), GoalLocations(), bHasEndedMoving(false),
 	//çUåÇä÷åW
 	bHasEndedAttack(false), AttackUpToTime(0.f),
 	//èoåªä÷åW

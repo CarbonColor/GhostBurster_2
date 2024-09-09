@@ -71,6 +71,8 @@ void ANormalEnemy::BeginPlay()
 		//初期オパシティ値を設定
 		this->DynamicMaterial->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
 	}
+
+	GoalLocations.Add(FVector(0.f, 50.f, 0.f));
 }
 
 // Called every frame
@@ -186,16 +188,41 @@ bool ANormalEnemy::CheckPlayerLightColor(EFlashlight_Color PlayerColor) const
 void ANormalEnemy::ProcessJustForFirst_Move()
 {
 	//スプラインの設定
-	if (SplineComponent)	// スプラインが格納されていたら
+	if (this->SplineComponent)	// スプラインが格納されていたら
 	{
-		//スプラインの開始地点設定(現在の敵の位置)
-		FVector StartLocation = GetActorLocation();
+		//ゼロクリアする
+		this->TraveledDistance = 0.f;
 
+		//既存のスプラインのポイントをクリアする
+		this->SplineComponent->ClearSplinePoints();
 
+		//スプラインの開始、終了地点設定
+		FVector StartLocation = GetActorLocation();											// スプラインの開始地点設定(敵の現在の座標)
+		FVector GoalLocation = StartLocation + this->GoalLocations[CountGotInMoveState];	// スプラインの終了地点設定(敵の移動先座標)
+
+		//開始、終了地点のポイント追加
+		this->SplineComponent->AddSplinePoint(StartLocation, ESplineCoordinateSpace::World);	//開始地点のポイント設定
+		this->SplineComponent->AddSplinePoint(GoalLocation, ESplineCoordinateSpace::World);		//終了地点のポイント設定
+
+		//スプラインの更新
+		this->SplineComponent->UpdateSpline();
+
+		//スプラインの全長を取得
+		this->SplineLength = this->SplineComponent->GetSplineLength();
+
+		//移動速度を計算
+		this->Status.Speed = this->SplineLength / this->MoveTime;
+
+		if (CountGotInMoveState == GoalLocations.Num() - 1) // 移動した回数を、格納している目標座標の数と同じか
+		{
+			//移動した回数を格納している回数をリセットする
+			CountGotInMoveState = 0;
+		}
+		else // 同じでないなら
+		{
+			CountGotInMoveState++;
+		}
 	}
-
-	////ゼロクリアする
-	//this->TraveledDistance = 0.f;
 
 	////初期位置の設定
 	//this->CurrentLocation = GetActorLocation();
@@ -221,6 +248,33 @@ bool ANormalEnemy::Move()
 {
 	//DeltaTimeの取得
 	float DeltaTime = GetWorld()->GetDeltaSeconds();
+
+	if (this->SplineComponent)
+	{
+		//移動した距離を計算する
+		this->TraveledDistance += this->Status.Speed * DeltaTime;
+
+		//移動した距離がスプラインの全長を超えないようにする
+		if (this->TraveledDistance > this->SplineLength)
+		{
+			this->TraveledDistance = this->SplineLength;
+		}
+
+		//移動後の座標を取得する
+		FVector NewLocation = this->SplineComponent->GetLocationAtDistanceAlongSpline(this->TraveledDistance, ESplineCoordinateSpace::World);
+
+		UKismetSystemLibrary::PrintString(this, FString::SanitizeFloat(NewLocation.Y), true, true, FColor::White, 2.f, TEXT("None"));
+
+		//移動させる
+		SetActorLocation(NewLocation);
+
+		//移動が終了したかをチェック
+		if (this->TraveledDistance == this->SplineLength)
+		{
+			//次の状態に遷移する
+			return true;
+		}
+	}
 
 	////目的地までの残り距離を計算
 	//float RemainingDistance = TotalDistance - TraveledDistance;
@@ -258,6 +312,7 @@ bool ANormalEnemy::Move()
 	//	return true;
 	//}
 
+	//もう一度この関数を呼ぶ
 	return false;
 }
 

@@ -173,26 +173,26 @@ bool AGreenEnemy::CheckPlayerLightColor(EFlashlight_Color PlayerColor) const
 //状態Move遷移時にのみ行う処理
 void AGreenEnemy::ProcessJustForFirst_Move()
 {
-	//ゼロクリアする
-	this->TraveledDistance = 0.f;
+	////ゼロクリアする
+	//this->TraveledDistance = 0.f;
 
-	// 初期位置の設定
-	this->CurrentLocation = GetActorLocation();
+	//// 初期位置の設定
+	//this->CurrentLocation = GetActorLocation();
 
-	// 目標座標の設定
-	/*もし移動が複数回行われるようになった時、外部ファイルから読み込んで設定*/
+	//// 目標座標の設定
+	///*もし移動が複数回行われるようになった時、外部ファイルから読み込んで設定*/
 
-	// ワールド座標への変換
-	this->GoalLocation_World = this->CurrentLocation + this->GoalLocation;
+	//// ワールド座標への変換
+	//this->GoalLocation_World = this->CurrentLocation + this->GoalLocation;
 
-	// 方向ベクトルの計算
-	this->Direction = (this->GoalLocation_World - this->CurrentLocation).GetSafeNormal();
+	//// 方向ベクトルの計算
+	//this->Direction = (this->GoalLocation_World - this->CurrentLocation).GetSafeNormal();
 
-	// 総移動距離の計算
-	this->TotalDistance = FVector::Dist(this->CurrentLocation, this->GoalLocation_World);
+	//// 総移動距離の計算
+	//this->TotalDistance = FVector::Dist(this->CurrentLocation, this->GoalLocation_World);
 
-	// 目的地に着くまでの時間に合うように速度を計算
-	this->Speed = this->TotalDistance / this->MoveTime;
+	//// 目的地に着くまでの時間に合うように速度を計算
+	//this->Speed = this->TotalDistance / this->MoveTime;
 
 	//複数回処理が行われないようにする
 	this->bShouldBeenProcessWhenFirstStateTransition = true;
@@ -204,41 +204,41 @@ bool AGreenEnemy::Move()
 	//DeltaTimeの取得
 	float DeltaTime = GetWorld()->GetDeltaSeconds();
 
-	//目的地までの残り距離を計算
-	float RemainingDistance = TotalDistance - TraveledDistance;
+	////目的地までの残り距離を計算
+	//float RemainingDistance = TotalDistance - TraveledDistance;
 
-	//現在の速度での移動距離を計算
-	float DeltaDistance = Speed * DeltaTime;
+	////現在の速度での移動距離を計算
+	//float DeltaDistance = Speed * DeltaTime;
 
-	//目的地に近づきすぎたら、残りの距離だけ進むように調整
-	if (DeltaDistance >= RemainingDistance)
-	{
-		DeltaDistance = RemainingDistance;
-		TraveledDistance = TotalDistance;
-	}
-	else
-	{
-		TraveledDistance += DeltaDistance;
-	}
+	////目的地に近づきすぎたら、残りの距離だけ進むように調整
+	//if (DeltaDistance >= RemainingDistance)
+	//{
+	//	DeltaDistance = RemainingDistance;
+	//	TraveledDistance = TotalDistance;
+	//}
+	//else
+	//{
+	//	TraveledDistance += DeltaDistance;
+	//}
 
-	//正弦波に基づいてオフセットを計算(目的地に瞬間移動して着かないように調整する計算)
-	float Offset_Z = Amplitude * FMath::Sin(2.0f * PI * (TraveledDistance / TotalDistance));
+	////正弦波に基づいてオフセットを計算(目的地に瞬間移動して着かないように調整する計算)
+	//float Offset_Z = Amplitude * FMath::Sin(2.0f * PI * (TraveledDistance / TotalDistance));
 
-	// 新しい位置を計算
-	FVector NewLocation = CurrentLocation + (Direction * TraveledDistance);
-	NewLocation.Z += Offset_Z;
+	//// 新しい位置を計算
+	//FVector NewLocation = CurrentLocation + (Direction * TraveledDistance);
+	//NewLocation.Z += Offset_Z;
 
-	// 新しい位置に移動
-	SetActorLocation(NewLocation);
+	//// 新しい位置に移動
+	//SetActorLocation(NewLocation);
 
-	// 目的地に到達したら処理を終了
-	if (TraveledDistance >= TotalDistance)
-	{
-		SetActorLocation(this->GoalLocation_World);
+	//// 目的地に到達したら処理を終了
+	//if (TraveledDistance >= TotalDistance)
+	//{
+	//	SetActorLocation(this->GoalLocation_World);
 
-		//状態遷移できるようにする
-		return true;
-	}
+	//	//状態遷移できるようにする
+	//	return true;
+	//}
 
 	return false;
 }
