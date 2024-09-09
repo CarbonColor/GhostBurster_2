@@ -39,7 +39,7 @@ struct FEnemySpawnInfo
 
     //敵の目標地点（生成地点からの相対座標）
     UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Spawn Info")
-        FVector GoalLocation;
+        TArray<FVector> GoalLocations;
 
     //敵の移動時間（秒）
     UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Spawn Info")
