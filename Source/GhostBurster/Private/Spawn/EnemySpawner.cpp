@@ -78,6 +78,26 @@ TArray<FEnemySpawnInfo> AEnemySpawner::ParseCSV_SpawnData(const FString& FilePat
                 continue;
             }
 
+            //行の最初が「」だったら、一つ前の敵のゴール経由地店を追加
+            if (Line.StartsWith("AddLocation"))
+            {
+                //カンマ区切りで分割
+                TArray<FString> Values;
+                Line.ParseIntoArray(Values, TEXT(","), true);
+
+                //直前の敵の生成情報を取得
+                int32 Index = ParsedSpawnInfoArray.Num() - 1;
+                FEnemySpawnInfo SpawnInfo = ParsedSpawnInfoArray[Index];
+
+                //敵の目標地点
+                float GX = FCString::Atof(*Values[1]);
+                float GY = FCString::Atof(*Values[2]);
+                float GZ = FCString::Atof(*Values[3]);
+                SpawnInfo.GoalLocations.Add(FVector(GX, GY, GZ));
+
+                continue;
+            }
+
             //カンマ区切りで分割
             TArray<FString> Values;
             Line.ParseIntoArray(Values, TEXT(","), true);
@@ -100,7 +120,7 @@ TArray<FEnemySpawnInfo> AEnemySpawner::ParseCSV_SpawnData(const FString& FilePat
             float GX = FCString::Atof(*Values[5]);
             float GY = FCString::Atof(*Values[6]);
             float GZ = FCString::Atof(*Values[7]);
-            SpawnInfo.GoalLocation = FVector(GX, GY, GZ);
+            SpawnInfo.GoalLocations.Add(FVector(GX, GY, GZ));
             //敵の移動時間
             SpawnInfo.MoveTime = FCString::Atoi(*Values[8]);
             //敵の体力
@@ -313,7 +333,7 @@ void AEnemySpawner::SpawnEnemy(const FEnemySpawnInfo& SpawnInfo)
         //出現した敵のステータス設定
         if (AEnemys* Enemy = Cast<AEnemys>(SpawnedEnemy))
         {
-            Enemy->SetInitialData(SpawnInfo.EnemyHP, SpawnInfo.AttackTime, SpawnInfo.GoalLocation, SpawnInfo.MoveTime);
+            //Enemy->SetInitialData(SpawnInfo.EnemyHP, SpawnInfo.AttackTime, SpawnInfo.GoalLocation, SpawnInfo.MoveTime);
             //Enemy->SetHP(SpawnInfo.EnemyHP);
             //Enemy->SetGoalLocation(SpawnInfo.GoalLocation);
             //Enemy->SetMoveTime(SpawnInfo.MoveTime);
