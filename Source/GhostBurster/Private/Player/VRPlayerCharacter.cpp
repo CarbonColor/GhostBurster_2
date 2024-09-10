@@ -213,14 +213,6 @@ void AVRPlayerCharacter::BeginPlay()
     ScoreInstance = Cast<UPlayerScoreInstance>(GetGameInstance());
     ScoreInstance->AllDataResetFunction();
 
-    //SplinePathActorを取得して設定する
-    TArray<AActor*> FoundActors;
-    UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerSplinePath::StaticClass(), FoundActors);
-    if (FoundActors.Num() > 0)
-    {
-        SplinePathActor = Cast<APlayerSplinePath>(FoundActors[0]);
-    }
-
     // Enhanced Input setup
     APlayerController* PlayerController = Cast<APlayerController>(GetController());
     UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer());
@@ -228,7 +220,6 @@ void AVRPlayerCharacter::BeginPlay()
     Subsystem->AddMappingContext(IMC_Flashlight, 0);
     // 左手のInputMappingContextを追加
     Subsystem->AddMappingContext(IMC_GloveDevice, 1);
-
 
     // Widgetの表示
     PlayerStatusWidgetComponent->InitWidget();
@@ -380,13 +371,6 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
         //UIバーの色を白くする
         BatteryUI->SetFillColorAndOpacity(FLinearColor::White);
         UpdateBatteryUI();
-    }
-
-    //PlayerSplinePathに沿って移動
-    if (SplinePathActor)
-    {
-        FVector NewLocation = SplinePathActor->GetLocationAtCurrentDistance();
-        SetActorLocation(NewLocation);
     }
 
 }
@@ -894,7 +878,6 @@ void AVRPlayerCharacter::StartHaptic_EnemyDamage()
         PlayerController->PlayHapticEffect(HapticEffect_EnemyDamage, EControllerHand::Right, 1.0f, true);
         PlayerController->PlayHapticEffect(HapticEffect_EnemyDamage, EControllerHand::Left, 1.0f, true);
         bIsEnemyHaptic = true;
-        bIsPlayerHaptic = false;
         //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Device Vibration (Enemy)"));
     }
 }
@@ -904,7 +887,6 @@ void AVRPlayerCharacter::StartHaptic_PlayerDamage()
     {
         PlayerController->PlayHapticEffect(HapticEffect_PlayerDamage, EControllerHand::Right, 1.0f, false);
         PlayerController->PlayHapticEffect(HapticEffect_PlayerDamage, EControllerHand::Left, 1.0f, true);
-        bIsEnemyHaptic = false;
         bIsPlayerHaptic = true;
         GetWorld()->GetTimerManager().SetTimer(HapticTimer, this, &AVRPlayerCharacter::StopHapticEffect, 1.5f, false);
         //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Device Vibration (Player)"));
@@ -976,14 +958,29 @@ void AVRPlayerCharacter::UpdateScoreUI()
 //アイテムを増やすメソッド
 void AVRPlayerCharacter::AddItem()
 {
-    ScoreInstance->AddPlayerItem();
-    UpdateItemUI();
+    if (ScoreInstance)
+    {
+        ScoreInstance->AddPlayerItem();
+        UpdateItemUI();
+    }
+    else
+    {
+        UE_LOG(PlayerScript, Warning, TEXT("ScoreInstance is Null -AddItem-"));
+    }
 }
 //スコアを増やすメソッド
 void AVRPlayerCharacter::AddScore(int32 Value)
 {
-    ScoreInstance->AddPlayerScore(Value);
-    UpdateScoreUI();
+    if (ScoreInstance)
+    {
+        ScoreInstance->AddPlayerScore(Value);
+        UpdateScoreUI();
+    }
+    else
+    {
+        UE_LOG(PlayerScript, Warning, TEXT("ScoreInstance is Null -AddScore-"));
+    }
+
 }
 
 //余ったアイテムをスコアに変換するメソッド
@@ -1001,6 +998,10 @@ void AVRPlayerCharacter::ChangeScore_Step()
         AddScore(ScoreInstance->GetItemPerScore());
         ScoreInstance->UsePlayerItem();
         UpdateItemUI();
+        if (ChangeScoreSound)
+        {
+            UGameplayStatics::PlaySoundAtLocation(this, ChangeScoreSound, GetActorLocation());
+        }
     }
     else
     {

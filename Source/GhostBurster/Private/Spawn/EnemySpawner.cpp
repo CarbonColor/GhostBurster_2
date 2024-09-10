@@ -380,7 +380,7 @@ void AEnemySpawner::EnemyDeadFunction()
 
 void AEnemySpawner::HandleEnemyCountZero()
 {
-    GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Yellow, TEXT("Call Handle -EnemyZero-"));
+    //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Yellow, TEXT("Call Handle -EnemyZero-"));
 
     if (PlayerSpline)
     {
@@ -393,4 +393,11 @@ void AEnemySpawner::HandleEnemyCountZero()
     }
     // タイマーをクリア
     GetWorld()->GetTimerManager().ClearTimer(WaveTimerHandle);
+
+    AGameBGM* BGM = Cast<AGameBGM>(UGameplayStatics::GetActorOfClass(GetWorld(), AGameBGM::StaticClass()));
+    if (BGM)
+    {
+        BGM->ChangeBGM();
+    }
+
 }
