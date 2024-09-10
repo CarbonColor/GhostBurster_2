@@ -25,7 +25,6 @@ class UInputAction;
 class UInputMappingContext;
 class UMotionControllerComponent;
 class UHapticFeedbackEffect_Base;
-class APlayerSplinePath;
 
 UCLASS()
 class GHOSTBURSTER_API AVRPlayerCharacter : public APawn, public IDamageInterface
@@ -205,6 +204,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SE")
 		TObjectPtr<USoundCue> UseBuffItemSound;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SE")
+		TObjectPtr<USoundCue> ChangeScoreSound;
+
 
 private:
 	
@@ -246,14 +248,13 @@ private:
 	UFUNCTION()
 		void NoDamageFunction();
 
-	//スプライン経路を管理するアクター
-	TObjectPtr<APlayerSplinePath> SplinePathActor;
-
 	//ライト内(コーンのコリジョン)に入っているオバケを格納するリスト
-	TSet<AActor*> OverlappingEnemies;
-	TSet<AActor*> TmpOverlapEnemies;
-	TSet<AActor*> DamageEnemies;
-	TSet<AActor*> TmpDamageEnemies;
+	TArray<AActor*> OverlappingEnemies;
+	TArray<AActor*> TmpOverlapEnemies;
+	TArray<AActor*> DamageEnemies;
+	TArray<AActor*> TmpDamageEnemies;
+	//ライト内(コーンのコリジョン)に入っている宝箱を格納するリスト
+	TArray<AActor*> TreasureBoxes;
 
 	//ライトの色を保持する変数
 	EFlashlight_Color Flashlight_Color;

@@ -171,16 +171,16 @@ void AVRPlayerCharacter::BeginPlay()
         BatteryTime *= 2;
     }
     // バッテリー秒数の増加率設定
-    AddBatteryTime = 5;
+    AddBatteryTime = 3;
     // 最大値をセット
     MaxBattery = 60 * BatteryTime;
     // ライトの攻撃力設定
-    LightAttack = 1;
+    LightAttack = 10;
     // ライトの攻撃力増加率の設定
-    AddLightAttack = 2;
+    AddLightAttack = 1;
 
     // アイテムの攻撃力の設定
-    ItemAttack = 100;
+    ItemAttack = 1000;
     // アイテム使用のボーダー設定
     FingerBendingBorder = 350;
 
@@ -213,14 +213,6 @@ void AVRPlayerCharacter::BeginPlay()
     ScoreInstance = Cast<UPlayerScoreInstance>(GetGameInstance());
     ScoreInstance->AllDataResetFunction();
 
-    //SplinePathActorを取得して設定する
-    TArray<AActor*> FoundActors;
-    UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerSplinePath::StaticClass(), FoundActors);
-    if (FoundActors.Num() > 0)
-    {
-        SplinePathActor = Cast<APlayerSplinePath>(FoundActors[0]);
-    }
-
     // Enhanced Input setup
     APlayerController* PlayerController = Cast<APlayerController>(GetController());
     UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer());
@@ -228,7 +220,6 @@ void AVRPlayerCharacter::BeginPlay()
     Subsystem->AddMappingContext(IMC_Flashlight, 0);
     // 左手のInputMappingContextを追加
     Subsystem->AddMappingContext(IMC_GloveDevice, 1);
-
 
     // Widgetの表示
     PlayerStatusWidgetComponent->InitWidget();
@@ -298,7 +289,6 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
             EnemyDamageSoundEffect->Stop();
         }
     }
-
     //ダメージを与える
     TmpDamageEnemies = DamageEnemies;
     for (AActor* Enemy : TmpDamageEnemies)
@@ -319,6 +309,21 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
         else
         {
             GEngine->AddOnScreenDebugMessage(-1, 0.5f, FColor::Red, TEXT("Not Any Level ! -Damage-"));
+        }
+    }
+
+    //宝箱に対する処理
+    for (int i = TreasureBoxes.Num() - 1; i >= 0; --i)
+    {
+        ATreasureBox* Box = Cast<ATreasureBox>(TreasureBoxes[i]);
+        if (!Box)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 0.2f, FColor::Red, TEXT("TreasureBox is Null"));
+            continue;
+        }
+        else
+        {
+            Box->OpenChargeBox();
         }
     }
 
@@ -366,13 +371,6 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
         //UIバーの色を白くする
         BatteryUI->SetFillColorAndOpacity(FLinearColor::White);
         UpdateBatteryUI();
-    }
-
-    //PlayerSplinePathに沿って移動
-    if (SplinePathActor)
-    {
-        FVector NewLocation = SplinePathActor->GetLocationAtCurrentDistance();
-        SetActorLocation(NewLocation);
     }
 
 }
@@ -718,11 +716,11 @@ void AVRPlayerCharacter::OnConeBeginOverlap(UPrimitiveComponent* OverlappedComp,
     //    //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Enemy is Overlapping"));
     //}
 
-    //壁貫通をなくす処理(β版)
+    //壁貫通をなくす処理
     //GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, FString::Printf(TEXT("Light BeginOverlap Called (%s)"), *OtherActor->GetActorNameOrLabel()));
     FHitResult HitResult = CheckHitEnemy(OtherActor);
 
-    // 接触したアクターがオバケかどうか判定する
+    //敵の当たり判定処理
     if (const AEnemys* Enemy = Cast<AEnemys>(OtherActor))
     {
         //間に壁がないかどうかを調べる
@@ -743,14 +741,12 @@ void AVRPlayerCharacter::OnConeBeginOverlap(UPrimitiveComponent* OverlappedComp,
             //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Enemy is Overlapping"));
         }
     }
+    //宝箱の当たり判定処理
     if (ATreasureBox* Treasure = Cast<ATreasureBox>(OtherActor))
     {
         if (HitResult.GetActor() == Treasure)
         {
-            if (Treasure->IsOpenedTreasure() == false)
-            {
-                Treasure->OpenTreasureBox();
-            }
+            TreasureBoxes.Add(OtherActor);
         }
     }
 
@@ -828,6 +824,10 @@ void AVRPlayerCharacter::OnConeEndOverlap(UPrimitiveComponent* OverlappedComp, A
     {
         OverlappingEnemies.Remove(OtherActor);
     }
+    if (ATreasureBox* Treasure = Cast<ATreasureBox>(OtherActor))
+    {
+        TreasureBoxes.Remove(OtherActor);
+    }
 }
 
 //オバケからの攻撃を受けた時のメソッド
@@ -878,7 +878,6 @@ void AVRPlayerCharacter::StartHaptic_EnemyDamage()
         PlayerController->PlayHapticEffect(HapticEffect_EnemyDamage, EControllerHand::Right, 1.0f, true);
         PlayerController->PlayHapticEffect(HapticEffect_EnemyDamage, EControllerHand::Left, 1.0f, true);
         bIsEnemyHaptic = true;
-        bIsPlayerHaptic = false;
         //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Device Vibration (Enemy)"));
     }
 }
@@ -888,7 +887,6 @@ void AVRPlayerCharacter::StartHaptic_PlayerDamage()
     {
         PlayerController->PlayHapticEffect(HapticEffect_PlayerDamage, EControllerHand::Right, 1.0f, false);
         PlayerController->PlayHapticEffect(HapticEffect_PlayerDamage, EControllerHand::Left, 1.0f, true);
-        bIsEnemyHaptic = false;
         bIsPlayerHaptic = true;
         GetWorld()->GetTimerManager().SetTimer(HapticTimer, this, &AVRPlayerCharacter::StopHapticEffect, 1.5f, false);
         //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Device Vibration (Player)"));
@@ -960,14 +958,29 @@ void AVRPlayerCharacter::UpdateScoreUI()
 //アイテムを増やすメソッド
 void AVRPlayerCharacter::AddItem()
 {
-    ScoreInstance->AddPlayerItem();
-    UpdateItemUI();
+    if (ScoreInstance)
+    {
+        ScoreInstance->AddPlayerItem();
+        UpdateItemUI();
+    }
+    else
+    {
+        UE_LOG(PlayerScript, Warning, TEXT("ScoreInstance is Null -AddItem-"));
+    }
 }
 //スコアを増やすメソッド
 void AVRPlayerCharacter::AddScore(int32 Value)
 {
-    ScoreInstance->AddPlayerScore(Value);
-    UpdateScoreUI();
+    if (ScoreInstance)
+    {
+        ScoreInstance->AddPlayerScore(Value);
+        UpdateScoreUI();
+    }
+    else
+    {
+        UE_LOG(PlayerScript, Warning, TEXT("ScoreInstance is Null -AddScore-"));
+    }
+
 }
 
 //余ったアイテムをスコアに変換するメソッド
@@ -985,6 +998,10 @@ void AVRPlayerCharacter::ChangeScore_Step()
         AddScore(ScoreInstance->GetItemPerScore());
         ScoreInstance->UsePlayerItem();
         UpdateItemUI();
+        if (ChangeScoreSound)
+        {
+            UGameplayStatics::PlaySoundAtLocation(this, ChangeScoreSound, GetActorLocation());
+        }
     }
     else
     {

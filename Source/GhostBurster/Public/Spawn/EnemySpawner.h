@@ -5,6 +5,7 @@
 #include "Player/PlayerSplinePath.h"
 #include "Player/VRPlayerCharacter.h"
 #include "Enemy/Enemys.h"
+#include "Sound/GameBGM.h"
 
 #include "EnemySpawner.generated.h"
 
@@ -84,6 +85,7 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "Enemy Spawning")
     void EnemyDeadFunction();
+
 
 private:
     void LogCurrentEnemyCount(const int32& Wave) const;

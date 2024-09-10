@@ -64,7 +64,7 @@ void ATitleEnemy_Red::Tick(float DeltaTime)
 void ATitleEnemy_Red::RecieveEnemyDamage(int DamageAmount)
 {
 	HP -= DamageAmount;
-	GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Red, FString::Printf(TEXT("Title_Red is Damage (%d)"), HP));
+	//GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Red, FString::Printf(TEXT("Title_Red is Damage (%d)"), HP));
 	if (HP <= 0)
 	{
 		EnemyDead();

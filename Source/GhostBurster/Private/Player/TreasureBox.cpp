@@ -35,6 +35,7 @@ void ATreasureBox::BeginPlay()
 {
 	Super::BeginPlay();
 
+	HP = 60;
 	bIsOpened = false;
 
 	//À•W‚Ì•Û‘¶
@@ -98,9 +99,23 @@ void ATreasureBox::HandleCoverProgress(float Value)
 	TreasureCover->SetRelativeRotation(NewRotation);
 }
 
+void ATreasureBox::OpenChargeBox()
+{
+	if (HP > 0)
+	{
+		HP--;
+	}
+	else if(bIsOpened == false)
+	{
+		OpenTreasureBox();
+	}
+}
+
+
 void ATreasureBox::OpenTreasureBox()
 {
 	bIsOpened = true;
+
 	if (OpenBoxSound)
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, OpenBoxSound, GetActorLocation());
@@ -118,9 +133,4 @@ void ATreasureBox::OnTimelineFinished()
 	{
 		GetWorld()->SpawnActor<AActor>(ItemActor, GetActorLocation() + ItemLocationPreset, FRotator::ZeroRotator);
 	}
-}
-
-bool ATreasureBox::IsOpenedTreasure()
-{
-	return bIsOpened;
 }

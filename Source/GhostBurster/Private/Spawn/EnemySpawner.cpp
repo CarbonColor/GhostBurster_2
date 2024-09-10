@@ -135,7 +135,7 @@ TArray<FEnemySpawnInfo> AEnemySpawner::ParseCSV_SpawnData(const FString& FilePat
 
 
             ParsedSpawnInfoArray.Add(SpawnInfo);
-            //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Yellow, TEXT("Add Enemy Data"));
+            //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Yellow, FString::Printf(TEXT("Enemy Life -%d-"), SpawnInfo.EnemyHP));
         }
     }
 
@@ -255,18 +255,13 @@ void AEnemySpawner::SpawnEnemiesForWave(int32 Wave)
     //LoadSpawnInfoFromCSV(FPaths::ProjectContentDir() + TEXT("_TeamFolder/map/enemy_spawn_data.csv"));
     //LogSpawnInfoArray();
 
-    //前のステージの敵をすべて消す
-    if (SpawnEnemies.Num() != 0)
+    TArray<AActor*> BeforeEnemies;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEnemys::StaticClass(), BeforeEnemies);
+    for (int i = BeforeEnemies.Num() - 1; i >= 0; --i)
     {
-        for (int i = SpawnEnemies.Num() - 1; i >= 0; --i)
-        {
-            SpawnEnemies[i]->Destroy();
-        }
-        if (SpawnEnemies.Num() == 0)
-        {
-            GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Yellow, TEXT("All Enemy Destroy"));
-        }
+        BeforeEnemies[i]->Destroy();
     }
+
 
     //遅延用タイマーハンドルのサイズ調整
     EnemyTimerHandles.SetNum(WaveEnemyCount[Wave]);
@@ -334,7 +329,7 @@ void AEnemySpawner::SpawnEnemy(const FEnemySpawnInfo& SpawnInfo)
         if (AEnemys* Enemy = Cast<AEnemys>(SpawnedEnemy))
         {
             //Enemy->SetInitialData(SpawnInfo.EnemyHP, SpawnInfo.AttackTime, SpawnInfo.GoalLocation, SpawnInfo.MoveTime);
-            //Enemy->SetHP(SpawnInfo.EnemyHP);
+            Enemy->SetHP(SpawnInfo.EnemyHP);
             //Enemy->SetGoalLocation(SpawnInfo.GoalLocation);
             //Enemy->SetMoveTime(SpawnInfo.MoveTime);
             //Enemy->SetAttackUpToTime(SpawnInfo.AttackTime);
@@ -385,7 +380,7 @@ void AEnemySpawner::EnemyDeadFunction()
 
 void AEnemySpawner::HandleEnemyCountZero()
 {
-    GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Yellow, TEXT("Call Handle -EnemyZero-"));
+    //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Yellow, TEXT("Call Handle -EnemyZero-"));
 
     if (PlayerSpline)
     {
@@ -398,4 +393,11 @@ void AEnemySpawner::HandleEnemyCountZero()
     }
     // タイマーをクリア
     GetWorld()->GetTimerManager().ClearTimer(WaveTimerHandle);
+
+    AGameBGM* BGM = Cast<AGameBGM>(UGameplayStatics::GetActorOfClass(GetWorld(), AGameBGM::StaticClass()));
+    if (BGM)
+    {
+        BGM->ChangeBGM();
+    }
+
 }
