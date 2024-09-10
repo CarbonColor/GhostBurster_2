@@ -12,40 +12,51 @@ ANormalEnemy::ANormalEnemy()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	//シーンコンポーネント------------------------------------------------------------------------------------------------------
+	//☆シーンコンポーネント-------------------------------------------------------------------------------------------------------
 	//シーンコンポーネントの作成
-	DefaultSceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
-	//シーンコンポーネントをルートコンポーネントに設定
-	RootComponent = DefaultSceneRoot;
+	this->DefaultSceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
+	if (this->DefaultSceneRoot)
+	{
+		//シーンコンポーネントをルートコンポーネントに設定
+		RootComponent = this->DefaultSceneRoot;
 
-	//スタティックメッシュコンポーネント----------------------------------------------------------------------------------------
-	//スタティックメッシュコンポーネントの作成
-	GhostMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Ghost"));
-	//スタティックメッシュをロードしてスタティックメッシュコンポーネントのスタティックメッシュに設定する
-	UStaticMesh* GMesh = LoadObject<UStaticMesh>(NULL, TEXT("/Engine/BasicShapes/Sphere"), NULL, LOAD_None, NULL);
-	GhostMesh->SetStaticMesh(GMesh);
-	//スタティックメッシュコンポーネントをルートコンポーネントにアタッチする
-	GhostMesh->SetupAttachment(RootComponent);
-	//スタティックメッシュのコリジョンを無くす
-	GhostMesh->SetCollisionProfileName("NoCollision");
+		//☆スケルタルメッシュコンポーネント---------------------------------------------------------------------------------------
+		//スケルタルメッシュコンポーネントの作成
+		this->GhostMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Ghost"));
+		//スケルタルメッシュをロード
+		TObjectPtr<USkeletalMesh> GhostMesh = LoadObject<USkeletalMesh>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Ghost/SKM_TestGhost"));
+		if (this->GhostMeshComponent)
+		{
+			if (GhostMesh)
+			{
+				//スケルタルメッシュコンポーネントにスケルタルメッシュを設定する
+				GhostMeshComponent->SetSkeletalMesh(GhostMesh);
+			}
+			//スケルタルメッシュコンポーネントをルートコンポーネントにアタッチする
+			this->GhostMeshComponent->SetupAttachment(RootComponent);
+			//スケルタルメッシュのコリジョンを無くす
+			this->GhostMeshComponent->SetCollisionProfileName("NoCollision");
+		}
 
-	//コリジョン-----------------------------------------------------------------------------------------------------------------
-	//スフィアコリジョンの作成
-	GhostCollision = CreateDefaultSubobject<USphereComponent>(TEXT("GhostCollision"));
-	//GhostCollisionをルートコンポーネントにアタッチする
-	GhostCollision->SetupAttachment(RootComponent);
-	//GhostCollisionのコリジョンプリセットをOverlapAllDynamicにする
-	GhostCollision->SetCollisionProfileName("OverlapAllDynamic");
+		//☆コリジョン-------------------------------------------------------------------------------------------------------------
+		//スフィアコリジョンの作成
+		this->GhostCollision = CreateDefaultSubobject<USphereComponent>(TEXT("GhostCollision"));
+		if (this->GhostCollision)
+		{
+			//GhostCollisionをルートコンポーネントにアタッチする
+			this->GhostCollision->SetupAttachment(RootComponent);
+			//GhostCollisionのコリジョンプリセットをOverlapAllDynamicにする
+			this->GhostCollision->SetCollisionProfileName("OverlapAllDynamic");
+		}
+	}
 
-	//スプラインコンポーネント---------------------------------------------------------------------------------------------------
-	//スプラインコンポーネントの作成
-	SplineComponent = CreateDefaultSubobject<USplineComponent>(TEXT("EnemySplineComponent"));
-	//スプラインコンポーネントをルートコンポーネントにアタッチする
-	SplineComponent->SetupAttachment(RootComponent);
-
-	//サウンド-------------------------------------------------------------------------------------------------------------------
-	AppearSound = LoadObject<USoundCue>(nullptr, TEXT("/Game/_TeamFolder/Sound/SE/SE_GhostAppear_2_Cue"));	//出現時の音設定
-	DisappearSound = LoadObject<USoundCue>(nullptr, TEXT("/Game/_TeamFolder/Sound/SE/SE_GhostDead_2_Cue"));	//消滅時の音設定
+	//☆アニメーション-------------------------------------------------------------------------------------------------------------
+	this->DefaultAnim = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Ghost/Anim_Idle"));			// 特定のアニメーションを使用しない状態のアニメーション
+	this->AttackAnim = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Ghost/Test_GhostAttack"));	// 攻撃状態のアニメーション
+	
+	//☆サウンド-------------------------------------------------------------------------------------------------------------------
+	this->AppearSound = LoadObject<USoundCue>(nullptr, TEXT("/Game/_TeamFolder/Sound/SE/SE_GhostAppear_2_Cue"));	// 出現時の音設定
+	this->DisappearSound = LoadObject<USoundCue>(nullptr, TEXT("/Game/_TeamFolder/Sound/SE/SE_GhostDead_2_Cue"));	// 消滅時の音設定
 
 }
 
@@ -58,21 +69,32 @@ void ANormalEnemy::BeginPlay()
 	this->EnemyColor = EEnemyColor::White;
 
 	//☆マテリアル
-	//マテリアルをロード
-	UMaterial* Material = LoadObject<UMaterial>(NULL, TEXT("/Game/_TeamFolder/Enemy/White"), NULL, LOAD_None, NULL);
-	if (Material)
+	//体のマテリアルをロード
+	TObjectPtr<UMaterial> BodyMaterial = LoadObject<UMaterial>(nullptr, TEXT("/Game/_TeamFolder/Enemy/M_White"));
+	if (BodyMaterial)
 	{
 		//ダイナミックマテリアルインスタンスを作成
-		this->DynamicMaterial = UMaterialInstanceDynamic::Create(Material, this);
+		this->DynamicMaterial_Body = UMaterialInstanceDynamic::Create(BodyMaterial, this);
 
 		//GhostMeshにダイナミックマテリアルを設定
-		GhostMesh->SetMaterial(0, DynamicMaterial);
+		this->GhostMeshComponent->SetMaterial(0, DynamicMaterial_Body);
 
 		//初期オパシティ値を設定
-		this->DynamicMaterial->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
+		this->DynamicMaterial_Body->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
 	}
+	//目のマテリアルをロード
+	TObjectPtr<UMaterial> EyeMaterial = LoadObject<UMaterial>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Ghost/M_Ghost_Eye"));
+	if (EyeMaterial)
+	{
+		//ダイナミックマテリアルインスタンスを作成
+		this->DynamicMaterial_Eye = UMaterialInstanceDynamic::Create(EyeMaterial, this);
 
-	GoalLocations.Add(FVector(0.f, 50.f, 0.f));
+		//GhostMeshにダイナミックマテリアルを設定
+		this->GhostMeshComponent->SetMaterial(1, DynamicMaterial_Eye);
+
+		//初期オパシティ値を設定
+		this->DynamicMaterial_Eye->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
+	}
 }
 
 // Called every frame
@@ -106,8 +128,8 @@ void ANormalEnemy::Think()
 	switch (NowState)
 	{
 	case EState::Wait:	//待機
-		if (MoveCount >= 1 * Gamefps) { NowState = EState::Attack; }	// 攻撃へ
-		if (Status.HP <= 0) { NowState = EState::Die; }				// 死亡へ
+		if (MoveCount >= AttackUpToTime * Gamefps) { NowState = EState::Attack; }	// 攻撃へ
+		if (Status.HP <= 0) { NowState = EState::Die; }								// 死亡へ
 		break;
 
 	case EState::Move:	//移動
@@ -184,60 +206,42 @@ bool ANormalEnemy::CheckPlayerLightColor(EFlashlight_Color PlayerColor) const
 	return (int)PlayerColor == (int)this->EnemyColor;
 }
 
+//移動関係---------------------------------------------------------------------------------------------------------------------
 //状態Move遷移時にのみ行う処理
 void ANormalEnemy::ProcessJustForFirst_Move()
 {
-	//スプラインの設定
-	if (this->SplineComponent)	// スプラインが格納されていたら
+	if (GoalLocations.Num() != 0) // 目標地点があるか確認
 	{
 		//ゼロクリアする
 		this->TraveledDistance = 0.f;
 
-		//既存のスプラインのポイントをクリアする
-		this->SplineComponent->ClearSplinePoints();
+		//初期位置の設定
+		this->CurrentLocation = GetActorLocation();
 
-		//スプラインの開始、終了地点設定
-		FVector StartLocation = GetActorLocation();											// スプラインの開始地点設定(敵の現在の座標)
-		FVector GoalLocation = StartLocation + this->GoalLocations[CountGotInMoveState];	// スプラインの終了地点設定(敵の移動先座標)
+		//ワールド座標への変換
+		this->GoalLocation_World = this->CurrentLocation + this->GoalLocations[MovingTimesCount];
 
-		//開始、終了地点のポイント追加
-		this->SplineComponent->AddSplinePoint(StartLocation, ESplineCoordinateSpace::World);	//開始地点のポイント設定
-		this->SplineComponent->AddSplinePoint(GoalLocation, ESplineCoordinateSpace::World);		//終了地点のポイント設定
+		//方向ベクトルの計算
+		this->Direction = (this->GoalLocation_World - this->CurrentLocation).GetSafeNormal();
 
-		//スプラインの更新
-		this->SplineComponent->UpdateSpline();
+		//総移動距離の計算
+		this->TotalDistance = FVector::Dist(this->CurrentLocation, this->GoalLocation_World);
 
-		//スプラインの全長を取得
-		this->SplineLength = this->SplineComponent->GetSplineLength();
+		//目的地に着くまでの時間に合うように速度を計算
+		this->Status.Speed = this->TotalDistance / this->MoveTime;
 
-		//移動速度を計算
-		this->Status.Speed = this->SplineLength / this->MoveTime;
-
-		if (CountGotInMoveState == GoalLocations.Num() - 1) // 移動した回数を、格納している目標座標の数と同じか
+		//移動回数の確認
+		if (this->MovingTimesCount == this->GoalLocations.Num() - 1) // 移動回数を格納している変数の値が目標座標の数と同じ数なら
 		{
-			//移動した回数を格納している回数をリセットする
-			CountGotInMoveState = 0;
+			//移動回数のリセット
+			this->MovingTimesCount = 0;
 		}
-		else // 同じでないなら
+		else
 		{
-			CountGotInMoveState++;
+			//移動回数を増やす
+			this->MovingTimesCount++;
 		}
 	}
-
-	////初期位置の設定
-	//this->CurrentLocation = GetActorLocation();
-
-	////ワールド座標への変換
-	//this->GoalLocation_World = this->CurrentLocation + this->GoalLocation;
-
-	////方向ベクトルの計算
-	//this->Direction = (this->GoalLocation_World - this->CurrentLocation).GetSafeNormal();
-
-	////総移動距離の計算
-	//this->TotalDistance = FVector::Dist(this->CurrentLocation, this->GoalLocation_World);
-
-	////目的地に着くまでの時間に合うように速度を計算
-	//this->Speed = this->TotalDistance / this->MoveTime;
 
 	//複数回処理が行われないようにする
 	this->bShouldBeenProcessWhenFirstStateTransition = true;
@@ -246,96 +250,83 @@ void ANormalEnemy::ProcessJustForFirst_Move()
 //移動処理
 bool ANormalEnemy::Move()
 {
-	//DeltaTimeの取得
-	float DeltaTime = GetWorld()->GetDeltaSeconds();
-
-	if (this->SplineComponent)
+	if (GoalLocations.Num() != 0) // 目標地点があるか確認
 	{
-		//移動した距離を計算する
-		this->TraveledDistance += this->Status.Speed * DeltaTime;
+		//DeltaTimeの取得
+		float DeltaTime = GetWorld()->GetDeltaSeconds();
 
-		//移動した距離がスプラインの全長を超えないようにする
-		if (this->TraveledDistance > this->SplineLength)
+		//目的地までの残り距離を計算
+		float RemainingDistance = TotalDistance - TraveledDistance;
+
+		//現在の速度での移動距離を計算
+		float DeltaDistance = Status.Speed * DeltaTime;
+
+		//目的地に近づきすぎたら、残りの距離だけ進むように調整
+		if (DeltaDistance >= RemainingDistance)
 		{
-			this->TraveledDistance = this->SplineLength;
+			DeltaDistance = RemainingDistance;
+			TraveledDistance = TotalDistance;
+		}
+		else
+		{
+			TraveledDistance += DeltaDistance;
 		}
 
-		//移動後の座標を取得する
-		FVector NewLocation = this->SplineComponent->GetLocationAtDistanceAlongSpline(this->TraveledDistance, ESplineCoordinateSpace::World);
+		// 新しい位置を計算
+		FVector NewLocation = CurrentLocation + (Direction * TraveledDistance);
 
-		UKismetSystemLibrary::PrintString(this, FString::SanitizeFloat(NewLocation.Y), true, true, FColor::White, 2.f, TEXT("None"));
-
-		//移動させる
+		// 新しい位置に移動
 		SetActorLocation(NewLocation);
 
-		//移動が終了したかをチェック
-		if (this->TraveledDistance == this->SplineLength)
+		// 目的地に到達したら処理を終了
+		if (TraveledDistance >= TotalDistance)
 		{
-			//次の状態に遷移する
+			SetActorLocation(this->GoalLocation_World);
+
+			//状態遷移できるようにする
 			return true;
 		}
+
+		//もう一度この関数を呼ぶ
+		return false;
 	}
-
-	////目的地までの残り距離を計算
-	//float RemainingDistance = TotalDistance - TraveledDistance;
-
-	////現在の速度での移動距離を計算
-	//float DeltaDistance = Speed * DeltaTime;
-
-	////目的地に近づきすぎたら、残りの距離だけ進むように調整
-	//if (DeltaDistance >= RemainingDistance)
-	//{
-	//	DeltaDistance = RemainingDistance;
-	//	TraveledDistance = TotalDistance;
-	//}
-	//else
-	//{
-	//	TraveledDistance += DeltaDistance;
-	//}
-
-	////正弦波に基づいてオフセットを計算(目的地に瞬間移動して着かないように調整する計算)
-	//float Offset_Z = Amplitude * FMath::Sin(2.0f * PI * (TraveledDistance / TotalDistance));
-
-	//// 新しい位置を計算
-	//FVector NewLocation = CurrentLocation + (Direction * TraveledDistance);
-	//NewLocation.Z += Offset_Z;
-
-	//// 新しい位置に移動
-	//SetActorLocation(NewLocation);
-
-	//// 目的地に到達したら処理を終了
-	//if (TraveledDistance >= TotalDistance)
-	//{
-	//	SetActorLocation(this->GoalLocation_World);
-
-	//	//状態遷移できるようにする
-	//	return true;
-	//}
-
-	//もう一度この関数を呼ぶ
-	return false;
+	
+	// 目標地点が無かったら状態遷移できるようにする
+	return true;
 }
 
+//攻撃関係---------------------------------------------------------------------------------------------------------------------
 //攻撃処理
 bool ANormalEnemy::Attack()
 {
-	//攻撃判定
-	if (MoveCount >= AttackUpToTime * Gamefps)
+	if (GhostMeshComponent && AttackAnim) // nullチェック
 	{
-		UKismetSystemLibrary::PrintString(this, TEXT("WhiteEnemy Attack!"), true, true, FColor::White, 2.f, TEXT("None"));
-
-		//プレイヤーへダメージを与える
-		//プレイヤーの情報取得
-		AVRPlayerCharacter* Player = Cast<AVRPlayerCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
-		if (Player)
+		//攻撃判定
+		if (MoveCount == FMath::RoundToInt(AttackTiming * Gamefps / AssumptionFPS)) // 敵にダメージを与える
 		{
-			Player->RecievePlayerDamage();
-		}
+			/*UKismetSystemLibrary::PrintString(this, TEXT("WhiteEnemy Attack!"), true, true, FColor::White, 2.f, TEXT("None"));*/
 
+			//プレイヤーへダメージを与える
+			//プレイヤーの情報取得
+			AVRPlayerCharacter* Player = Cast<AVRPlayerCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
+			if (Player)
+			{
+				Player->RecievePlayerDamage();
+			}
+		}
+		if (!GhostMeshComponent->IsPlaying()) // アニメーションが終わったら
+		{
+			//攻撃終了(条件式で制御し、アニメーションが終わったらにするかも)
+			return true;
+		}
+	}
+	else
+	{
 		//攻撃終了(条件式で制御し、アニメーションが終わったらにするかも)
 		return true;
 	}
 
+	//もう一度この関数を呼ぶ
 	return false;
 }
 
@@ -356,7 +347,7 @@ bool ANormalEnemy::Appear()
 	//DeltaTimeの取得
 	float DeltaTime = GetWorld()->GetDeltaSeconds();
 
-	if (DynamicMaterial)
+	if (DynamicMaterial_Body && DynamicMaterial_Eye)
 	{
 		//オパシティの値を変更
 		this->OpacityValue += 1.f / (float)TimeSpentInAppear * DeltaTime;
@@ -368,14 +359,16 @@ bool ANormalEnemy::Appear()
 			this->OpacityValue = 1.f;
 
 			//オパシティを設定
-			this->DynamicMaterial->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
+			this->DynamicMaterial_Body->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
+			this->DynamicMaterial_Eye->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
 
 			//状態遷移可能にする
 			return true;
 		}
 
 		//オパシティを設定
-		this->DynamicMaterial->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
+		this->DynamicMaterial_Body->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
+		this->DynamicMaterial_Eye->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
 	}
 
 	return false;
@@ -383,7 +376,7 @@ bool ANormalEnemy::Appear()
 
 //メモ
 /*
-Move後の敵の行動を外部ファイルで制御したい
+Move後の敵の状態遷移を外部ファイルで制御したい
 ・外部ファイルの内容をセットする関数の追加
 ・Move後の状態遷移処理を外部ファイルの内容で決まるようにする
 

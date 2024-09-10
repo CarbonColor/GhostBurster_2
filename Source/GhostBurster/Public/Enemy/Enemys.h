@@ -60,9 +60,6 @@ protected:
 	//敵の行動制御用のカウント
 	int MoveCount;
 
-	//ゲームのfps数値を設定
-	float Gamefps;
-
 	//敵が状態遷移したときに最初に行う処理を行ったらtrue
 	bool bShouldBeenProcessWhenFirstStateTransition;
 
@@ -79,8 +76,13 @@ protected:
 	//状態に基づいた動きをする
 	virtual void ActProcess() PURE_VIRTUAL(AEnemys::ActProcess, );
 
-	//現在のFPSを取得する
-	float GetWorldFPS();
+	//FPS関係----------------------------------------------------------------------------------------------------------------------
+	//☆変数
+	float	Gamefps;		// ゲームのfps数値を設定
+	int		AssumptionFPS;	// 想定FPS
+
+	//☆関数
+	float GetWorldFPS();	// 現在のFPSを取得する
 
 	//構造体変数-------------------------------------------------------------------------------------------------------------------
 	FStatus Status;
@@ -92,14 +94,21 @@ protected:
 	//コンポーネント関係-----------------------------------------------------------------------------------------------------------
 	//☆変数
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	TObjectPtr<USceneComponent>				DefaultSceneRoot;	// シーンコンポーネント
+	TObjectPtr<USceneComponent>				DefaultSceneRoot;		// シーンコンポーネント
 	UPROPERTY(EditAnywhere)
-	TObjectPtr<UStaticMeshComponent>		GhostMesh;			// スタティックメッシュコンポーネント
+	TObjectPtr<USkeletalMeshComponent>		GhostMeshComponent;		// スケルタルメッシュコンポーネント
 	UPROPERTY(EditAnywhere)
-	TObjectPtr<USphereComponent>			GhostCollision;		// コリジョン
-	TObjectPtr<UMaterialInstanceDynamic>	DynamicMaterial;	// ダイナミックマテリアル
-	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<USplineComponent>			SplineComponent;	// スプラインコンポーネント
+	TObjectPtr<USphereComponent>			GhostCollision;			// コリジョン
+	TObjectPtr<UMaterialInstanceDynamic>	DynamicMaterial_Body;	// 体のダイナミックマテリアル
+	TObjectPtr<UMaterialInstanceDynamic>	DynamicMaterial_Eye;	// 目のダイナミックマテリアル
+
+	//アニメーション関係-----------------------------------------------------------------------------------------------------------
+	//☆変数
+	TObjectPtr<UAnimSequence>	DefaultAnim;	// 特定のアニメーションを使用しない状態のアニメーション
+	TObjectPtr<UAnimSequence>	AttackAnim;		// 攻撃状態のアニメーション
+	int							AttackTiming;	// 攻撃のタイミング(フレーム)、アニメーションに合わせて数値を決める
+
+	void ChangeAnimation(const EState PreState, const EState NewState);	// アニメーションの変更
 
 	//サウンド関係-----------------------------------------------------------------------------------------------------------------
 	//☆変数
@@ -112,14 +121,17 @@ protected:
 
 	//移動関係---------------------------------------------------------------------------------------------------------------------
 	//☆変数
-	//FVector CurrentLocation;	// 敵の現在の座標
-	//FVector GoalLocation;		// 敵の移動先座標(ローカル座標)
-	//FVector GoalLocation_World;	// 敵の移動先座標(ワールド座標)
-	//FVector Direction;			// GoalLocationへ向かう単位ベクトル
-	//float	TotalDistance;		// 開始位置から目的地までの直線距離
-	
-	//float	Amplitude;			// 振幅
-	//float	Frequency;			// 波の速さ
+	float			MoveTime;			// ゴーストの移動にかかる時間(秒)
+	float			TraveledDistance;	// これまでに進んだ距離
+	FVector			CurrentLocation;	// 敵の現在の座標
+	TArray<FVector> GoalLocations;		// 敵の移動先座標(ローカル座標、向きは考慮しない)
+	int				MovingTimesCount;	// 何回目の移動か、１回目を0とする(移動状態に遷移した回数でカウント)
+	FVector			GoalLocation_World;	// 敵の移動先座標(ワールド座標)
+	FVector			Direction;			// GoalLocationへ向かう単位ベクトル
+	float			TotalDistance;		// 開始位置から目的地までの直線距離
+	float			Amplitude;			// 振幅
+	float			Frequency;			// 波の速さ
+	bool			bHasEndedMoving;	// 移動が終了したか
 
 	//☆関数
 	virtual void ProcessJustForFirst_Move() PURE_VIRTUAL(AEnemys::ProcessJustForFirst_Move, );	// 状態Move遷移時にのみ行う処理
@@ -146,21 +158,13 @@ protected:
 	virtual void ProcessJustForFirst_Appear() PURE_VIRTUAL(AEnemys::ProcessJustForFirst_Appear, );	// 状態：Appearで最初に一度だけする処理
 	virtual bool Appear() PURE_VIRTUAL(AEnemys::Appear, return false;);								// 敵出現処理
 
-	//移動関係(Spline使用)---------------------------------------------------------------------------------------------------------
-	float			MoveTime;				// ゴーストの移動にかかる時間(秒)
-	float			TraveledDistance;		// これまでに進んだ距離
-	float			SplineLength;			// スプラインの全長
-	int				CountGotInMoveState;	// 移動状態になった回数のカウント(何回目の移動か、1回目を0とする)
-	TArray<FVector> GoalLocations;			// 敵の移動先座標(ローカル座標、向きは考慮しない)
-	bool			bHasEndedMoving;		// 移動が終了したか
-
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	//Setter関数-------------------------------------------------------------------------------------------------------------------
 	void SetHP(const int HPValue);								// HPの設定用関数
-	void SetAttackUpToTime(const float SetTime);				// 攻撃までの時間設定用関数
+	void SetAttackUpToTime(const float SetTime);				// 攻撃状態になるまでの時間設定用関数
 	void SetGoalLocations(const TArray<FVector>& SetLocations);	// 目標座標の設定用関数
 	void SetMoveTime(const float SetTime);						// 移動時間の設定用
 	UFUNCTION(BlueprintCallable, Category = "Enemy")

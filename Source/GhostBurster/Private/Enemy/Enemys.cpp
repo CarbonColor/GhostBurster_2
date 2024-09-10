@@ -10,21 +10,24 @@
 AEnemys::AEnemys()
 	:
 	MoveCount(0),
-	Gamefps(60.f),
 	bShouldBeenProcessWhenFirstStateTransition(false),
+	//FPS関係
+	Gamefps(60.f), AssumptionFPS(60),
 	//構造体
 	Status(),
 	//列挙型
 	State(EState::Appear), EnemyColor(EEnemyColor::White),
 	//コンポーネント関係
-	DefaultSceneRoot(nullptr), GhostMesh(nullptr), GhostCollision(nullptr), DynamicMaterial(nullptr), SplineComponent(nullptr),
+	DefaultSceneRoot(nullptr), GhostMeshComponent(nullptr), GhostCollision(nullptr), DynamicMaterial_Body(nullptr), DynamicMaterial_Eye(nullptr),
+	//アニメーション関係
+	DefaultAnim(nullptr), AttackAnim(nullptr), AttackTiming(55),
 	//サウンド関係
 	AppearSound(nullptr), DisappearSound(nullptr),
 	//移動関係
-	/*CurrentLocation(FVector(0.f, 0.f, 0.f)), GoalLocation(FVector(0.f, 0.f, 0.f)), GoalLocation_World(FVector(0.f, 0.f, 0.f)), bHasEndedMoving(false), Direction(FVector(0.f, 0.f, 0.f)), TotalDistance(0.f), Amplitude(40.f), Frequency(1.f),*/
-	MoveTime(1.f), TraveledDistance(0.f), SplineLength(0.f), CountGotInMoveState(0), GoalLocations(), bHasEndedMoving(false),
+	MoveTime(1.f), TraveledDistance(0.f), CurrentLocation(FVector(0.f, 0.f, 0.f)), GoalLocations(), MovingTimesCount(0), GoalLocation_World(FVector(0.f, 0.f, 0.f)), bHasEndedMoving(false),
+	Direction(FVector(0.f, 0.f, 0.f)), TotalDistance(0.f), Amplitude(40.f), Frequency(1.f), 
 	//攻撃関係
-	bHasEndedAttack(false), AttackUpToTime(0.f),
+	bHasEndedAttack(false), AttackUpToTime(1.f),
 	//出現関係
 	bHasEndedAppear(false), OpacityValue(0.f), TimeSpentInAppear(1)
 {
@@ -51,9 +54,14 @@ void AEnemys::UpdateState(EState NowState)
 {
 	if (NowState != this->State)
 	{
-		this->State = NowState;
-		this->MoveCount = 0;
-		this->bShouldBeenProcessWhenFirstStateTransition = false;
+		//アニメーション変更
+		ChangeAnimation(State, NowState);
+
+		State = NowState;
+		MoveCount = 0;
+		bShouldBeenProcessWhenFirstStateTransition = false;
+
+		
 	}
 }
 
@@ -108,6 +116,35 @@ float AEnemys::GetWorldFPS()
 	float FPS = 1.f / DeltaTime;
 
 	return FPS;
+}
+
+//アニメーション関係-----------------------------------------------------------------------------------------------------------
+void AEnemys::ChangeAnimation(const EState PreState, const EState NewState)
+{
+	//状態に合わせたアニメーション変更
+	switch (NewState)
+	{
+	case EState::Attack: // 攻撃状態
+		if (AttackAnim)	// nullチェック
+		{
+			GhostMeshComponent->PlayAnimation(AttackAnim, false);
+		}
+		break;
+
+	default: // 特定のアニメーションがない状態
+		if (DefaultAnim) // nullチェック
+		{
+			if (PreState == EState::Attack || PreState == EState::Appear) // 変更前の状態が特定のアニメーションを持っているまたは、アニメーションを使用しない状態だったら
+			{
+				GhostMeshComponent->PlayAnimation(DefaultAnim, true);
+			}
+		}
+		break;
+
+	//アニメーションを使用しない状態-------------------------------------------------------------------------
+	case EState::Appear:
+		break;
+	}
 }
 
 //サウンド関数-----------------------------------------------------------------------------------------------------------------
