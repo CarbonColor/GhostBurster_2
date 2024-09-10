@@ -37,7 +37,7 @@ void ATitleEventManager::Tick(float DeltaTime)
 void ATitleEventManager::EnemyDeadFunction()
 {
 	EnemyCount--;
-	GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Call EnemyDeadFunction on Title"));
+	//GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Call EnemyDeadFunction on Title"));
 
 	if (EnemyCount <= 0)
 	{

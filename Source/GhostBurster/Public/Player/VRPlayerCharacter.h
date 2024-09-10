@@ -25,7 +25,6 @@ class UInputAction;
 class UInputMappingContext;
 class UMotionControllerComponent;
 class UHapticFeedbackEffect_Base;
-class APlayerSplinePath;
 
 UCLASS()
 class GHOSTBURSTER_API AVRPlayerCharacter : public APawn, public IDamageInterface
@@ -205,6 +204,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SE")
 		TObjectPtr<USoundCue> UseBuffItemSound;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SE")
+		TObjectPtr<USoundCue> ChangeScoreSound;
+
 
 private:
 	
@@ -245,9 +247,6 @@ private:
 	//無敵時間の処理
 	UFUNCTION()
 		void NoDamageFunction();
-
-	//スプライン経路を管理するアクター
-	TObjectPtr<APlayerSplinePath> SplinePathActor;
 
 	//ライト内(コーンのコリジョン)に入っているオバケを格納するリスト
 	TArray<AActor*> OverlappingEnemies;
