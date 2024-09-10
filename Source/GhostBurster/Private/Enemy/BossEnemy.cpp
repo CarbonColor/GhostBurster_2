@@ -11,33 +11,41 @@ ABossEnemy::ABossEnemy()
 
 	//☆シーンコンポーネント
 	//シーンコンポーネントの作成
-	DefaultSceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
-	//シーンコンポーネントをルートコンポーネントに設定する
-	RootComponent = DefaultSceneRoot;
+	this->DefaultSceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
+	if (this->DefaultSceneRoot)
+	{
+		//シーンコンポーネントをルートコンポーネントに設定
+		RootComponent = this->DefaultSceneRoot;
 
-	//☆スタティックメッシュ
-	//スタティックメッシュの作成
-	GhostMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("GreenGhost"));
-	//スタティックメッシュをロードしてGhostMeshにロードしたスタティックメッシュを設定する
-	UStaticMesh* GreenGMesh = LoadObject<UStaticMesh>(NULL, TEXT("/Engine/BasicShapes/Sphere"), NULL, LOAD_None, NULL);
-	GhostMesh->SetStaticMesh(GreenGMesh);
-	//GhostMeshをルートコンポーネントにアタッチする
-	GhostMesh->SetupAttachment(RootComponent);
-	//スタティックメッシュのコリジョンを無くす
-	GhostMesh->SetCollisionProfileName("NoCollision");
+		//☆スケルタルメッシュコンポーネント------------------------------------------------------------------------------------------
+		//スケルタルメッシュコンポーネントの作成
+		this->GhostMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Ghost"));
+		//スケルタルメッシュをロード
+		TObjectPtr<USkeletalMesh> GhostMesh = LoadObject<USkeletalMesh>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Ghost/SKM_TestGhost"));
+		if (this->GhostMeshComponent)
+		{
+			if (GhostMesh)
+			{
+				//スケルタルメッシュコンポーネントにスケルタルメッシュを設定する
+				GhostMeshComponent->SetSkeletalMesh(GhostMesh);
+			}
+			//スケルタルメッシュコンポーネントをルートコンポーネントにアタッチする
+			this->GhostMeshComponent->SetupAttachment(RootComponent);
+			//スケルタルメッシュのコリジョンを無くす
+			this->GhostMeshComponent->SetCollisionProfileName("NoCollision");
+		}
 
-	//☆マテリアル
-	//マテリアルをロードしてGhostMeshに設定する
-	UMaterial* Material = LoadObject<UMaterial>(NULL, TEXT("/Game/_Teamfolder/Enemy/Boss"), NULL, LOAD_None, NULL);
-	GhostMesh->SetMaterial(0, Material);
-
-	//☆コリジョン
-	//スフィアコリジョンの作成
-	GhostCollision = CreateDefaultSubobject<USphereComponent>(TEXT("BossCollision"));
-	//GhostCollisionをルートコンポーネントにアタッチする
-	GhostCollision->SetupAttachment(RootComponent);
-	//GhostCollisionのコリジョンプリセットをOverlapAllDynamicにする
-	GhostCollision->SetCollisionProfileName("OverlapAllDynamic");
+		//☆コリジョン-----------------------------------------------------------------------------------------------------------------
+		//スフィアコリジョンの作成
+		GhostCollision = CreateDefaultSubobject<USphereComponent>(TEXT("GhostCollision"));
+		if (GhostCollision)
+		{
+			//GhostCollisionをルートコンポーネントにアタッチする
+			GhostCollision->SetupAttachment(RootComponent);
+			//GhostCollisionのコリジョンプリセットをOverlapAllDynamicにする
+			GhostCollision->SetCollisionProfileName("OverlapAllDynamic");
+		}
+	}
 }
 
 void ABossEnemy::BeginPlay()

@@ -22,11 +22,11 @@ class GHOSTBURSTER_API ANormalEnemy : public AEnemys
 	//ó‘Ô‚ÉŠî‚Ã‚¢‚½“®‚«‚ğ‚·‚é
 	virtual void ActProcess() override;
 
-	//ˆÚ“®ŠÖŒW
-	virtual bool ProcessJustForFirst_Move() override;	// ó‘ÔMove‘JˆÚ‚É‚Ì‚İs‚¤ˆ—
+	//ˆÚ“®ŠÖŒW---------------------------------------------------------------------------------------------------------------------
+	virtual void ProcessJustForFirst_Move() override;	// ó‘ÔMove‘JˆÚ‚É‚Ì‚İs‚¤ˆ—
 	virtual bool Move() override;						// ˆÚ“®ˆ—
 
-	//UŒ‚ŠÖŒW
+	//UŒ‚ŠÖŒW---------------------------------------------------------------------------------------------------------------------
 	virtual bool Attack() override;						// UŒ‚ˆ—
 
 	//oŒ»ŠÖŒW---------------------------------------------------------------------------------------------------------------------

@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "Interface/DamageInterface.h"
 #include "Components/SphereComponent.h"
+#include "Components/SplineComponent.h"
 #include "Sound/SoundCue.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -30,9 +31,11 @@ protected:
 	//ステータス
 	struct FStatus
 	{
-		int HP = 1;	//ゴーストの体力
+		FStatus() : HP(1), Speed(0.f) {}
+
+		int		HP;		// ゴーストの体力
+		float	Speed;	// 目的地までの移動速度
 	};
-	FStatus Status;
 
 	//☆列挙型
 	//敵の状態
@@ -44,60 +47,23 @@ protected:
 		Die,	//死亡
 		Appear,	//出現
 	};
-	EState State = EState::Appear;
 
 	enum class EEnemyColor : uint8
 	{
-		White	= 0,
-		Green	= 1,
-		Red		= 2,
-		Blue	= 3,
+		White = 0,
+		Green = 1,
+		Red = 2,
+		Blue = 3,
 	};
-	EEnemyColor EnemyColor = EEnemyColor::White;
 
-	//☆変数宣言
-	//SceneComponentの変数宣言
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<USceneComponent> DefaultSceneRoot;
-
-	//StaticMeshComponentの変数宣言
-	UPROPERTY(EditAnywhere)
-	TObjectPtr<UStaticMeshComponent> GhostMesh;
-
-	//コリジョンの変数宣言
-	UPROPERTY(EditAnywhere)
-	TObjectPtr<USphereComponent> GhostCollision;
-
-	//ダイナミックマテリアルの変数宣言
-	TObjectPtr<UMaterialInstanceDynamic> DynamicMaterial;
-
+	//☆変数
 	//敵の行動制御用のカウント
-	int MoveCount = 0;
-
-	//ゲームのfps数値を設定
-	float Gamefps = 60.f;
+	int MoveCount;
 
 	//敵が状態遷移したときに最初に行う処理を行ったらtrue
-	bool bShouldBeenProcessWhenFirstStateTransition = false;
+	bool bShouldBeenProcessWhenFirstStateTransition;
 
-	//移動関係
-	float	MoveTime = 1.f;							// ゴーストの移動にかかる時間(秒)
-	FVector CurrentLocation = FVector(0, 0, 0);		// 敵の現在の座標
-	FVector GoalLocation = FVector(0, 0, 0);		// 敵の移動先座標(ローカル座標)
-	FVector GoalLocation_World = FVector(0, 0, 0);	// 敵の移動先座標(ワールド座標)
-	bool	bHasEndedMoving = false;				// 移動が終了したか
-	FVector Direction = FVector(0, 0, 0);			// GoalLocationへ向かう単位ベクトル
-	float	TotalDistance = 0.f;					// 開始位置から目的地までの直線距離
-	float	TraveledDistance = 0.f;					// これまでに進んだ距離
-	float	Amplitude = 40.0f;						// 振幅
-	float	Frequency = 1.0f;						// 波の速さ
-	float	Speed = 80.0f;							// 目的地までの移動速度
-
-	//攻撃関係
-	bool	bHasEndedAttack = false;					// 攻撃が終了したか
-	float	AttackUpToTime = 0.f;							// ゴーストの攻撃までの時間(秒)
-
-	//☆関数宣言
+	//☆関数
 	//Tickでの処理
 	virtual void TickProcess() PURE_VIRTUAL(AEnemys::TickProcess, );
 
@@ -110,52 +76,98 @@ protected:
 	//状態に基づいた動きをする
 	virtual void ActProcess() PURE_VIRTUAL(AEnemys::ActProcess, );
 
-	//HPが0になったら消滅させる
-	void EnemyDead();
-
-	//現在のFPSを取得する
-	float GetWorldFPS();
-
-	//状態：Moveで使う関数
-	virtual bool ProcessJustForFirst_Move() PURE_VIRTUAL(AEnemys::ProcessJustForFirst_Move, return false;);	// 状態Move遷移時にのみ行う処理
-	virtual bool Move() PURE_VIRTUAL(AEnemys::Move, return false;);											// 移動処理
-
-	//攻撃関係
-	//状態：Attackで使う関数
-	virtual bool Attack() PURE_VIRTUAL(AEnemys::Move, return false;);										// 攻撃処理
-
-	//出現関係---------------------------------------------------------------------------------------------------------------------
-	//☆変数 
-	bool	bHasEndedAppear = false;	// 出現が終了したか
-	float	OpacityValue = 0.f;			// オパシティの値
-	int		TimeSpentInAppear = 1;		// 出現するのにかかる時間
+	//FPS関係----------------------------------------------------------------------------------------------------------------------
+	//☆変数
+	float	Gamefps;		// ゲームのfps数値を設定
+	int		AssumptionFPS;	// 想定FPS
 
 	//☆関数
-	virtual void ProcessJustForFirst_Appear() PURE_VIRTUAL(AEnemys::ProcessJustForFirst_Appear, );	// 状態：Appearで最初に一度だけする処理
-	virtual bool Appear() PURE_VIRTUAL(AEnemys::Appear, return false;);								// 敵出現処理
+	float GetWorldFPS();	// 現在のFPSを取得する
+
+	//構造体変数-------------------------------------------------------------------------------------------------------------------
+	FStatus Status;
+
+	//列挙型変数-------------------------------------------------------------------------------------------------------------------
+	EState State;
+	EEnemyColor EnemyColor;
+
+	//コンポーネント関係-----------------------------------------------------------------------------------------------------------
+	//☆変数
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	TObjectPtr<USceneComponent>				DefaultSceneRoot;		// シーンコンポーネント
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<USkeletalMeshComponent>		GhostMeshComponent;		// スケルタルメッシュコンポーネント
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<USphereComponent>			GhostCollision;			// コリジョン
+	TObjectPtr<UMaterialInstanceDynamic>	DynamicMaterial_Body;	// 体のダイナミックマテリアル
+	TObjectPtr<UMaterialInstanceDynamic>	DynamicMaterial_Eye;	// 目のダイナミックマテリアル
+
+	//アニメーション関係-----------------------------------------------------------------------------------------------------------
+	//☆変数
+	TObjectPtr<UAnimSequence>	DefaultAnim;	// 特定のアニメーションを使用しない状態のアニメーション
+	TObjectPtr<UAnimSequence>	AttackAnim;		// 攻撃状態のアニメーション
+	int							AttackTiming;	// 攻撃のタイミング(フレーム)、アニメーションに合わせて数値を決める
+
+	void ChangeAnimation(const EState PreState, const EState NewState);	// アニメーションの変更
 
 	//サウンド関係-----------------------------------------------------------------------------------------------------------------
 	//☆変数
 	TObjectPtr<USoundCue> AppearSound;		// 敵出現時の音
 	TObjectPtr<USoundCue> DisappearSound;	// 敵消滅時の音 
-	
+
 	//☆関数
 	void PlayAppearSound();					// 敵出現時の音を鳴らす
 	void PlayDisappearSound();				// 敵消滅時の音を鳴らす
+
+	//移動関係---------------------------------------------------------------------------------------------------------------------
+	//☆変数
+	float			MoveTime;			// ゴーストの移動にかかる時間(秒)
+	float			TraveledDistance;	// これまでに進んだ距離
+	FVector			CurrentLocation;	// 敵の現在の座標
+	TArray<FVector> GoalLocations;		// 敵の移動先座標(ローカル座標、向きは考慮しない)
+	int				MovingTimesCount;	// 何回目の移動か、１回目を0とする(移動状態に遷移した回数でカウント)
+	FVector			GoalLocation_World;	// 敵の移動先座標(ワールド座標)
+	FVector			Direction;			// GoalLocationへ向かう単位ベクトル
+	float			TotalDistance;		// 開始位置から目的地までの直線距離
+	float			Amplitude;			// 振幅
+	float			Frequency;			// 波の速さ
+	bool			bHasEndedMoving;	// 移動が終了したか
+
+	//☆関数
+	virtual void ProcessJustForFirst_Move() PURE_VIRTUAL(AEnemys::ProcessJustForFirst_Move, );	// 状態Move遷移時にのみ行う処理
+	virtual bool Move() PURE_VIRTUAL(AEnemys::Move, return false;);								// 移動処理
+
+	//攻撃関係---------------------------------------------------------------------------------------------------------------------
+	//☆変数
+	bool	bHasEndedAttack;											// 攻撃が終了したか
+	float	AttackUpToTime;												// ゴーストの攻撃までの時間(秒)
+
+	//☆関数
+	virtual bool Attack() PURE_VIRTUAL(AEnemys::Move, return false;);	// 攻撃処理
+
+	//死亡関係---------------------------------------------------------------------------------------------------------------------
+	void EnemyDead();	// HPが0になったら消滅させる
+
+	//出現関係---------------------------------------------------------------------------------------------------------------------
+	//☆変数 
+	bool	bHasEndedAppear;	// 出現が終了したか
+	float	OpacityValue;		// オパシティの値
+	int		TimeSpentInAppear;	// 出現するのにかかる時間
+
+	//☆関数
+	virtual void ProcessJustForFirst_Appear() PURE_VIRTUAL(AEnemys::ProcessJustForFirst_Appear, );	// 状態：Appearで最初に一度だけする処理
+	virtual bool Appear() PURE_VIRTUAL(AEnemys::Appear, return false;);								// 敵出現処理
 
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	//Setter関数
-	void SetHP(int HPValue);					//HPの設定用関数
-	void SetAttackUpToTime(float SetTime);		//攻撃までの時間設定用関数
-	void SetGoalLocation(FVector SetLocation);	//目標座標の設定用関数
-	void SetMoveTime(float SetTime);			//移動時間の設定用
-
+	//Setter関数-------------------------------------------------------------------------------------------------------------------
+	void SetHP(const int HPValue);								// HPの設定用関数
+	void SetAttackUpToTime(const float SetTime);				// 攻撃状態になるまでの時間設定用関数
+	void SetGoalLocations(const TArray<FVector>& SetLocations);	// 目標座標の設定用関数
+	void SetMoveTime(const float SetTime);						// 移動時間の設定用
 	UFUNCTION(BlueprintCallable, Category = "Enemy")
-	void SetInitialData(int HP, float AttackUpToTimeValue, FVector SetLocation, float MoveTimeValue); //生成されたときの設定用関数
-
-	//プレイヤーのライトの色と敵のライトの色をチェックする関数
-	virtual bool CheckPlayerLightColor(EFlashlight_Color PlayerColor) const PURE_VIRTUAL(AEnemys::GetEnemyColor, return false;);
+	void SetInitialData(const int HP, const float AttackUpToTimeValue, const TArray<FVector>& SetLocations, const float MoveTimeValue);	// 生成されたときの設定用関数
+	virtual bool CheckPlayerLightColor(EFlashlight_Color PlayerColor) const PURE_VIRTUAL(AEnemys::GetEnemyColor, return false;);		// プレイヤーのライトの色と敵のライトの色をチェックする関数
 };

@@ -9,8 +9,27 @@
 // Sets default values
 AEnemys::AEnemys()
 	:
-	AppearSound(nullptr),
-	DisappearSound(nullptr)
+	MoveCount(0),
+	bShouldBeenProcessWhenFirstStateTransition(false),
+	//FPS関係
+	Gamefps(60.f), AssumptionFPS(60),
+	//構造体
+	Status(),
+	//列挙型
+	State(EState::Appear), EnemyColor(EEnemyColor::White),
+	//コンポーネント関係
+	DefaultSceneRoot(nullptr), GhostMeshComponent(nullptr), GhostCollision(nullptr), DynamicMaterial_Body(nullptr), DynamicMaterial_Eye(nullptr),
+	//アニメーション関係
+	DefaultAnim(nullptr), AttackAnim(nullptr), AttackTiming(55),
+	//サウンド関係
+	AppearSound(nullptr), DisappearSound(nullptr),
+	//移動関係
+	MoveTime(1.f), TraveledDistance(0.f), CurrentLocation(FVector(0.f, 0.f, 0.f)), GoalLocations(), MovingTimesCount(0), GoalLocation_World(FVector(0.f, 0.f, 0.f)), bHasEndedMoving(false),
+	Direction(FVector(0.f, 0.f, 0.f)), TotalDistance(0.f), Amplitude(40.f), Frequency(1.f), 
+	//攻撃関係
+	bHasEndedAttack(false), AttackUpToTime(1.f),
+	//出現関係
+	bHasEndedAppear(false), OpacityValue(0.f), TimeSpentInAppear(1)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -35,9 +54,14 @@ void AEnemys::UpdateState(EState NowState)
 {
 	if (NowState != this->State)
 	{
-		this->State = NowState;
-		this->MoveCount = 0;
-		this->bShouldBeenProcessWhenFirstStateTransition = false;
+		//アニメーション変更
+		ChangeAnimation(State, NowState);
+
+		State = NowState;
+		MoveCount = 0;
+		bShouldBeenProcessWhenFirstStateTransition = false;
+
+		
 	}
 }
 
@@ -94,6 +118,35 @@ float AEnemys::GetWorldFPS()
 	return FPS;
 }
 
+//アニメーション関係-----------------------------------------------------------------------------------------------------------
+void AEnemys::ChangeAnimation(const EState PreState, const EState NewState)
+{
+	//状態に合わせたアニメーション変更
+	switch (NewState)
+	{
+	case EState::Attack: // 攻撃状態
+		if (AttackAnim)	// nullチェック
+		{
+			GhostMeshComponent->PlayAnimation(AttackAnim, false);
+		}
+		break;
+
+	default: // 特定のアニメーションがない状態
+		if (DefaultAnim) // nullチェック
+		{
+			if (PreState == EState::Attack || PreState == EState::Appear) // 変更前の状態が特定のアニメーションを持っているまたは、アニメーションを使用しない状態だったら
+			{
+				GhostMeshComponent->PlayAnimation(DefaultAnim, true);
+			}
+		}
+		break;
+
+	//アニメーションを使用しない状態-------------------------------------------------------------------------
+	case EState::Appear:
+		break;
+	}
+}
+
 //サウンド関数-----------------------------------------------------------------------------------------------------------------
 //敵出現時の音を鳴らす
 void AEnemys::PlayAppearSound()
@@ -115,34 +168,34 @@ void AEnemys::PlayDisappearSound()
 
 //Setter関数-------------------------------------------------------------------------------------------------------------------
 //HPの設定用関数
-void AEnemys::SetHP(int HPValue)
+void AEnemys::SetHP(const int HPValue)
 {
 	this->Status.HP = HPValue;
 }
 
 //攻撃までの時間設定用関数
-void AEnemys::SetAttackUpToTime(float SetTime)
+void AEnemys::SetAttackUpToTime(const float SetTime)
 {
 	this->AttackUpToTime = SetTime;
 }
 
 //目標座標の設定用関数
-void AEnemys::SetGoalLocation(FVector SetLocation)
+void AEnemys::SetGoalLocations(const TArray<FVector>& SetLocations)
 {
-	this->GoalLocation = SetLocation;
+	this->GoalLocations = SetLocations;
 }
 
 //移動時間の設定用
-void AEnemys::SetMoveTime(float SetTime)
+void AEnemys::SetMoveTime(const float SetTime)
 {
 	this->MoveTime = SetTime;
 }
 
 //生成されたときの設定用関数
-void AEnemys::SetInitialData(int HP, float AttackUpToTimeValue, FVector SetLocation, float MoveTimeValue)
+void AEnemys::SetInitialData(const int HP, const float AttackUpToTimeValue, const TArray<FVector>& SetLocations, const float MoveTimeValue)
 {
 	this->SetHP(HP);
 	this->SetAttackUpToTime(AttackUpToTimeValue);
-	this->SetGoalLocation(SetLocation);
+	this->SetGoalLocations(SetLocations);
 	this->SetMoveTime(MoveTimeValue);
 }

@@ -10,34 +10,51 @@ ARedEnemy::ARedEnemy()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	//☆シーンコンポーネント
+	//☆シーンコンポーネント--------------------------------------------------------------------------------------------------------
 	//シーンコンポーネントの作成
-	DefaultSceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
-	//シーンコンポーネントをルートコンポーネントに設定する
-	RootComponent = DefaultSceneRoot;
+	this->DefaultSceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
+	if (this->DefaultSceneRoot)
+	{
+		//シーンコンポーネントをルートコンポーネントに設定
+		RootComponent = this->DefaultSceneRoot;
 
-	//☆スタティックメッシュ
-	//スタティックメッシュの作成
-	GhostMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("GreenGhost"));
-	//スタティックメッシュをロードしてGhostMeshにロードしたスタティックメッシュを設定する
-	UStaticMesh* GreenGMesh = LoadObject<UStaticMesh>(NULL, TEXT("/Engine/BasicShapes/Sphere"), NULL, LOAD_None, NULL);
-	GhostMesh->SetStaticMesh(GreenGMesh);
-	//GhostMeshをルートコンポーネントにアタッチする
-	GhostMesh->SetupAttachment(RootComponent);
-	//スタティックメッシュのコリジョンを無くす
-	GhostMesh->SetCollisionProfileName("NoCollision");
+		//☆スケルタルメッシュコンポーネント------------------------------------------------------------------------------------------
+		//スケルタルメッシュコンポーネントの作成
+		this->GhostMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Ghost"));
+		//スケルタルメッシュをロード
+		TObjectPtr<USkeletalMesh> GhostMesh = LoadObject<USkeletalMesh>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Ghost/SKM_TestGhost"));
+		if (this->GhostMeshComponent)
+		{
+			if (GhostMesh)
+			{
+				//スケルタルメッシュコンポーネントにスケルタルメッシュを設定する
+				GhostMeshComponent->SetSkeletalMesh(GhostMesh);
+			}
+			//スケルタルメッシュコンポーネントをルートコンポーネントにアタッチする
+			this->GhostMeshComponent->SetupAttachment(RootComponent);
+			//スケルタルメッシュのコリジョンを無くす
+			this->GhostMeshComponent->SetCollisionProfileName("NoCollision");
+		}
 
-	//☆コリジョン
-	//スフィアコリジョンの作成
-	GhostCollision = CreateDefaultSubobject<USphereComponent>(TEXT("GhostCollision"));
-	//GhostCollisionをルートコンポーネントにアタッチする
-	GhostCollision->SetupAttachment(RootComponent);
-	//GhostCollisionのコリジョンプリセットをOverlapAllDynamicにする
-	GhostCollision->SetCollisionProfileName("OverlapAllDynamic");
+		//☆コリジョン-----------------------------------------------------------------------------------------------------------------
+		//スフィアコリジョンの作成
+		GhostCollision = CreateDefaultSubobject<USphereComponent>(TEXT("GhostCollision"));
+		if (GhostCollision)
+		{
+			//GhostCollisionをルートコンポーネントにアタッチする
+			GhostCollision->SetupAttachment(RootComponent);
+			//GhostCollisionのコリジョンプリセットをOverlapAllDynamicにする
+			GhostCollision->SetCollisionProfileName("OverlapAllDynamic");
+		}
+	}
 
-	//☆サウンド-----------------------------------------------------------------------------------------------------------------
-	AppearSound = LoadObject<USoundCue>(nullptr, TEXT("/Game/_TeamFolder/Sound/SE/SE_GhostAppear_Cue"));	//出現時の音設定
-	DisappearSound = LoadObject<USoundCue>(nullptr, TEXT("/Game/_TeamFolder/Sound/SE/SE_GhostDead_Cue"));	//消滅時の音設定
+	//☆アニメーション-------------------------------------------------------------------------------------------------------------
+	this->DefaultAnim = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Ghost/Anim_Idle"));			// 特定のアニメーションを使用しない状態のアニメーション
+	this->AttackAnim = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Ghost/Test_GhostAttack"));	// 攻撃状態のアニメーション
+
+	//☆サウンド-------------------------------------------------------------------------------------------------------------------
+	AppearSound = LoadObject<USoundCue>(nullptr, TEXT("/Game/_TeamFolder/Sound/SE/SE_GhostAppear_2_Cue"));	//出現時の音設定
+	DisappearSound = LoadObject<USoundCue>(nullptr, TEXT("/Game/_TeamFolder/Sound/SE/SE_GhostDead_2_Cue"));	//消滅時の音設定
 }
 
 void ARedEnemy::BeginPlay()
@@ -48,18 +65,31 @@ void ARedEnemy::BeginPlay()
 	this->EnemyColor = EEnemyColor::Red;
 
 	//☆マテリアル
-	//マテリアルをロード
-	UMaterial* Material = LoadObject<UMaterial>(NULL, TEXT("/Game/_TeamFolder/Enemy/Red"), NULL, LOAD_None, NULL);
-	if (Material)
+	//体のマテリアルをロード
+	TObjectPtr<UMaterial> BodyMaterial = LoadObject<UMaterial>(nullptr, TEXT("/Game/_TeamFolder/Enemy/M_Red"));
+	if (BodyMaterial)
 	{
 		//ダイナミックマテリアルインスタンスを作成
-		this->DynamicMaterial = UMaterialInstanceDynamic::Create(Material, this);
+		this->DynamicMaterial_Body = UMaterialInstanceDynamic::Create(BodyMaterial, this);
 
 		//GhostMeshにダイナミックマテリアルを設定
-		GhostMesh->SetMaterial(0, DynamicMaterial);
+		this->GhostMeshComponent->SetMaterial(0, DynamicMaterial_Body);
 
 		//初期オパシティ値を設定
-		this->DynamicMaterial->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
+		this->DynamicMaterial_Body->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
+	}
+	//目のマテリアルをロード
+	TObjectPtr<UMaterial> EyeMaterial = LoadObject<UMaterial>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Ghost/M_Ghost_Eye"));
+	if (EyeMaterial)
+	{
+		//ダイナミックマテリアルインスタンスを作成
+		this->DynamicMaterial_Eye = UMaterialInstanceDynamic::Create(EyeMaterial, this);
+
+		//GhostMeshにダイナミックマテリアルを設定
+		this->GhostMeshComponent->SetMaterial(1, DynamicMaterial_Eye);
+
+		//初期オパシティ値を設定
+		this->DynamicMaterial_Eye->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
 	}
 }
 
@@ -92,7 +122,7 @@ void ARedEnemy::Think()
 	switch (NowState)
 	{
 	case EState::Wait:	//待機
-		if (MoveCount >= 1 * Gamefps) { NowState = EState::Attack; }	// 攻撃へ
+		if (MoveCount >= AttackUpToTime * Gamefps) { NowState = EState::Attack; }	// 攻撃へ
 		if (Status.HP <= 0) { NowState = EState::Die; }				// 死亡へ
 		break;
 
@@ -126,7 +156,7 @@ void ARedEnemy::ActProcess()
 		//状態Move遷移時にのみ行う処理
 		if (this->bShouldBeenProcessWhenFirstStateTransition == false)
 		{
-			this->bShouldBeenProcessWhenFirstStateTransition = ProcessJustForFirst_Move();
+			ProcessJustForFirst_Move();
 		}
 
 		//移動処理(移動処理が終わったら状態遷移する)
@@ -171,98 +201,124 @@ bool ARedEnemy::CheckPlayerLightColor(EFlashlight_Color PlayerColor) const
 }
 
 //状態Move遷移時にのみ行う処理
-bool ARedEnemy::ProcessJustForFirst_Move()
+void ARedEnemy::ProcessJustForFirst_Move()
 {
-	//ゼロクリアする
-	this->TraveledDistance = 0.f;
+	if (GoalLocations.Num() != 0) // 目標地点があるか確認
+	{
+		//ゼロクリアする
+		this->TraveledDistance = 0.f;
 
-	// 初期位置の設定
-	this->CurrentLocation = GetActorLocation();
+		//初期位置の設定
+		this->CurrentLocation = GetActorLocation();
 
-	// 目標座標の設定
-	/*もし移動が複数回行われるようになった時、外部ファイルから読み込んで設定*/
+		//ワールド座標への変換
+		this->GoalLocation_World = this->CurrentLocation + this->GoalLocations[MovingTimesCount];
 
-	// ワールド座標への変換
-	this->GoalLocation_World = this->CurrentLocation + this->GoalLocation;
+		//方向ベクトルの計算
+		this->Direction = (this->GoalLocation_World - this->CurrentLocation).GetSafeNormal();
 
-	// 方向ベクトルの計算
-	this->Direction = (this->GoalLocation_World - this->CurrentLocation).GetSafeNormal();
+		//総移動距離の計算
+		this->TotalDistance = FVector::Dist(this->CurrentLocation, this->GoalLocation_World);
 
-	// 総移動距離の計算
-	this->TotalDistance = FVector::Dist(this->CurrentLocation, this->GoalLocation_World);
+		//目的地に着くまでの時間に合うように速度を計算
+		this->Status.Speed = this->TotalDistance / this->MoveTime;
 
-	// 目的地に着くまでの時間に合うように速度を計算
-	this->Speed = this->TotalDistance / this->MoveTime;
+		//移動回数の確認
+		if (this->MovingTimesCount == this->GoalLocations.Num() - 1) // 移動回数を格納している変数の値が目標座標の数と同じ数なら
+		{
+			//移動回数のリセット
+			this->MovingTimesCount = 0;
+		}
+		else
+		{
+			//移動回数を増やす
+			this->MovingTimesCount++;
+		}
+	}
 
-	// 処理が終わったらtrueを返す
-	return true;
+	//複数回処理が行われないようにする
+	this->bShouldBeenProcessWhenFirstStateTransition = true;
 }
 
 //移動処理
 bool ARedEnemy::Move()
 {
-	//DeltaTimeの取得
-	float DeltaTime = GetWorld()->GetDeltaSeconds();
-
-	//目的地までの残り距離を計算
-	float RemainingDistance = TotalDistance - TraveledDistance;
-
-	//現在の速度での移動距離を計算
-	float DeltaDistance = Speed * DeltaTime;
-
-	//目的地に近づきすぎたら、残りの距離だけ進むように調整
-	if (DeltaDistance >= RemainingDistance)
+	if (GoalLocations.Num() != 0) // 目標地点があるか確認
 	{
-		DeltaDistance = RemainingDistance;
-		TraveledDistance = TotalDistance;
+		//DeltaTimeの取得
+		float DeltaTime = GetWorld()->GetDeltaSeconds();
+
+		//目的地までの残り距離を計算
+		float RemainingDistance = TotalDistance - TraveledDistance;
+
+		//現在の速度での移動距離を計算
+		float DeltaDistance = Status.Speed * DeltaTime;
+
+		//目的地に近づきすぎたら、残りの距離だけ進むように調整
+		if (DeltaDistance >= RemainingDistance)
+		{
+			DeltaDistance = RemainingDistance;
+			TraveledDistance = TotalDistance;
+		}
+		else
+		{
+			TraveledDistance += DeltaDistance;
+		}
+
+		// 新しい位置を計算
+		FVector NewLocation = CurrentLocation + (Direction * TraveledDistance);
+
+		// 新しい位置に移動
+		SetActorLocation(NewLocation);
+
+		// 目的地に到達したら処理を終了
+		if (TraveledDistance >= TotalDistance)
+		{
+			SetActorLocation(this->GoalLocation_World);
+
+			//状態遷移できるようにする
+			return true;
+		}
+
+		//もう一度この関数を呼ぶ
+		return false;
 	}
-	else
-	{
-		TraveledDistance += DeltaDistance;
-	}
 
-	//正弦波に基づいてオフセットを計算(目的地に瞬間移動して着かないように調整する計算)
-	float Offset_Z = Amplitude * FMath::Sin(2.0f * PI * (TraveledDistance / TotalDistance));
-
-	// 新しい位置を計算
-	FVector NewLocation = CurrentLocation + (Direction * TraveledDistance);
-	NewLocation.Z += Offset_Z;
-
-	// 新しい位置に移動
-	SetActorLocation(NewLocation);
-
-	// 目的地に到達したら処理を終了
-	if (TraveledDistance >= TotalDistance)
-	{
-		SetActorLocation(this->GoalLocation_World);
-
-		//状態遷移できるようにする
-		return true;
-	}
-
-	return false;
+	// 目標地点が無かったら状態遷移できるようにする
+	return true;
 }
 
 //攻撃処理
 bool ARedEnemy::Attack()
 {
-	//攻撃判定
-	if (MoveCount >= AttackUpToTime * Gamefps)
+	if (GhostMeshComponent && AttackAnim) // nullチェック
 	{
-		UKismetSystemLibrary::PrintString(this, TEXT("RedEnemy Attack!"), true, true, FColor::Red, 2.f, TEXT("None"));
-
-		//プレイヤーへダメージを与える
-		//プレイヤーの情報取得
-		AVRPlayerCharacter* Player = Cast<AVRPlayerCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
-		if (Player)
+		//攻撃判定
+		if (MoveCount == FMath::RoundToInt(AttackTiming * Gamefps / AssumptionFPS)) // 敵にダメージを与える
 		{
-			Player->RecievePlayerDamage();
-		}
+			/*UKismetSystemLibrary::PrintString(this, TEXT("RedEnemy Attack!"), true, true, FColor::Red, 2.f, TEXT("None"));*/
 
+			//プレイヤーへダメージを与える
+			//プレイヤーの情報取得
+			AVRPlayerCharacter* Player = Cast<AVRPlayerCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
+			if (Player)
+			{
+				Player->RecievePlayerDamage();
+			}
+		}
+		if (!GhostMeshComponent->IsPlaying()) // アニメーションが終わったら
+		{
+			//攻撃終了(条件式で制御し、アニメーションが終わったらにするかも)
+			return true;
+		}
+	}
+	else
+	{
 		//攻撃終了(条件式で制御し、アニメーションが終わったらにするかも)
 		return true;
 	}
 
+	//もう一度この関数を呼ぶ
 	return false;
 }
 
@@ -283,7 +339,7 @@ bool ARedEnemy::Appear()
 	//DeltaTimeの取得
 	float DeltaTime = GetWorld()->GetDeltaSeconds();
 
-	if (DynamicMaterial)
+	if (DynamicMaterial_Body && DynamicMaterial_Eye)
 	{
 		//オパシティの値を変更
 		this->OpacityValue += 1.f / (float)TimeSpentInAppear * DeltaTime;
@@ -295,14 +351,16 @@ bool ARedEnemy::Appear()
 			this->OpacityValue = 1.f;
 
 			//オパシティを設定
-			this->DynamicMaterial->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
+			this->DynamicMaterial_Body->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
+			this->DynamicMaterial_Eye->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
 
 			//状態遷移可能にする
 			return true;
 		}
 
 		//オパシティを設定
-		this->DynamicMaterial->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
+		this->DynamicMaterial_Body->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
+		this->DynamicMaterial_Eye->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
 	}
 
 	return false;
