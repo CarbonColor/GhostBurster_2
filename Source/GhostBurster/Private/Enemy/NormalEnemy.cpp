@@ -47,12 +47,14 @@ ANormalEnemy::ANormalEnemy()
 			this->GhostCollision->SetupAttachment(RootComponent);
 			//GhostCollisionのコリジョンプリセットをOverlapAllDynamicにする
 			this->GhostCollision->SetCollisionProfileName("OverlapAllDynamic");
+			//当たり判定を消す
+			this->GhostCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		}
 	}
 
 	//☆アニメーション-------------------------------------------------------------------------------------------------------------
-	this->DefaultAnim = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Ghost/Anim_Idle"));			// 特定のアニメーションを使用しない状態のアニメーション
-	this->AttackAnim = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Ghost/Test_GhostAttack"));	// 攻撃状態のアニメーション
+	this->DefaultAnim = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Ghost/Anim_Idle"));	// 特定のアニメーションを使用しない状態のアニメーション
+	this->AttackAnim = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Ghost/Anim_Attack"));	// 攻撃状態のアニメーション
 	
 	//☆サウンド-------------------------------------------------------------------------------------------------------------------
 	this->AppearSound = LoadObject<USoundCue>(nullptr, TEXT("/Game/_TeamFolder/Sound/SE/SE_GhostAppear_2_Cue"));	// 出現時の音設定
@@ -160,7 +162,7 @@ void ANormalEnemy::ActProcess()
 
 	case EState::Move:	//移動
 		//状態Move遷移時にのみ行う処理
-		if (this->bShouldBeenProcessWhenFirstStateTransition == false)
+		if (this->bOnceDoProcessBeenIs == false)
 		{
 			ProcessJustForFirst_Move();
 		}
@@ -174,15 +176,15 @@ void ANormalEnemy::ActProcess()
 		this->bHasEndedAttack = this->Attack();
 		break;
 
-	case EState::Die:	//死亡
+	case EState::Die:		//死亡
 		EnemyDead();
 		break;
 
 	case EState::Appear:	//出現
 		//状態Move遷移時にのみ行う処理
-		if (this->bShouldBeenProcessWhenFirstStateTransition == false)
+		if (this->bOnceDoProcessBeenIs == false)
 		{
-			ProcessJustForFirst_Appear();
+			this->ProcessJustForFirst_Appear();
 		}
 
 		//出現処理
@@ -244,7 +246,7 @@ void ANormalEnemy::ProcessJustForFirst_Move()
 	}
 
 	//複数回処理が行われないようにする
-	this->bShouldBeenProcessWhenFirstStateTransition = true;
+	this->bOnceDoProcessBeenIs = true;
 }
 
 //移動処理
@@ -304,6 +306,7 @@ bool ANormalEnemy::Attack()
 		//攻撃判定
 		if (MoveCount == FMath::RoundToInt(AttackTiming * Gamefps / AssumptionFPS)) // 敵にダメージを与える
 		{
+			//デバッグ用
 			/*UKismetSystemLibrary::PrintString(this, TEXT("WhiteEnemy Attack!"), true, true, FColor::White, 2.f, TEXT("None"));*/
 
 			//プレイヤーへダメージを与える
@@ -327,50 +330,6 @@ bool ANormalEnemy::Attack()
 	}
 
 	//もう一度この関数を呼ぶ
-	return false;
-}
-
-//出現関係---------------------------------------------------------------------------------------------------------------------
-//状態：Appearで最初に一度だけする処理
-void ANormalEnemy::ProcessJustForFirst_Appear()
-{
-	//敵出現時の音を鳴らす
-	PlayAppearSound();
-
-	//複数回処理が行われないようにする
-	this->bShouldBeenProcessWhenFirstStateTransition = true;
-}
-
-//敵出現処理
-bool ANormalEnemy::Appear()
-{
-	//DeltaTimeの取得
-	float DeltaTime = GetWorld()->GetDeltaSeconds();
-
-	if (DynamicMaterial_Body && DynamicMaterial_Eye)
-	{
-		//オパシティの値を変更
-		this->OpacityValue += 1.f / (float)TimeSpentInAppear * DeltaTime;
-
-		//出現が終わったら処理を終了する
-		if (this->OpacityValue >= 1.f)
-		{
-			//オパシティの値が1を超えないようにする
-			this->OpacityValue = 1.f;
-
-			//オパシティを設定
-			this->DynamicMaterial_Body->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
-			this->DynamicMaterial_Eye->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
-
-			//状態遷移可能にする
-			return true;
-		}
-
-		//オパシティを設定
-		this->DynamicMaterial_Body->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
-		this->DynamicMaterial_Eye->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
-	}
-
 	return false;
 }
 

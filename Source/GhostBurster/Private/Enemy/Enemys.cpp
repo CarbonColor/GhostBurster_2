@@ -10,7 +10,7 @@
 AEnemys::AEnemys()
 	:
 	MoveCount(0),
-	bShouldBeenProcessWhenFirstStateTransition(false),
+	bOnceDoProcessBeenIs(false),
 	//FPS関係
 	Gamefps(60.f), AssumptionFPS(60),
 	//構造体
@@ -28,6 +28,8 @@ AEnemys::AEnemys()
 	Direction(FVector(0.f, 0.f, 0.f)), TotalDistance(0.f), Amplitude(40.f), Frequency(1.f), 
 	//攻撃関係
 	bHasEndedAttack(false), AttackUpToTime(1.f),
+	//死亡関係
+	bIsDestroy(false),
 	//出現関係
 	bHasEndedAppear(false), OpacityValue(0.f), TimeSpentInAppear(1)
 {
@@ -59,18 +61,49 @@ void AEnemys::UpdateState(EState NowState)
 
 		State = NowState;
 		MoveCount = 0;
-		bShouldBeenProcessWhenFirstStateTransition = false;
-
-		
+		bOnceDoProcessBeenIs = false;
 	}
 }
 
+//FPS関係----------------------------------------------------------------------------------------------------------------------
+//現在のFPSを取得する
+float AEnemys::GetWorldFPS()
+{
+	//DeltaTime取得
+	float DeltaTime = GetWorld()->GetDeltaSeconds();
+
+	//現在のFPSを計算して取得
+	float FPS = 1.f / DeltaTime;
+
+	return FPS;
+}
+
+//死亡関係---------------------------------------------------------------------------------------------------------------------
 //HPが0になったら消滅させる
 void AEnemys::EnemyDead()
 {
+	//EnemyDeadで一度だけ行う処理
+	if (bOnceDoProcessBeenIs == false)
+	{
+		ProcessDoOnce_EnemyDead();
+	}
+
+	//徐々に透明にする
+	bIsDestroy = Transparentize_Dead();
+
+	//敵を消滅させる
+	if (bIsDestroy)
+	{
+		this->Destroy();
+	}
+}
+
+//EnemyDeadで一度だけ行う処理
+void AEnemys::ProcessDoOnce_EnemyDead()
+{
 	//イベントに死亡通知を送る
 	// プレイヤーを取得
-	AVRPlayerCharacter* Player = Cast<AVRPlayerCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
+	TObjectPtr<AVRPlayerCharacter> Player = Cast<AVRPlayerCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
 	if (Player)
 	{
 		//ステージ名を取得
@@ -97,25 +130,98 @@ void AEnemys::EnemyDead()
 		}
 	}
 
+	//当たり判定を消す
+	if (GhostCollision) // nullチェック
+	{
+		GhostCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+
 	//敵消滅時の音を鳴らす
 	PlayDisappearSound();
 
-	//敵を消滅させる
-	this->Destroy();
-
-	return;
+	//複数回処理が行われないようにする
+	bOnceDoProcessBeenIs = true;
 }
 
-//現在のFPSを取得する
-float AEnemys::GetWorldFPS()
+//徐々に透明にする
+bool AEnemys::Transparentize_Dead()
 {
-	//DeltaTime取得
+	//DeltaTimeの取得
 	float DeltaTime = GetWorld()->GetDeltaSeconds();
 
-	//現在のFPSを計算して取得
-	float FPS = 1.f / DeltaTime;
+	if (DynamicMaterial_Body && DynamicMaterial_Eye)
+	{
+		//オパシティの値を変更
+		this->OpacityValue -= DeltaTime;
 
-	return FPS;
+		//出現が終わったら処理を終了する
+		if (this->OpacityValue <= 0.f)
+		{
+			//オパシティの値が0を下回らないようにする
+			this->OpacityValue = 0.f;
+
+			//オパシティを設定
+			this->DynamicMaterial_Body->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
+			this->DynamicMaterial_Eye->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
+
+			//この関数が呼ばれないようにする
+			return true;
+		}
+
+		//オパシティを設定
+		this->DynamicMaterial_Body->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
+		this->DynamicMaterial_Eye->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
+	}
+
+	//もう一度この関数を呼ぶ
+	return false;
+}
+
+//出現関係---------------------------------------------------------------------------------------------------------------------
+//状態：Appearで最初に一度だけする処理
+void AEnemys::ProcessJustForFirst_Appear()
+{
+	//敵出現時の音を鳴らす
+	PlayAppearSound();
+
+	//複数回処理が行われないようにする
+	this->bOnceDoProcessBeenIs = true;
+}
+
+//敵出現処理
+bool AEnemys::Appear()
+{
+	//DeltaTimeの取得
+	float DeltaTime = GetWorld()->GetDeltaSeconds();
+
+	if (DynamicMaterial_Body && DynamicMaterial_Eye)
+	{
+		//オパシティの値を変更
+		OpacityValue += 1.f / (float)TimeSpentInAppear * DeltaTime;
+
+		//出現が終わったら処理を終了する
+		if (OpacityValue >= 1.f)
+		{
+			//オパシティの値が1を超えないようにする
+			OpacityValue = 1.f;
+
+			//オパシティを設定
+			DynamicMaterial_Body->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
+			DynamicMaterial_Eye->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
+
+			//当たり判定を付ける
+			GhostCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+
+			//状態遷移可能にする
+			return true;
+		}
+
+		//オパシティを設定
+		DynamicMaterial_Body->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
+		DynamicMaterial_Eye->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
+	}
+
+	return false;
 }
 
 //アニメーション関係-----------------------------------------------------------------------------------------------------------
@@ -142,7 +248,14 @@ void AEnemys::ChangeAnimation(const EState PreState, const EState NewState)
 		break;
 
 	//アニメーションを使用しない状態-------------------------------------------------------------------------
-	case EState::Appear:
+	case EState::Appear: // この状態は敵の最初の状態なのでアニメーションの強制終了は必要ない
+		break;
+
+	case EState::Die: // この状態の後にアニメーションが変更されることはないのでdefaultのif文の変更前の状態は死亡状態かどうかの確認はしなくてよい
+		if (GhostMeshComponent)
+		{
+			GhostMeshComponent->Stop();
+		}
 		break;
 	}
 }
