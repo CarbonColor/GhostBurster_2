@@ -29,10 +29,6 @@ class GHOSTBURSTER_API ANormalEnemy : public AEnemys
 	//UŒ‚ŠÖŒW---------------------------------------------------------------------------------------------------------------------
 	virtual bool Attack() override;						// UŒ‚ˆ—
 
-	//oŒ»ŠÖŒW---------------------------------------------------------------------------------------------------------------------
-	virtual void ProcessJustForFirst_Appear() override;	// ó‘ÔFAppear‚ÅÅ‰‚Éˆê“x‚¾‚¯s‚¤ˆ—
-	virtual bool Appear() override;						// “GoŒ»ˆ—
-
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

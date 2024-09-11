@@ -17,6 +17,8 @@ ABlueEnemy::ABlueEnemy()
 	{
 		//シーンコンポーネントをルートコンポーネントに設定
 		RootComponent = this->DefaultSceneRoot;
+		//スケールの設定
+		DefaultSceneRoot->SetWorldScale3D(EnemyScale);
 
 		//☆スケルタルメッシュコンポーネント--------------------------------------------------------------------------------------
 		//スケルタルメッシュコンポーネントの作成
@@ -38,19 +40,25 @@ ABlueEnemy::ABlueEnemy()
 
 		//☆コリジョン-------------------------------------------------------------------------------------------------------------
 		//スフィアコリジョンの作成
-		GhostCollision = CreateDefaultSubobject<USphereComponent>(TEXT("GhostCollision"));
-		if (GhostCollision)
+		this->GhostCollision = CreateDefaultSubobject<USphereComponent>(TEXT("GhostCollision"));
+		if (this->GhostCollision)
 		{
 			//GhostCollisionをルートコンポーネントにアタッチする
-			GhostCollision->SetupAttachment(RootComponent);
+			this->GhostCollision->SetupAttachment(RootComponent);
 			//GhostCollisionのコリジョンプリセットをOverlapAllDynamicにする
-			GhostCollision->SetCollisionProfileName("OverlapAllDynamic");
+			this->GhostCollision->SetCollisionProfileName("OverlapAllDynamic");
+			//当たり判定を消す
+			this->GhostCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			//GhostCollisionの位置設定
+			this->GhostCollision->SetWorldLocation(FVector(0.f, 0.f, -50.f));
+			//GhostCollisionの半径設定
+			this->GhostCollision->SetSphereRadius(80.f);
 		}
 	}
 
 	//☆アニメーション-------------------------------------------------------------------------------------------------------------
-	this->DefaultAnim = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Ghost/Anim_Idle"));			// 特定のアニメーションを使用しない状態のアニメーション
-	this->AttackAnim = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Ghost/Test_GhostAttack"));	// 攻撃状態のアニメーション
+	this->DefaultAnim = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Ghost/Anim_Idle"));	// 特定のアニメーションを使用しない状態のアニメーション
+	this->AttackAnim = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Ghost/Anim_Attack"));	// 攻撃状態のアニメーション
 
 	//☆サウンド-------------------------------------------------------------------------------------------------------------------
 	AppearSound = LoadObject<USoundCue>(nullptr, TEXT("/Game/_TeamFolder/Sound/SE/SE_GhostAppear_2_Cue"));	//出現時の音設定
@@ -154,7 +162,7 @@ void ABlueEnemy::ActProcess()
 
 	case EState::Move:	//移動
 		//状態Move遷移時にのみ行う処理
-		if (this->bShouldBeenProcessWhenFirstStateTransition == false)
+		if (this->bOnceDoProcessBeenIs == false)
 		{
 			ProcessJustForFirst_Move();
 		}
@@ -164,19 +172,19 @@ void ABlueEnemy::ActProcess()
 		break;
 
 	case EState::Attack:	//攻撃
-		//攻撃処理
+		//攻撃処理(攻撃が終わった後状態遷移する)
 		this->bHasEndedAttack = this->Attack();
 		break;
 
-	case EState::Die:
+	case EState::Die:		//死亡
 		EnemyDead();
 		break;
 
 	case EState::Appear:	//出現
 		//状態Move遷移時にのみ行う処理
-		if (this->bShouldBeenProcessWhenFirstStateTransition == false)
+		if (this->bOnceDoProcessBeenIs == false)
 		{
-			ProcessJustForFirst_Appear();
+			this->ProcessJustForFirst_Appear();
 		}
 
 		//出現処理
@@ -237,7 +245,7 @@ void ABlueEnemy::ProcessJustForFirst_Move()
 	}
 
 	//複数回処理が行われないようにする
-	this->bShouldBeenProcessWhenFirstStateTransition = true;
+	this->bOnceDoProcessBeenIs = true;
 }
 
 //移動処理
@@ -319,49 +327,5 @@ bool ABlueEnemy::Attack()
 	}
 
 	//もう一度この関数を呼ぶ
-	return false;
-}
-
-//出現関係---------------------------------------------------------------------------------------------------------------------
-//状態：Appearで最初に一度だけする処理
-void ABlueEnemy::ProcessJustForFirst_Appear()
-{
-	//敵出現時の音を鳴らす
-	PlayAppearSound();
-
-	//複数回処理が行われないようにする
-	this->bShouldBeenProcessWhenFirstStateTransition = true;
-}
-
-// 敵出現処理
-bool ABlueEnemy::Appear()
-{
-	//DeltaTimeの取得
-	float DeltaTime = GetWorld()->GetDeltaSeconds();
-
-	if (DynamicMaterial_Body && DynamicMaterial_Eye)
-	{
-		//オパシティの値を変更
-		this->OpacityValue += 1.f / (float)TimeSpentInAppear * DeltaTime;
-
-		//出現が終わったら処理を終了する
-		if (this->OpacityValue >= 1.f)
-		{
-			//オパシティの値が1を超えないようにする
-			this->OpacityValue = 1.f;
-
-			//オパシティを設定
-			this->DynamicMaterial_Body->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
-			this->DynamicMaterial_Eye->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
-
-			//状態遷移可能にする
-			return true;
-		}
-
-		//オパシティを設定
-		this->DynamicMaterial_Body->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
-		this->DynamicMaterial_Eye->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
-	}
-
 	return false;
 }

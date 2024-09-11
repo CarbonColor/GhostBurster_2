@@ -31,7 +31,7 @@ protected:
 	//ステータス
 	struct FStatus
 	{
-		FStatus() : HP(1), Speed(0.f) {}
+		FStatus() : HP(60), Speed(0.f) {}
 
 		int		HP;		// ゴーストの体力
 		float	Speed;	// 目的地までの移動速度
@@ -60,8 +60,8 @@ protected:
 	//敵の行動制御用のカウント
 	int MoveCount;
 
-	//敵が状態遷移したときに最初に行う処理を行ったらtrue
-	bool bShouldBeenProcessWhenFirstStateTransition;
+	//一度だけ行う処理をしたか
+	bool bOnceDoProcessBeenIs;
 
 	//☆関数
 	//Tickでの処理
@@ -101,6 +101,7 @@ protected:
 	TObjectPtr<USphereComponent>			GhostCollision;			// コリジョン
 	TObjectPtr<UMaterialInstanceDynamic>	DynamicMaterial_Body;	// 体のダイナミックマテリアル
 	TObjectPtr<UMaterialInstanceDynamic>	DynamicMaterial_Eye;	// 目のダイナミックマテリアル
+	FVector									EnemyScale;				// 敵のスケール
 
 	//アニメーション関係-----------------------------------------------------------------------------------------------------------
 	//☆変数
@@ -146,17 +147,29 @@ protected:
 	virtual bool Attack() PURE_VIRTUAL(AEnemys::Move, return false;);	// 攻撃処理
 
 	//死亡関係---------------------------------------------------------------------------------------------------------------------
-	void EnemyDead();	// HPが0になったら消滅させる
+	//☆変数
+	bool bIsDestroy;	// 徐々に透明にする処理を終了するか
+
+	//☆関数
+	void EnemyDead();				// HPが0になったら消滅させる
+	void ProcessDoOnce_EnemyDead();	// EnemyDeadで一度だけ行う処理
+	bool Transparentize_Dead();		// 死亡時の徐々に透明にする処理
 
 	//出現関係---------------------------------------------------------------------------------------------------------------------
 	//☆変数 
 	bool	bHasEndedAppear;	// 出現が終了したか
 	float	OpacityValue;		// オパシティの値
 	int		TimeSpentInAppear;	// 出現するのにかかる時間
+	float	MaxOpacity;			// オパシティの最大値(0～1の範囲)
 
 	//☆関数
-	virtual void ProcessJustForFirst_Appear() PURE_VIRTUAL(AEnemys::ProcessJustForFirst_Appear, );	// 状態：Appearで最初に一度だけする処理
-	virtual bool Appear() PURE_VIRTUAL(AEnemys::Appear, return false;);								// 敵出現処理
+	void ProcessJustForFirst_Appear();	// 状態：Appearで最初に一度だけする処理
+	bool Appear();						// 敵出現処理
+
+	//回転関係---------------------------------------------------------------------------------------------------------------------
+	//☆関数
+	void FacePlayerHowTo();	// プレイヤーの方向を向く
+
 
 public:	
 	// Called every frame
