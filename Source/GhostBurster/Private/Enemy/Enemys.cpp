@@ -18,7 +18,7 @@ AEnemys::AEnemys()
 	//列挙型
 	State(EState::Appear), EnemyColor(EEnemyColor::White),
 	//コンポーネント関係
-	DefaultSceneRoot(nullptr), GhostMeshComponent(nullptr), GhostCollision(nullptr), DynamicMaterial_Body(nullptr), DynamicMaterial_Eye(nullptr),
+	DefaultSceneRoot(nullptr), GhostMeshComponent(nullptr), GhostCollision(nullptr), DynamicMaterial_Body(nullptr), DynamicMaterial_Eye(nullptr), EnemyScale(FVector(0.6f, 0.6f, 0.6f)),
 	//アニメーション関係
 	DefaultAnim(nullptr), AttackAnim(nullptr), AttackTiming(55),
 	//サウンド関係
@@ -31,7 +31,7 @@ AEnemys::AEnemys()
 	//死亡関係
 	bIsDestroy(false),
 	//出現関係
-	bHasEndedAppear(false), OpacityValue(0.f), TimeSpentInAppear(1)
+	bHasEndedAppear(false), OpacityValue(0.f), TimeSpentInAppear(1), MaxOpacity(0.8f)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -197,13 +197,13 @@ bool AEnemys::Appear()
 	if (DynamicMaterial_Body && DynamicMaterial_Eye)
 	{
 		//オパシティの値を変更
-		OpacityValue += 1.f / (float)TimeSpentInAppear * DeltaTime;
+		OpacityValue += MaxOpacity / (float)TimeSpentInAppear * DeltaTime;
 
 		//出現が終わったら処理を終了する
-		if (OpacityValue >= 1.f)
+		if (OpacityValue >= MaxOpacity)
 		{
 			//オパシティの値が1を超えないようにする
-			OpacityValue = 1.f;
+			OpacityValue = MaxOpacity;
 
 			//オパシティを設定
 			DynamicMaterial_Body->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
@@ -222,6 +222,29 @@ bool AEnemys::Appear()
 	}
 
 	return false;
+}
+
+//回転関係---------------------------------------------------------------------------------------------------------------------
+//プレイヤーの方向を向く
+void AEnemys::FacePlayerHowTo()
+{
+	//プレイヤーを取得する
+	TObjectPtr<AVRPlayerCharacter> Player = Cast<AVRPlayerCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
+
+	if (Player) //nullチェック
+	{
+		//方向を計算する
+		FVector DirectionUpToTarget = Player->GetActorLocation() - GetActorLocation();
+
+		//ベクトルを正規化する
+		DirectionUpToTarget.Normalize();
+
+		//X軸方向を基にした回転を取得
+		FRotator NewRotation = FRotationMatrix::MakeFromX(DirectionUpToTarget).Rotator();
+
+		//回転をアクターに適用させる
+		SetActorRotation(NewRotation);
+	}
 }
 
 //アニメーション関係-----------------------------------------------------------------------------------------------------------

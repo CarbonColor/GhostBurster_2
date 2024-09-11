@@ -17,6 +17,8 @@ ARedEnemy::ARedEnemy()
 	{
 		//シーンコンポーネントをルートコンポーネントに設定
 		RootComponent = this->DefaultSceneRoot;
+		//スケールの設定
+		DefaultSceneRoot->SetWorldScale3D(EnemyScale);
 
 		//☆スケルタルメッシュコンポーネント------------------------------------------------------------------------------------------
 		//スケルタルメッシュコンポーネントの作成
@@ -47,6 +49,10 @@ ARedEnemy::ARedEnemy()
 			this->GhostCollision->SetCollisionProfileName("OverlapAllDynamic");
 			//当たり判定を消す
 			this->GhostCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			//GhostCollisionの位置設定
+			this->GhostCollision->SetWorldLocation(FVector(0.f, 0.f, -50.f));
+			//GhostCollisionの半径設定
+			this->GhostCollision->SetSphereRadius(80.f);
 		}
 	}
 

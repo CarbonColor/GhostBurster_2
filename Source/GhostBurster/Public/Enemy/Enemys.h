@@ -101,6 +101,7 @@ protected:
 	TObjectPtr<USphereComponent>			GhostCollision;			// コリジョン
 	TObjectPtr<UMaterialInstanceDynamic>	DynamicMaterial_Body;	// 体のダイナミックマテリアル
 	TObjectPtr<UMaterialInstanceDynamic>	DynamicMaterial_Eye;	// 目のダイナミックマテリアル
+	FVector									EnemyScale;				// 敵のスケール
 
 	//アニメーション関係-----------------------------------------------------------------------------------------------------------
 	//☆変数
@@ -159,10 +160,16 @@ protected:
 	bool	bHasEndedAppear;	// 出現が終了したか
 	float	OpacityValue;		// オパシティの値
 	int		TimeSpentInAppear;	// 出現するのにかかる時間
+	float	MaxOpacity;			// オパシティの最大値(0～1の範囲)
 
 	//☆関数
 	void ProcessJustForFirst_Appear();	// 状態：Appearで最初に一度だけする処理
 	bool Appear();						// 敵出現処理
+
+	//回転関係---------------------------------------------------------------------------------------------------------------------
+	//☆関数
+	void FacePlayerHowTo();	// プレイヤーの方向を向く
+
 
 public:	
 	// Called every frame
