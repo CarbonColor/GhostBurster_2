@@ -164,10 +164,10 @@ protected:
 
 	//回転関係---------------------------------------------------------------------------------------------------------------------
 	//☆変数
-	FRotator RotationCorrectionValue;
+	FRotator RotationCorrectionValue;	// 回転の補正値
 	
 	//☆関数
-	void FacePlayerHowTo();	// プレイヤーの方向を向く
+	void FacePlayerHowTo();				// プレイヤーの方向を向く
 
 public:	
 	// Called every frame

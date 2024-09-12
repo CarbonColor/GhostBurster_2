@@ -7,6 +7,9 @@
 
 // Sets default values
 ATitleEnemy::ATitleEnemy()
+	:
+	RotationCorrectionValue(FRotator(0.f, 0.f, 0.f)),
+	EnemyScale(FVector(0.25f, 0.25f, 0.25f))
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
