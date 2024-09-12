@@ -41,7 +41,9 @@ protected:
 
 	//ライトのON/OFFを切り替えるメソッド
 	UFUNCTION()
-		void ToggleFlashlight(const FInputActionValue& value);
+		void ToggleFlashlight_On(const FInputActionValue& value);
+	UFUNCTION()
+		void ToggleFlashlight_Off(const FInputActionValue& value);
 
 	//ライトの色を切り替えるメソッド
 	UFUNCTION()
