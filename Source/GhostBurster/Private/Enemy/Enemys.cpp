@@ -5,6 +5,7 @@
 #include "Engine/World.h"
 #include "Player/VRPlayerCharacter.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 
 // Sets default values
 AEnemys::AEnemys()
@@ -18,20 +19,22 @@ AEnemys::AEnemys()
 	//列挙型
 	State(EState::Appear), EnemyColor(EEnemyColor::White),
 	//コンポーネント関係
-	DefaultSceneRoot(nullptr), GhostMeshComponent(nullptr), GhostCollision(nullptr), DynamicMaterial_Body(nullptr), DynamicMaterial_Eye(nullptr), EnemyScale(FVector(0.6f, 0.6f, 0.6f)),
+	DefaultSceneRoot(nullptr), GhostMeshComponent(nullptr), GhostCollision(nullptr), DynamicMaterial_Body(nullptr), DynamicMaterial_Eye(nullptr), EnemyScale(FVector(0.5f, 0.5f, 0.5f)),
 	//アニメーション関係
 	DefaultAnim(nullptr), AttackAnim(nullptr), AttackTiming(55),
 	//サウンド関係
 	AppearSound(nullptr), DisappearSound(nullptr),
 	//移動関係
 	MoveTime(1.f), TraveledDistance(0.f), CurrentLocation(FVector(0.f, 0.f, 0.f)), GoalLocations(), MovingTimesCount(0), GoalLocation_World(FVector(0.f, 0.f, 0.f)), bHasEndedMoving(false),
-	Direction(FVector(0.f, 0.f, 0.f)), TotalDistance(0.f), Amplitude(40.f), Frequency(1.f), 
+	Direction(FVector(0.f, 0.f, 0.f)), TotalDistance(0.f), Amplitude(40.f), Frequency(1.f),
 	//攻撃関係
 	bHasEndedAttack(false), AttackUpToTime(1.f),
 	//死亡関係
 	bIsDestroy(false),
 	//出現関係
-	bHasEndedAppear(false), OpacityValue(0.f), TimeSpentInAppear(1), MaxOpacity(0.8f)
+	bHasEndedAppear(false), OpacityValue(0.f), TimeSpentInAppear(1), MaxOpacity(0.8f),
+	//回転関係
+	RotationCorrectionValue(FRotator(0.f, -90.f, 0.f))
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -233,17 +236,23 @@ void AEnemys::FacePlayerHowTo()
 
 	if (Player) //nullチェック
 	{
-		//方向を計算する
-		FVector DirectionUpToTarget = Player->GetActorLocation() - GetActorLocation();
+		//プレイヤーの方向を取得する
+		FVector PlayerLocation = Player->GetActorLocation();
 
-		//ベクトルを正規化する
-		DirectionUpToTarget.Normalize();
+		//方向を計算する
+		FVector EnemyLocation = GetActorLocation();
 
 		//X軸方向を基にした回転を取得
-		FRotator NewRotation = FRotationMatrix::MakeFromX(DirectionUpToTarget).Rotator();
+		FRotator NewRotation = UKismetMathLibrary::FindLookAtRotation(EnemyLocation, PlayerLocation);
+
+		//回転の補正値を足す
+		FRotator SetRotation = NewRotation + RotationCorrectionValue;
+
+		//垂直方向の回転を無くす
+		SetRotation.Pitch = 0.f;
 
 		//回転をアクターに適用させる
-		SetActorRotation(NewRotation);
+		SetActorRotation(SetRotation);
 	}
 }
 

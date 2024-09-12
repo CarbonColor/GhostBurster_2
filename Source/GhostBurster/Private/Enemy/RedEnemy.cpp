@@ -191,6 +191,9 @@ void ARedEnemy::ActProcess()
 		this->bHasEndedAppear = this->Appear();
 		break;
 	}
+
+	//状態関係なく行う処理--------------------------------------------------
+	this->FacePlayerHowTo(); // プレイヤーの方向を向く
 }
 
 //ダメージを受ける処理、引数でもらった攻撃力分体力を減らす

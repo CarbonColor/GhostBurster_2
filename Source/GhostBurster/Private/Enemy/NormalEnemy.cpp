@@ -19,8 +19,10 @@ ANormalEnemy::ANormalEnemy()
 	{
 		//シーンコンポーネントをルートコンポーネントに設定
 		RootComponent = this->DefaultSceneRoot;
+		//回転の設定
+		this->DefaultSceneRoot->SetWorldRotation(RotationCorrectionValue);
 		//スケールの設定
-		DefaultSceneRoot->SetWorldScale3D(EnemyScale);
+		this->DefaultSceneRoot->SetWorldScale3D(EnemyScale);
 
 		//☆スケルタルメッシュコンポーネント---------------------------------------------------------------------------------------
 		//スケルタルメッシュコンポーネントの作成
@@ -199,7 +201,7 @@ void ANormalEnemy::ActProcess()
 	}
 
 	//状態関係なく行う処理--------------------------------------------------
-	//this->FacePlayerHowTo(); プレイヤー制作者に要相談！
+	this->FacePlayerHowTo(); // プレイヤーの方向を向く
 }
 
 //ダメージを受ける処理、引数でもらった数値分体力を減らす

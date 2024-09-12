@@ -167,9 +167,11 @@ protected:
 	bool Appear();						// 敵出現処理
 
 	//回転関係---------------------------------------------------------------------------------------------------------------------
+	//☆変数
+	FRotator RotationCorrectionValue;
+	
 	//☆関数
 	void FacePlayerHowTo();	// プレイヤーの方向を向く
-
 
 public:	
 	// Called every frame
