@@ -377,7 +377,8 @@ void AVRPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
     if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponent))
     {
         // 右手のアクションをバインド
-        EnhancedInputComponent->BindAction(IA_Flashlight_OnOff, ETriggerEvent::Triggered, this, &AVRPlayerCharacter::ToggleFlashlight);
+        EnhancedInputComponent->BindAction(IA_Flashlight_OnOff, ETriggerEvent::Started, this, &AVRPlayerCharacter::ToggleFlashlight_On);
+        EnhancedInputComponent->BindAction(IA_Flashlight_OnOff, ETriggerEvent::Completed, this, &AVRPlayerCharacter::ToggleFlashlight_Off);
         EnhancedInputComponent->BindAction(IA_Flashlight_ChangeColor, ETriggerEvent::Triggered, this, &AVRPlayerCharacter::ChangeColorFlashlight);
 
         // 左手のアクションをバインド
@@ -391,39 +392,17 @@ void AVRPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 }
 
 //ライトのON/OFFメソッド
-void AVRPlayerCharacter::ToggleFlashlight(const FInputActionValue& value)
+void AVRPlayerCharacter::ToggleFlashlight_On(const FInputActionValue& value)
 {
-    bool bIsPressed = value.Get<bool>();
-
-    if (bIsPressed && bCanToggleLight)
-    {
-        //ライトのON/OFFを切り替えて、SEを鳴らす
-        Flashlight->ToggleVisibility();
-        if (LightSwitchSound)
-        {
-            UGameplayStatics::PlaySoundAtLocation(this, LightSwitchSound, GetActorLocation());
-        }
-        else
-        {
-            GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Silver, TEXT("Not SoundEffect ! -LightSwitchSound-"));
-        }
-        //ライトの電源変更後、ONになったなら
-        if (Flashlight->GetVisibleFlag())
-        {
-            //ライトの当たり判定を有効化
-            LightCollision->SetCollisionProfileName(TEXT("BlockAllDynamic"));
-        }
-        else
-        {
-            //ライトの当たり判定を無効化
-            LightCollision->SetCollisionProfileName(TEXT("NoCollision"));
-        }
-        //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Light ON/OFF"));
-    }
-    //else if (bCanToggleLight == false)
-    //{
-    //    GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Battery is Charging! Wait until the battery is full."));
-    //}
+    Flashlight->SetVisibility(true);
+    UGameplayStatics::PlaySoundAtLocation(this, LightSwitchSound, GetActorLocation());
+    LightCollision->SetCollisionProfileName(TEXT("BlockAllDynamic"));
+}
+void AVRPlayerCharacter::ToggleFlashlight_Off(const FInputActionValue& value)
+{
+    Flashlight->SetVisibility(false);
+    UGameplayStatics::PlaySoundAtLocation(this, LightSwitchSound, GetActorLocation());
+    LightCollision->SetCollisionProfileName(TEXT("NoCollision"));
 }
 
 //ライトの色を切り替えるメソッド
@@ -432,7 +411,7 @@ void AVRPlayerCharacter::ChangeColorFlashlight(const FInputActionValue& value)
     bool bIsPressed = value.Get<bool>();
 
     // ライトがついているときは変更可能にする
-    if (bIsPressed && Flashlight->GetVisibleFlag())
+    if (bIsPressed)
     {
         // ライトの色を保持する変数を変更
         switch (Flashlight_Color)
