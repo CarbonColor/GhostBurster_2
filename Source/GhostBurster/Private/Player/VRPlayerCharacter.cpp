@@ -174,7 +174,7 @@ void AVRPlayerCharacter::BeginPlay()
     // アイテムの攻撃力の設定
     ItemAttack = 1000;
     // アイテム使用のボーダー設定
-    FingerBendingBorder = 350;
+    FingerBendingBorder = 200;
 
     // デバッグ
     DebugTimer = 0;
@@ -499,6 +499,7 @@ void AVRPlayerCharacter::CheckUsedItem(const TArray<int32> value)
         value[3] > FingerBendingBorder &&
         value[4] <= FingerBendingBorder)
     {
+        bCanUseItem = true;
         //攻撃アイテムの処理
         UseItem_Attack();
     }
@@ -509,6 +510,7 @@ void AVRPlayerCharacter::CheckUsedItem(const TArray<int32> value)
              value[3] > FingerBendingBorder &&
              value[4] > FingerBendingBorder)
     {
+        bCanUseItem = true;
         //強化アイテムの処理
         UseItem_Buff();
     }
