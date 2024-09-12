@@ -10,27 +10,51 @@ ATitleEnemy_White::ATitleEnemy_White()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	//SceneComponentの作成
-	DefaultSceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
-	//SceneComponentをRootComponentに設定
-	RootComponent = DefaultSceneRoot;
+	//☆シーンコンポーネント-------------------------------------------------------------------------------------------------------
+	//シーンコンポーネントの作成
+	this->DefaultSceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
+	if (this->DefaultSceneRoot)
+	{
+		//シーンコンポーネントをルートコンポーネントに設定
+		RootComponent = this->DefaultSceneRoot;
+		//回転の設定
+		this->DefaultSceneRoot->SetWorldRotation(RotationCorrectionValue);
+		//スケールの設定
+		this->DefaultSceneRoot->SetWorldScale3D(EnemyScale);
 
-	//☆StaticMeshComponent
-	//StaticMeshComponentの作成
-	GhostMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Ghost"));
-	//StaticMeshをロードしてStaticMeshComponentのStaticMeshに設定する
-	UStaticMesh* GMesh = LoadObject<UStaticMesh>(NULL, TEXT("/Engine/BasicShapes/Sphere"), NULL, LOAD_None, NULL);
-	GhostMesh->SetStaticMesh(GMesh);
-	//StaticMeshComponentをRootComponentにアタッチする
-	GhostMesh->SetupAttachment(RootComponent);
-	GhostMesh->SetRelativeScale3D(FVector(0.5f, 0.5f, 0.5f));
-	GhostMesh->SetCollisionProfileName("NoCollision");
+		//☆スケルタルメッシュコンポーネント---------------------------------------------------------------------------------------
+		//スケルタルメッシュコンポーネントの作成
+		this->GhostMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Ghost"));
+		//スケルタルメッシュをロード
+		TObjectPtr<USkeletalMesh> GhostMesh = LoadObject<USkeletalMesh>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Ghost/SKM_TestGhost"));
+		if (this->GhostMeshComponent)
+		{
+			if (GhostMesh)
+			{
+				//スケルタルメッシュコンポーネントにスケルタルメッシュを設定する
+				GhostMeshComponent->SetSkeletalMesh(GhostMesh);
+			}
+			//スケルタルメッシュコンポーネントをルートコンポーネントにアタッチする
+			this->GhostMeshComponent->SetupAttachment(RootComponent);
+			//スケルタルメッシュのコリジョンを無くす
+			this->GhostMeshComponent->SetCollisionProfileName("NoCollision");
+		}
 
-	//☆コリジョン
-	//スフィアコリジョンの作成
-	GhostCollision = CreateDefaultSubobject<USphereComponent>(TEXT("GhostCollision"));
-	//GhostCollisionをルートコンポーネントにアタッチする
-	GhostCollision->SetupAttachment(RootComponent);
+		//☆コリジョン-------------------------------------------------------------------------------------------------------------
+		//スフィアコリジョンの作成
+		this->GhostCollision = CreateDefaultSubobject<USphereComponent>(TEXT("GhostCollision"));
+		if (this->GhostCollision)
+		{
+			//GhostCollisionをルートコンポーネントにアタッチする
+			this->GhostCollision->SetupAttachment(RootComponent);
+			//GhostCollisionのコリジョンプリセットをOverlapAllDynamicにする
+			this->GhostCollision->SetCollisionProfileName("OverlapAllDynamic");
+			//GhostCollisionの位置設定
+			this->GhostCollision->SetWorldLocation(FVector(0.f, 0.f, -50.f));
+			//GhostCollisionの半径設定
+			this->GhostCollision->SetSphereRadius(80.f);
+		}
+	}
 
 }
 
@@ -43,6 +67,14 @@ void ATitleEnemy_White::BeginPlay()
 	//RunningTime = 0;
 	//InitialLocation = GetActorLocation();
 
+	//☆マテリアル
+	//体のマテリアルをロード
+	TObjectPtr<UMaterial> BodyMaterial = LoadObject<UMaterial>(nullptr, TEXT("/Game/_TeamFolder/Title/Material/M_White"));
+	if (BodyMaterial && this->GhostMeshComponent)
+	{
+		GhostMeshComponent->SetMaterial(0, BodyMaterial);
+	}
+
 }
 
 // Called every frame
@@ -52,7 +84,7 @@ void ATitleEnemy_White::Tick(float DeltaTime)
 
 	RunningTime += DeltaTime;
 
-	float DeltaHeight = 20.0f * FMath::Sin(1.0f * RunningTime);
+	float DeltaHeight = 10.0f * FMath::Sin(1.0f * RunningTime);
 
 	FVector NewLocation = InitialLocation;
 	NewLocation.Z += DeltaHeight;

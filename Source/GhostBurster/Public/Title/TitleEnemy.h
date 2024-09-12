@@ -30,10 +30,13 @@ protected:
 	TObjectPtr<USceneComponent> DefaultSceneRoot;
 
 	UPROPERTY(EditAnywhere)
-	TObjectPtr<UStaticMeshComponent> GhostMesh;
+	TObjectPtr<USkeletalMeshComponent> GhostMeshComponent;
 
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<USphereComponent> GhostCollision;
+
+	FRotator	RotationCorrectionValue;	// 回転の補正値
+	FVector		EnemyScale;					// 敵のスケール
 
 public:	
 	// Called every frame
