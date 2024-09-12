@@ -154,9 +154,11 @@ protected:
 	//出現関係---------------------------------------------------------------------------------------------------------------------
 	//☆変数 
 	bool	bHasEndedAppear;	// 出現が終了したか
-	float	OpacityValue;		// オパシティの値
-	int		TimeSpentInAppear;	// 出現するのにかかる時間(秒)
-	float	MaxOpacity;			// オパシティの最大値(0～1の範囲)
+	float	OpacityValue_Body;	// 体のオパシティの値
+	float	OpacityValue_Eye;	// 目のオパシティの値
+	float	TimeSpentInAppear;	// 出現するのにかかる時間(秒)
+	float	MaxOpacity_Body;	// 体のオパシティの最大値(0～1の範囲)
+	float	MaxOpacity_Eye;		// 目のオパシティの最大値(0～1の範囲)
 
 	//☆関数
 	void ProcessJustForFirst_Appear();	// 状態：Appearで最初に一度だけする処理

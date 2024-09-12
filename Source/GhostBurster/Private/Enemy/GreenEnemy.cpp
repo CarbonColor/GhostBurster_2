@@ -84,7 +84,7 @@ void AGreenEnemy::BeginPlay()
 		this->GhostMeshComponent->SetMaterial(0, DynamicMaterial_Body);
 
 		//初期オパシティ値を設定
-		this->DynamicMaterial_Body->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
+		this->DynamicMaterial_Body->SetScalarParameterValue(FName("Opacity"), this->OpacityValue_Body);
 	}
 	//目のマテリアルをロード
 	TObjectPtr<UMaterial> EyeMaterial = LoadObject<UMaterial>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Ghost/M_Ghost_Eye"));
@@ -97,7 +97,7 @@ void AGreenEnemy::BeginPlay()
 		this->GhostMeshComponent->SetMaterial(1, DynamicMaterial_Eye);
 
 		//初期オパシティ値を設定
-		this->DynamicMaterial_Eye->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
+		this->DynamicMaterial_Eye->SetScalarParameterValue(FName("Opacity"), this->OpacityValue_Eye);
 	}
 
 }
