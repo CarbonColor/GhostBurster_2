@@ -97,6 +97,7 @@ private:
     bool FStringToBool(const FString& String) const;
     TArray<FEnemySpawnInfo> ParseCSV_SpawnData(const FString& FilePath) const;
     TArray<FEnemySpawnInfo> SpawnInfoArray;
+    mutable FEnemySpawnInfo PreSpawnInfo;
     int32 MaxStageNumber;
     mutable TArray<int32> WaveEnemyCount;
 

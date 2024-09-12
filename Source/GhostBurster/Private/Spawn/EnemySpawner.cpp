@@ -85,57 +85,57 @@ TArray<FEnemySpawnInfo> AEnemySpawner::ParseCSV_SpawnData(const FString& FilePat
                 TArray<FString> Values;
                 Line.ParseIntoArray(Values, TEXT(","), true);
 
-                //直前の敵の生成情報を取得
-                int32 Index = ParsedSpawnInfoArray.Num() - 1;
-                FEnemySpawnInfo SpawnInfo = ParsedSpawnInfoArray[Index];
-
                 //敵の目標地点
+                //※Values[1]は空白
                 float GX = FCString::Atof(*Values[1]);
                 float GY = FCString::Atof(*Values[2]);
                 float GZ = FCString::Atof(*Values[3]);
-                SpawnInfo.GoalLocations.Add(FVector(GX, GY, GZ));
+                PreSpawnInfo.GoalLocations.Add(FVector(GX, GY, GZ));
 
                 continue;
             }
+            else
+            {
+                //カンマ区切りで分割
+                TArray<FString> Values;
+                Line.ParseIntoArray(Values, TEXT(","), true);
+                //データの変換
+                FEnemySpawnInfo SpawnInfo;
 
-            //カンマ区切りで分割
-            TArray<FString> Values;
-            Line.ParseIntoArray(Values, TEXT(","), true);
+                //出現するステージ番号
+                SpawnInfo.Wave = FCString::Atoi(*Values[0]);
+                WaveEnemyCount[SpawnInfo.Wave]++;
 
-            //データの変換
-            FEnemySpawnInfo SpawnInfo;
-            //出現するステージ番号
-            SpawnInfo.Wave = FCString::Atoi(*Values[0]);
-            WaveEnemyCount[SpawnInfo.Wave]++;
+                //出現する敵の種類
+                SpawnInfo.Type = Values[1];
+                //出現する座標
+                float SX = FCString::Atof(*Values[2]);
+                float SY = FCString::Atof(*Values[3]);
+                float SZ = FCString::Atof(*Values[4]);
+                SpawnInfo.StartLocation = FVector(SX, SY, SZ);
 
-            //出現する敵の種類
-            SpawnInfo.Type = Values[1];
-            //出現する座標
-            float SX = FCString::Atof(*Values[2]);
-            float SY = FCString::Atof(*Values[3]);
-            float SZ = FCString::Atof(*Values[4]);
-            SpawnInfo.StartLocation = FVector(SX, SY, SZ);
-
-            //敵の目標地点
-            float GX = FCString::Atof(*Values[5]);
-            float GY = FCString::Atof(*Values[6]);
-            float GZ = FCString::Atof(*Values[7]);
-            SpawnInfo.GoalLocations.Add(FVector(GX, GY, GZ));
-            //敵の移動時間
-            SpawnInfo.MoveTime = FCString::Atoi(*Values[8]);
-            //敵の体力
-            SpawnInfo.EnemyHP = FCString::Atoi(*Values[9]);
-            //敵の移動が終わってから攻撃するまでの時間
-            SpawnInfo.AttackTime = FCString::Atoi(*Values[10]);
-            //生成にかかる時間
-            SpawnInfo.DelayTime = FCString::Atof(*Values[11]);
-            //最後の敵かどうか
-            SpawnInfo.LastEnemy = FStringToBool(Values[12]);
-            //以下、必要に応じて追加
+                //敵の目標地点
+                float GX = FCString::Atof(*Values[5]);
+                float GY = FCString::Atof(*Values[6]);
+                float GZ = FCString::Atof(*Values[7]);
+                SpawnInfo.GoalLocations.Add(FVector(GX, GY, GZ));
+                //敵の移動時間
+                SpawnInfo.MoveTime = FCString::Atoi(*Values[8]);
+                //敵の体力
+                SpawnInfo.EnemyHP = FCString::Atoi(*Values[9]);
+                //敵の移動が終わってから攻撃するまでの時間
+                SpawnInfo.AttackTime = FCString::Atoi(*Values[10]);
+                //生成にかかる時間
+                SpawnInfo.DelayTime = FCString::Atof(*Values[11]);
+                //最後の敵かどうか
+                SpawnInfo.LastEnemy = FStringToBool(Values[12]);
+                //以下、必要に応じて追加
 
 
-            ParsedSpawnInfoArray.Add(SpawnInfo);
-            //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Yellow, FString::Printf(TEXT("Enemy Life -%d-"), SpawnInfo.EnemyHP));
+                ParsedSpawnInfoArray.Add(SpawnInfo);
+                PreSpawnInfo = SpawnInfo;
+                //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Yellow, FString::Printf(TEXT("Enemy Life -%d-"), SpawnInfo.EnemyHP));
+            }
         }
     }
 
@@ -328,8 +328,8 @@ void AEnemySpawner::SpawnEnemy(const FEnemySpawnInfo& SpawnInfo)
         //出現した敵のステータス設定
         if (AEnemys* Enemy = Cast<AEnemys>(SpawnedEnemy))
         {
-            //Enemy->SetInitialData(SpawnInfo.EnemyHP, SpawnInfo.AttackTime, SpawnInfo.GoalLocation, SpawnInfo.MoveTime);
-            Enemy->SetHP(SpawnInfo.EnemyHP);
+            Enemy->SetInitialData(SpawnInfo.EnemyHP, SpawnInfo.AttackTime, SpawnInfo.GoalLocations, SpawnInfo.MoveTime);
+            //Enemy->SetHP(SpawnInfo.EnemyHP);
             //Enemy->SetGoalLocation(SpawnInfo.GoalLocation);
             //Enemy->SetMoveTime(SpawnInfo.MoveTime);
             //Enemy->SetAttackUpToTime(SpawnInfo.AttackTime);

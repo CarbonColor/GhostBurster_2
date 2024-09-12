@@ -75,6 +75,11 @@ int32 UPlayerScoreInstance::GetItemPerScore()
 // ------------------------------------------------------------------------------------
 // 各データのセッター
 // ------------------------------------------------------------------------------------
+void UPlayerScoreInstance::SetDevicePortNumber(int32 Port)
+{
+	DevicePortNumber = Port;
+}
+
 void UPlayerScoreInstance::AddPlayerScore(int32 Value)
 {
 	PlayerDafaultScore += Value;
