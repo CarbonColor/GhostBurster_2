@@ -258,6 +258,8 @@ private:
 
 	//ライトの色を保持する変数
 	EFlashlight_Color Flashlight_Color;
+	//UI用の色を保持する変数
+	FLinearColor LightColor_UI;
 
 	//ライトバッテリー秒数
 	int32 BatteryTime;

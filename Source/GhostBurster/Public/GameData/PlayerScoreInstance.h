@@ -72,6 +72,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "PlayerData")
 		void AllDataResetFunction();
 
+	//グローブデバイス用のCOMポート番号
+	UPROPERTY(BlueprintReadOnly, Category = "DeviceData")
+		int32 DevicePortNumber;
+
+	UFUNCTION(BlueprintCallable, Category = "DeviceData")
+		void SetDevicePortNumber(int32 Port);
+
 
 	// スコアを取得するメソッド
 	UFUNCTION(BlueprintCallable, Category = "PlayerData")

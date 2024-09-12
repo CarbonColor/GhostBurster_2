@@ -73,10 +73,6 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     Flashlight->SetVisibility(false);
     // 光の位置を調整
     Flashlight->SetRelativeLocation(FVector(0.0f, 0.0f, -50.0f));
-    // 光の強さ・範囲の調整をする
-    Flashlight->SetIntensity(20000.0f);  // Unitless状態での数値
-    Flashlight->SetAttenuationRadius(1500.0f);
-    Flashlight->SetOuterConeAngle(25.0f);
 
     // 右手のライトのスタティックメッシュコンポーネントを作る
     FlashlightMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("FlashlightMesh"));
@@ -108,10 +104,6 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     LightCollision->SetVisibility(false);
     //コリジョンのプリセットを設定
     LightCollision->SetCollisionProfileName(TEXT("NoCollision"));
-    // 位置・サイズ・向きの調整をする
-    LightCollision->SetRelativeLocation(FVector(700.0f, 0.0f, 0.0f));
-    LightCollision->SetRelativeRotation(FRotator(90.0f, 0.0f, 0.0f));  // ※ FRotator は (Y, Z, X) の順
-    LightCollision->SetRelativeScale3D(FVector(12.5f, 12.5f, 12.5f));
     // 当たり判定のメソッドをバインド
     LightCollision->OnComponentBeginOverlap.AddDynamic(this, &AVRPlayerCharacter::OnConeBeginOverlap);
     LightCollision->OnComponentEndOverlap.AddDynamic(this, &AVRPlayerCharacter::OnConeEndOverlap);
@@ -193,6 +185,7 @@ void AVRPlayerCharacter::BeginPlay()
 
     // ライトの色を設定する
     Flashlight_Color = EFlashlight_Color::White;
+    LightColor_UI = FLinearColor::White;
     // バッテリーの初期値
     Battery = MaxBattery;
     //ステージ番号を初期化する
@@ -332,13 +325,17 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
     {
         //バッテリーの回復
         Battery += MaxBattery / (60 * 2);
-        //UIバーの色を赤くする
-        BatteryUI->SetFillColorAndOpacity(FLinearColor::Red);
+        //UIバーの色を灰色にする
+        BatteryUI->WidgetStyle.BackgroundImage.TintColor = FLinearColor::Black;
+        //BatteryUI->SetFillColorAndOpacity(FLinearColor::Black);
         if (Battery >= MaxBattery)
         {
             Battery = MaxBattery;
             //ライトがつけられるようになる
             bCanToggleLight = true;
+            BatteryUI->WidgetStyle.BackgroundImage.TintColor = FLinearColor::White;
+            //BatteryUI->SetFillColorAndOpacity(LightColor_UI);
+            
             //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Battery is fill! You can't use Flashlight!"));
         }
         UpdateBatteryUI();
@@ -346,8 +343,6 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
     else if (Flashlight->GetVisibleFlag())    //ライトON
     {
         Battery--;
-        //UIバーの色を白くする
-        BatteryUI->SetFillColorAndOpacity(FLinearColor::White);
         //バッテリーが切れたら
         if (Battery <= 0)
         {
@@ -368,8 +363,6 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
         {
             Battery += MaxBattery / (60 * 5);
         }
-        //UIバーの色を白くする
-        BatteryUI->SetFillColorAndOpacity(FLinearColor::White);
         UpdateBatteryUI();
     }
 
@@ -446,18 +439,22 @@ void AVRPlayerCharacter::ChangeColorFlashlight(const FInputActionValue& value)
         {
         case EFlashlight_Color::White:
             Flashlight_Color = EFlashlight_Color::Green;
+            LightColor_UI = FLinearColor::Green;
             break;
 
         case EFlashlight_Color::Green:
             Flashlight_Color = EFlashlight_Color::Red;
+            LightColor_UI = FLinearColor::Red;
             break;
 
         case EFlashlight_Color::Red:
             Flashlight_Color = EFlashlight_Color::Blue;
+            LightColor_UI = FLinearColor::Blue;
             break;
 
         case EFlashlight_Color::Blue:
             Flashlight_Color = EFlashlight_Color::White;
+            LightColor_UI = FLinearColor::White;
             break;
         }
         // ライトの色を変更
@@ -498,6 +495,7 @@ void AVRPlayerCharacter::SettingFlashlightColor()
         Flashlight->SetLightColor(FColor::Blue);
         break;
     }
+    BatteryUI->SetFillColorAndOpacity(LightColor_UI);
 }
 
 void AVRPlayerCharacter::CheckUsedItem(const TArray<int32> value)
