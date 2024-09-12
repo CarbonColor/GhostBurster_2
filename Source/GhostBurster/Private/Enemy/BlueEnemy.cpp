@@ -135,8 +135,7 @@ void ABlueEnemy::Think()
 	{
 	case EState::Wait:	//‘Ò‹@
 		if (MoveCount >= TimeFromWaitToStateTransition * Gamefps) { NowState = EState::Move; }	// ˆÚ“®‚Ö
-		if (Status.HP <= 0 || 
-			FleeUpToCount == FleeUpToCountNumber && MoveCount >= TimeFromWaitToStateTransition * Gamefps) { NowState = EState::Die; }	// Ž€–S‚Ö
+		if (Status.HP <= 0 || FleeUpToCount == FleeUpToCountNumber) { NowState = EState::Die; }	// Ž€–S‚Ö
 		break;
 
 	case EState::Move:	//ˆÚ“®
