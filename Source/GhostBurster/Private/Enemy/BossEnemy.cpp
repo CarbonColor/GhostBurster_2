@@ -116,7 +116,7 @@ void ABossEnemy::ActProcess()
 		break;
 
 	case EState::Attack:	//攻撃
-		if (MoveCount == AttackUpToTime * Gamefps / 60) //15の部分は攻撃モーションに合わせて変更する
+		if (MoveCount == TimeFromWaitToStateTransition * Gamefps / 60) //15の部分は攻撃モーションに合わせて変更する
 		{
 			//攻撃する
 			UKismetSystemLibrary::PrintString(this, TEXT("BossEnemy Attack!"), true, true, FColor::Yellow, 2.f, TEXT("None"));

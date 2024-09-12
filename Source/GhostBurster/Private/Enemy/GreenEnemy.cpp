@@ -99,6 +99,7 @@ void AGreenEnemy::BeginPlay()
 		//初期オパシティ値を設定
 		this->DynamicMaterial_Eye->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
 	}
+
 }
 
 void AGreenEnemy::Tick(float DeltaTime)
@@ -130,8 +131,8 @@ void AGreenEnemy::Think()
 	switch (NowState)
 	{
 	case EState::Wait:	//待機
-		if (MoveCount >= AttackUpToTime * Gamefps) { NowState = EState::Attack; }	// 攻撃へ
-		if (Status.HP <= 0) { NowState = EState::Die; }					// 死亡へ
+		if (MoveCount >= TimeFromWaitToStateTransition * Gamefps) { NowState = EState::Attack; }	// 攻撃へ
+		if (Status.HP <= 0) { NowState = EState::Die; }												// 死亡へ
 		break;
 
 	case EState::Move:	//移動

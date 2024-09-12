@@ -19,17 +19,22 @@ class GHOSTBURSTER_API ABlueEnemy : public AEnemys
 	//Tickでの処理
 	virtual void TickProcess() override;
 	
-	//エネミーの状態判断
-	virtual void Think() override;
-
-	//状態に基づいた動きをする
-	virtual void ActProcess() override;
+	//状態遷移関係-----------------------------------------------------------------------------------------------------------------
+	//☆変数
+	int				FleeUpToCount;			// 逃げるまでのカウント
+	int				FleeUpToCountNumber;	// 逃げるまでに必要なカウントの数
+	
+	//☆関数
+	virtual void	Think() override;		// エネミーの状態判断
+	virtual void	ActProcess() override;	// 状態に基づいた動きをする
 
 	//移動関係---------------------------------------------------------------------------------------------------------------------
+	//☆関数
 	virtual void ProcessJustForFirst_Move() override;	// 状態Move遷移時にのみ行う処理
 	virtual bool Move() override;						// 移動処理
 
 	//攻撃関係---------------------------------------------------------------------------------------------------------------------
+	//☆関数
 	virtual bool Attack() override;	// 攻撃処理
 
 protected:

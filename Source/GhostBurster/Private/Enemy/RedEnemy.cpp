@@ -130,8 +130,8 @@ void ARedEnemy::Think()
 	switch (NowState)
 	{
 	case EState::Wait:	//‘Ò‹@
-		if (MoveCount >= AttackUpToTime * Gamefps) { NowState = EState::Attack; }	// UŒ‚‚Ö
-		if (Status.HP <= 0) { NowState = EState::Die; }				// €–S‚Ö
+		if (MoveCount >= TimeFromWaitToStateTransition * Gamefps) { NowState = EState::Attack; }	// UŒ‚‚Ö
+		if (Status.HP <= 0) { NowState = EState::Die; }												// €–S‚Ö
 		break;
 
 	case EState::Move:	//ˆÚ“®
@@ -140,7 +140,7 @@ void ARedEnemy::Think()
 		break;
 
 	case EState::Attack:	//UŒ‚
-		if (this->bHasEndedAttack) { NowState = EState::Wait; }	// ‘Ò‹@‚Ö
+		if (this->bHasEndedAttack) { NowState = EState::Move; }	// ˆÚ“®‚Ö
 		if (Status.HP <= 0) { NowState = EState::Die; }			// €–S‚Ö
 		break;
 

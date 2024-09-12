@@ -19,17 +19,18 @@ class GHOSTBURSTER_API AGreenEnemy : public AEnemys
 	//Tick‚Å‚Ìˆ—
 	virtual void TickProcess() override;
 	
-	//ƒGƒlƒ~[‚Ìó‘Ô”»’f
-	virtual void Think() override;
-
-	//ó‘Ô‚ÉŠî‚Ã‚¢‚½“®‚«‚ğ‚·‚é
-	virtual void ActProcess() override;
+	//ó‘Ô‘JˆÚŠÖŒW-----------------------------------------------------------------------------------------------------------------
+	//™ŠÖ”
+	virtual void Think() override;		// ƒGƒlƒ~[‚Ìó‘Ô”»’f
+	virtual void ActProcess() override;	// ó‘Ô‚ÉŠî‚Ã‚¢‚½“®‚«‚ğ‚·‚é
 
 	//ˆÚ“®ŠÖŒW---------------------------------------------------------------------------------------------------------------------
+	//™ŠÖ”
 	virtual void ProcessJustForFirst_Move() override;	// ó‘ÔMove‘JˆÚ‚É‚Ì‚İs‚¤ˆ—
 	virtual bool Move() override;						// ˆÚ“®ˆ—
 
 	//UŒ‚ŠÖŒW---------------------------------------------------------------------------------------------------------------------
+	//™ŠÖ”
 	virtual bool Attack() override;	// UŒ‚ˆ—
 
 protected:
