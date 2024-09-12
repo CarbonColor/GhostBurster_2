@@ -56,25 +56,20 @@ protected:
 		Blue = 3,
 	};
 
-	//☆変数
-	//敵の行動制御用のカウント
-	int MoveCount;
-
-	//一度だけ行う処理をしたか
-	bool bOnceDoProcessBeenIs;
-
 	//☆関数
 	//Tickでの処理
 	virtual void TickProcess() PURE_VIRTUAL(AEnemys::TickProcess, );
 
-	//エネミーの状態判断
-	virtual void Think() PURE_VIRTUAL(AEnemys::Think, );
+	//状態遷移関係-----------------------------------------------------------------------------------------------------------------
+	//☆変数
+	int				MoveCount;											// 敵の行動制御用のカウント
+	bool			bOnceDoProcessBeenIs;								// 一度だけ行う処理をしたか
+	float			TimeFromWaitToStateTransition;						// 待機から状態遷移するまでの時間
 
-	//状態の更新
-	void UpdateState(EState NowState);
-
-	//状態に基づいた動きをする
-	virtual void ActProcess() PURE_VIRTUAL(AEnemys::ActProcess, );
+	//☆関数
+	virtual void	Think() PURE_VIRTUAL(AEnemys::Think, );				// エネミーの状態判断
+	void			UpdateState(EState NowState);						// 状態の更新
+	virtual void	ActProcess() PURE_VIRTUAL(AEnemys::ActProcess, );	// 状態に基づいた動きをする
 
 	//FPS関係----------------------------------------------------------------------------------------------------------------------
 	//☆変数
@@ -141,25 +136,26 @@ protected:
 	//攻撃関係---------------------------------------------------------------------------------------------------------------------
 	//☆変数
 	bool	bHasEndedAttack;											// 攻撃が終了したか
-	float	AttackUpToTime;												// ゴーストの攻撃までの時間(秒)
 
 	//☆関数
 	virtual bool Attack() PURE_VIRTUAL(AEnemys::Move, return false;);	// 攻撃処理
 
 	//死亡関係---------------------------------------------------------------------------------------------------------------------
 	//☆変数
-	bool bIsDestroy;	// 徐々に透明にする処理を終了するか
+	bool	bIsDestroy;					// 徐々に透明にする処理を終了するか
+	float	TimeUpToTransparency;		// 透明になるまでの時間(秒)
+	bool	bIsEscaped;					// 逃走したか
 
 	//☆関数
-	void EnemyDead();				// HPが0になったら消滅させる
-	void ProcessDoOnce_EnemyDead();	// EnemyDeadで一度だけ行う処理
-	bool Transparentize_Dead();		// 死亡時の徐々に透明にする処理
+	void	EnemyDead();				// HPが0になったら消滅させる
+	void	ProcessDoOnce_EnemyDead();	// EnemyDeadで一度だけ行う処理
+	bool	Transparentize_Dead();		// 死亡時の徐々に透明にする処理
 
 	//出現関係---------------------------------------------------------------------------------------------------------------------
 	//☆変数 
 	bool	bHasEndedAppear;	// 出現が終了したか
 	float	OpacityValue;		// オパシティの値
-	int		TimeSpentInAppear;	// 出現するのにかかる時間
+	int		TimeSpentInAppear;	// 出現するのにかかる時間(秒)
 	float	MaxOpacity;			// オパシティの最大値(0～1の範囲)
 
 	//☆関数
@@ -179,10 +175,10 @@ public:
 
 	//Setter関数-------------------------------------------------------------------------------------------------------------------
 	void SetHP(const int HPValue);								// HPの設定用関数
-	void SetAttackUpToTime(const float SetTime);				// 攻撃状態になるまでの時間設定用関数
+	void SetTimeFromWaitToStateTransition(const float SetTime);	// 攻撃状態になるまでの時間設定用関数
 	void SetGoalLocations(const TArray<FVector>& SetLocations);	// 目標座標の設定用関数
 	void SetMoveTime(const float SetTime);						// 移動時間の設定用
 	UFUNCTION(BlueprintCallable, Category = "Enemy")
-	void SetInitialData(const int HP, const float AttackUpToTimeValue, const TArray<FVector>& SetLocations, const float MoveTimeValue);	// 生成されたときの設定用関数
-	virtual bool CheckPlayerLightColor(EFlashlight_Color PlayerColor) const PURE_VIRTUAL(AEnemys::GetEnemyColor, return false;);		// プレイヤーのライトの色と敵のライトの色をチェックする関数
+	void SetInitialData(const int HP, const float SetTime, const TArray<FVector>& SetLocations, const float MoveTimeValue);			// 生成されたときの設定用関数
+	virtual bool CheckPlayerLightColor(EFlashlight_Color PlayerColor) const PURE_VIRTUAL(AEnemys::GetEnemyColor, return false;);	// プレイヤーのライトの色と敵のライトの色をチェックする関数
 };

@@ -7,6 +7,9 @@
 #include "Kismet/GameplayStatics.h"
 
 ABlueEnemy::ABlueEnemy()
+	:
+	//状態遷移関係
+	FleeUpToCount(0), FleeUpToCountNumber(3)
 {
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -99,6 +102,7 @@ void ABlueEnemy::BeginPlay()
 		//初期オパシティ値を設定
 		this->DynamicMaterial_Eye->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
 	}
+
 }
 
 void ABlueEnemy::Tick(float DeltaTime)
@@ -130,8 +134,8 @@ void ABlueEnemy::Think()
 	switch (NowState)
 	{
 	case EState::Wait:	//待機
-		if (MoveCount >= AttackUpToTime * Gamefps) { NowState = EState::Attack; }	// 攻撃へ
-		if (Status.HP <= 0) { NowState = EState::Die; }								// 死亡へ
+		if (MoveCount >= TimeFromWaitToStateTransition * Gamefps) { NowState = EState::Move; }	// 移動へ
+		if (Status.HP <= 0 || FleeUpToCount == FleeUpToCountNumber) { NowState = EState::Die; }	// 死亡へ
 		break;
 
 	case EState::Move:	//移動
@@ -139,10 +143,10 @@ void ABlueEnemy::Think()
 		if (Status.HP <= 0) { NowState = EState::Die; }			// 死亡へ
 		break;
 
-	case EState::Attack:	//攻撃
-		if (this->bHasEndedAttack) { NowState = EState::Wait; }	// 待機へ
-		if (Status.HP <= 0) { NowState = EState::Die; }			// 死亡へ
-		break;
+	//case EState::Attack:	//攻撃
+	//	if (this->bHasEndedAttack) { NowState = EState::Wait; }	// 待機へ
+	//	if (Status.HP <= 0) { NowState = EState::Die; }			// 死亡へ
+	//	break;
 
 	case EState::Appear:	//出現
 		if (this->bHasEndedAppear) { NowState = EState::Move; }	// 移動へ
@@ -177,6 +181,12 @@ void ABlueEnemy::ActProcess()
 		break;
 
 	case EState::Die:		//死亡
+		//逃走したか
+		if (FleeUpToCount == FleeUpToCountNumber)
+		{
+			this->bIsEscaped = true;
+		}
+
 		EnemyDead();
 		break;
 
@@ -245,6 +255,9 @@ void ABlueEnemy::ProcessJustForFirst_Move()
 			//移動回数を増やす
 			this->MovingTimesCount++;
 		}
+
+		//逃げるまでのカウントを増やす
+		FleeUpToCount++;
 	}
 
 	//複数回処理が行われないようにする

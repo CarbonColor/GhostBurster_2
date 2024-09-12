@@ -138,8 +138,8 @@ void ANormalEnemy::Think()
 	switch (NowState)
 	{
 	case EState::Wait:	//‘Ò‹@
-		if (MoveCount >= AttackUpToTime * Gamefps) { NowState = EState::Attack; }	// UŒ‚‚Ö
-		if (Status.HP <= 0) { NowState = EState::Die; }								// €–S‚Ö
+		if (MoveCount >= TimeFromWaitToStateTransition * Gamefps) { NowState = EState::Move; }	// ˆÚ“®‚Ö
+		if (Status.HP <= 0) { NowState = EState::Die; }											// €–S‚Ö
 		break;
 
 	case EState::Move:	//ˆÚ“®
@@ -147,10 +147,10 @@ void ANormalEnemy::Think()
 		if (Status.HP <= 0) { NowState = EState::Die; }			// €–S‚Ö
 		break;
 
-	case EState::Attack:	//UŒ‚
-		if (this->bHasEndedAttack) { NowState = EState::Wait; }	// ‘Ò‹@‚Ö
-		if (Status.HP <= 0) { NowState = EState::Die; }			// €–S‚Ö
-		break;
+	//case EState::Attack:	//UŒ‚
+	//	if (this->bHasEndedAttack) { NowState = EState::Wait; }	// ‘Ò‹@‚Ö
+	//	if (Status.HP <= 0) { NowState = EState::Die; }			// €–S‚Ö
+	//	break;
 
 	case EState::Appear:	//oŒ»
 		if (this->bHasEndedAppear) { NowState = EState::Move; }	// ˆÚ“®‚Ö

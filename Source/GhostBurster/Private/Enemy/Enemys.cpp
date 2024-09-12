@@ -10,8 +10,8 @@
 // Sets default values
 AEnemys::AEnemys()
 	:
-	MoveCount(0),
-	bOnceDoProcessBeenIs(false),
+	//状態遷移関係
+	MoveCount(0), bOnceDoProcessBeenIs(false), TimeFromWaitToStateTransition(1.f),
 	//FPS関係
 	Gamefps(60.f), AssumptionFPS(60),
 	//構造体
@@ -28,11 +28,11 @@ AEnemys::AEnemys()
 	MoveTime(1.f), TraveledDistance(0.f), CurrentLocation(FVector(0.f, 0.f, 0.f)), GoalLocations(), MovingTimesCount(0), GoalLocation_World(FVector(0.f, 0.f, 0.f)), bHasEndedMoving(false),
 	Direction(FVector(0.f, 0.f, 0.f)), TotalDistance(0.f), Amplitude(40.f), Frequency(1.f),
 	//攻撃関係
-	bHasEndedAttack(false), AttackUpToTime(1.f),
+	bHasEndedAttack(false),
 	//死亡関係
-	bIsDestroy(false),
+	bIsDestroy(false), TimeUpToTransparency(0.25f), bIsEscaped(false),
 	//出現関係
-	bHasEndedAppear(false), OpacityValue(0.f), TimeSpentInAppear(1), MaxOpacity(0.8f),
+	bHasEndedAppear(false), OpacityValue(0.f), TimeSpentInAppear(1.f), MaxOpacity(0.8f),
 	//回転関係
 	RotationCorrectionValue(FRotator(0.f, -90.f, 0.f))
 {
@@ -104,43 +104,46 @@ void AEnemys::EnemyDead()
 //EnemyDeadで一度だけ行う処理
 void AEnemys::ProcessDoOnce_EnemyDead()
 {
-	//イベントに死亡通知を送る
-	// プレイヤーを取得
-	TObjectPtr<AVRPlayerCharacter> Player = Cast<AVRPlayerCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
-	if (Player)
+	if (!bIsEscaped) // 逃走していないか
 	{
-		//ステージ名を取得
-		int Stage = Player->GetStageNumber();
-		FString SpawnBPName = FString::Printf(TEXT("EnemysSpawn_BP_C_%d"), Stage + 2);
-		//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Silver, SpawnBPName);
-
-		//該当のEnemySpawnを取得
-		TArray<AActor*> Spawners;
-		UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("Spawner"), Spawners);
-
-		for (AActor* Spawner : Spawners)
+		//イベントに死亡通知を送る
+	// プレイヤーを取得
+		TObjectPtr<AVRPlayerCharacter> Player = Cast<AVRPlayerCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
+		if (Player)
 		{
-			//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Purple, Spawner->GetName());
+			//ステージ名を取得
+			int Stage = Player->GetStageNumber();
+			FString SpawnBPName = FString::Printf(TEXT("EnemysSpawn_BP_C_%d"), Stage + 2);
+			//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Silver, SpawnBPName);
 
-			if (Spawner->GetName() == SpawnBPName)
+			//該当のEnemySpawnを取得
+			TArray<AActor*> Spawners;
+			UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("Spawner"), Spawners);
+
+			for (AActor* Spawner : Spawners)
 			{
-				if (UFunction* Func = Spawner->FindFunction(FName("EnemyDeadFunction")))
+				//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Purple, Spawner->GetName());
+
+				if (Spawner->GetName() == SpawnBPName)
 				{
-					Spawner->ProcessEvent(Func, nullptr);
-					Player->AddScore(100);
+					if (UFunction* Func = Spawner->FindFunction(FName("EnemyDeadFunction")))
+					{
+						Spawner->ProcessEvent(Func, nullptr);
+						Player->AddScore(100);
+					}
 				}
 			}
 		}
-	}
 
+		//敵消滅時の音を鳴らす
+		PlayDisappearSound();
+	}
+	
 	//当たり判定を消す
 	if (GhostCollision) // nullチェック
 	{
 		GhostCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
-
-	//敵消滅時の音を鳴らす
-	PlayDisappearSound();
 
 	//複数回処理が行われないようにする
 	bOnceDoProcessBeenIs = true;
@@ -154,8 +157,8 @@ bool AEnemys::Transparentize_Dead()
 
 	if (DynamicMaterial_Body && DynamicMaterial_Eye)
 	{
-		//オパシティの値を変更
-		this->OpacityValue -= DeltaTime;
+		//オパシティの値を計算
+		this->OpacityValue -= MaxOpacity / TimeUpToTransparency * DeltaTime; // 
 
 		//出現が終わったら処理を終了する
 		if (this->OpacityValue <= 0.f)
@@ -199,7 +202,7 @@ bool AEnemys::Appear()
 
 	if (DynamicMaterial_Body && DynamicMaterial_Eye)
 	{
-		//オパシティの値を変更
+		//オパシティの値を計算
 		OpacityValue += MaxOpacity / (float)TimeSpentInAppear * DeltaTime;
 
 		//出現が終わったら処理を終了する
@@ -315,32 +318,32 @@ void AEnemys::PlayDisappearSound()
 //HPの設定用関数
 void AEnemys::SetHP(const int HPValue)
 {
-	this->Status.HP = HPValue;
+	Status.HP = HPValue;
 }
 
 //攻撃までの時間設定用関数
-void AEnemys::SetAttackUpToTime(const float SetTime)
+void AEnemys::SetTimeFromWaitToStateTransition(const float SetTime)
 {
-	this->AttackUpToTime = SetTime;
+	TimeFromWaitToStateTransition = SetTime;
 }
 
 //目標座標の設定用関数
 void AEnemys::SetGoalLocations(const TArray<FVector>& SetLocations)
 {
-	this->GoalLocations = SetLocations;
+	GoalLocations = SetLocations;
 }
 
 //移動時間の設定用
 void AEnemys::SetMoveTime(const float SetTime)
 {
-	this->MoveTime = SetTime;
+	MoveTime = SetTime;
 }
 
 //生成されたときの設定用関数
-void AEnemys::SetInitialData(const int HP, const float AttackUpToTimeValue, const TArray<FVector>& SetLocations, const float MoveTimeValue)
+void AEnemys::SetInitialData(const int HP, const float SetTime, const TArray<FVector>& SetLocations, const float MoveTimeValue)
 {
-	this->SetHP(HP);
-	this->SetAttackUpToTime(AttackUpToTimeValue);
-	this->SetGoalLocations(SetLocations);
-	this->SetMoveTime(MoveTimeValue);
+	SetHP(HP);
+	SetTimeFromWaitToStateTransition(SetTime);
+	SetGoalLocations(SetLocations);
+	SetMoveTime(MoveTimeValue);
 }
