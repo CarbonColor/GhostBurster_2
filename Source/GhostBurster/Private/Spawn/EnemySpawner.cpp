@@ -3,11 +3,6 @@
 #include "GameFramework/Actor.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
-#include "Enemy/NormalEnemy.h"
-#include "Enemy/GreenEnemy.h"
-#include "Enemy/RedEnemy.h"
-#include "Enemy/BlueEnemy.h"
-#include "Enemy/BossEnemy.h"
 #include "TimerManager.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -314,23 +309,23 @@ void AEnemySpawner::SpawnEnemy(const FEnemySpawnInfo& SpawnInfo)
 
     if (SpawnInfo.Type == "White")
     {
-        EnemyClass = ANormalEnemy::StaticClass();
+        EnemyClass = WhiteEnemyClass;
     }
     else if (SpawnInfo.Type == "Green")
     {
-        EnemyClass = AGreenEnemy::StaticClass();
+        EnemyClass = GreenEnemyClass;
     }
     else if (SpawnInfo.Type == "Red")
     {
-        EnemyClass = ARedEnemy::StaticClass();
+        EnemyClass = RedEnemyClass;
     }
     else if (SpawnInfo.Type == "Blue")
     {
-        EnemyClass = ABlueEnemy::StaticClass();
+        EnemyClass = BlueEnemyClass;
     }
     else if (SpawnInfo.Type == "Boss")
     {
-        EnemyClass = ABossEnemy::StaticClass();
+        EnemyClass = BossEnemyClass;
     }
 
     if (EnemyClass)

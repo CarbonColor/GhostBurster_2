@@ -148,6 +148,10 @@ void AVRPlayerCharacter::BeginPlay()
 {
     Super::BeginPlay();
 
+    //スコアのインスタンスを取得する
+    ScoreInstance = Cast<UPlayerScoreInstance>(GetGameInstance());
+    ScoreInstance->AllDataResetFunction();
+
     //レベル名を取得する
     UWorld* World = GEngine->GetWorldFromContextObjectChecked(this);
     LevelName = UGameplayStatics::GetCurrentLevelName(World);
@@ -161,6 +165,10 @@ void AVRPlayerCharacter::BeginPlay()
     if (LevelName == "Title")
     {
         BatteryTime *= 2;
+        for (int i = 0; i < 50; ++i)
+        {
+            ScoreInstance->AddPlayerItem();
+        }
     }
     // バッテリー秒数の増加率設定
     AddBatteryTime = 3;
@@ -174,7 +182,7 @@ void AVRPlayerCharacter::BeginPlay()
     // アイテムの攻撃力の設定
     ItemAttack = 1000;
     // アイテム使用のボーダー設定
-    FingerBendingBorder = 200;
+    FingerBendingBorder = 1000;
 
     // デバッグ
     DebugTimer = 0;
@@ -201,10 +209,6 @@ void AVRPlayerCharacter::BeginPlay()
     //アイテムのボーダー
     AttackItemBorder = { 450, 0, 450, 450, 0 };
     BuffItemBorder = { 0, 0, 450, 450, 450 };
-
-    //スコアのインスタンスを取得する
-    ScoreInstance = Cast<UPlayerScoreInstance>(GetGameInstance());
-    ScoreInstance->AllDataResetFunction();
 
     // Enhanced Input setup
     APlayerController* PlayerController = Cast<APlayerController>(GetController());
@@ -493,13 +497,12 @@ void AVRPlayerCharacter::CheckUsedItem(const TArray<int32> value)
     }
 
     //狐の形（親指[0]・中指[2]・薬指[3]）
-    if (value[0] > FingerBendingBorder &&
+    if (value[0] > FingerBendingBorder / 3 &&
         value[1] <= FingerBendingBorder &&
         value[2] > FingerBendingBorder &&
         value[3] > FingerBendingBorder &&
         value[4] <= FingerBendingBorder)
     {
-        bCanUseItem = true;
         //攻撃アイテムの処理
         UseItem_Attack();
     }
@@ -508,9 +511,8 @@ void AVRPlayerCharacter::CheckUsedItem(const TArray<int32> value)
              value[1] <= FingerBendingBorder &&
              value[2] > FingerBendingBorder &&
              value[3] > FingerBendingBorder &&
-             value[4] > FingerBendingBorder)
+             value[4] > FingerBendingBorder / 4)
     {
-        bCanUseItem = true;
         //強化アイテムの処理
         UseItem_Buff();
     }
@@ -547,7 +549,7 @@ void AVRPlayerCharacter::UseItem_Attack()
 
     GetWorld()->GetTimerManager().SetTimer(AttackItemTimeHandle, this, &AVRPlayerCharacter::AttackItemFunction, 1.0f, false);
     //遅延中に再度使われたら困るので
-    bCanUseItem = true;
+    bCanUseItem = false;
 
 }
 void AVRPlayerCharacter::AttackItemFunction()

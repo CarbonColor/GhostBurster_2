@@ -310,7 +310,7 @@ private:
 	FTimerHandle HapticTimer;
 	
 	//グローブの曲げ具合設定
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(VisibleAnywhere)
 		int32 FingerBendingBorder;
 
 	//出現する敵を判別するステージ番号

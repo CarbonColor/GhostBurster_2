@@ -161,9 +161,12 @@ void ATitleEventManager::SecondEvent()
 void ATitleEventManager::ThirdEvent()
 {
 	//“G‚Ì¶¬
-	ATitleEnemy_White* WhiteEnemy = GetWorld()->SpawnActor<ATitleEnemy_White>(WhiteEnemyClass, Third_White_Location, FRotator::ZeroRotator);
-	WhiteEnemy->SetHP(60 * 10);
-	WhiteEnemy->SetActorScale3D(FVector(0.5f, 0.5f, 0.5f));
+	ATitleEnemy_White* WhiteEnemy1 = GetWorld()->SpawnActor<ATitleEnemy_White>(WhiteEnemyClass, Third_White_Location1, FRotator::ZeroRotator);
+	WhiteEnemy1->SetHP(60 * 10);
+	WhiteEnemy1->SetActorScale3D(FVector(0.35f, 0.35f, 0.35f));
+	ATitleEnemy_White* WhiteEnemy2 = GetWorld()->SpawnActor<ATitleEnemy_White>(WhiteEnemyClass, Third_White_Location2, FRotator::ZeroRotator);
+	WhiteEnemy2->SetHP(60 * 10);
+	WhiteEnemy2->SetActorScale3D(FVector(0.35f, 0.35f, 0.35f));
 
 	EnemyCount = 1;
 
