@@ -19,7 +19,7 @@ AEnemys::AEnemys()
 	//列挙型
 	State(EState::Appear), EnemyColor(EEnemyColor::White),
 	//コンポーネント関係
-	DefaultSceneRoot(nullptr), GhostMeshComponent(nullptr), GhostCollision(nullptr), DynamicMaterial_Body(nullptr), DynamicMaterial_Eye(nullptr), EnemyScale(FVector(0.5f, 0.5f, 0.5f)),
+	DefaultSceneRoot(nullptr), GhostMeshComponent(nullptr), GhostCollision(nullptr), DynamicMaterial_Body(nullptr), DynamicMaterial_Eye(nullptr), EnemyScale(FVector(0.3f, 0.3f, 0.3f)),
 	//アニメーション関係
 	DefaultAnim(nullptr), AttackAnim(nullptr), AttackTiming(55),
 	//サウンド関係
