@@ -39,11 +39,25 @@ void AEnemySpawner::BeginPlay()
 
     // 旧スポーンデータ
     //FString FilePath = FPaths::ProjectContentDir() + TEXT("_TeamFolder/map/enemy_spawn_data.csv");
+    
     // 新スポーンデータ
-    FString SpawnDataPath = FPaths::ProjectContentDir() + TEXT("_TeamFolder/map/EnemySpawnData.csv");
-    FString StageDataPath = FPaths::ProjectContentDir() + TEXT("_TeamFolder/map/StageTimerData.csv");
+    FString SpawnDataPath = "";
+    FString StageDataPath = "";
 
-    //UE_LOG(LogEnemySpawner, Log, TEXT("Looking for file at: %s"), *FilePath);
+    //// エディター上のパス
+    //if (GIsEditor)
+    //{
+    //    SpawnDataPath = FPaths::ProjectContentDir() + TEXT("GameData/EnemySpawnData.csv");
+    //    StageDataPath = FPaths::ProjectContentDir() + TEXT("GameData/StageTimerData.csv");
+    //}
+    //else
+    //{
+    //    SpawnDataPath = FPaths::GameSourceDir() + TEXT("EnemySpawnData.csv");
+    //    StageDataPath = FPaths::GameSourceDir() + TEXT("StageTimerData.csv");
+    //}
+    SpawnDataPath = FPaths::ProjectContentDir() + TEXT("GameData/EnemySpawnData.csv");
+    StageDataPath = FPaths::ProjectContentDir() + TEXT("GameData/StageTimerData.csv");
+
 
     if (FPaths::FileExists(SpawnDataPath) && FPaths::FileExists(StageDataPath))
     {

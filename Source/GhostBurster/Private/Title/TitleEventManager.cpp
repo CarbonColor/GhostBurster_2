@@ -163,7 +163,7 @@ void ATitleEventManager::ThirdEvent()
 	//“G‚Ì¶¬
 	ATitleEnemy_White* WhiteEnemy = GetWorld()->SpawnActor<ATitleEnemy_White>(WhiteEnemyClass, Third_White_Location, FRotator::ZeroRotator);
 	WhiteEnemy->SetHP(60 * 10);
-	WhiteEnemy->SetActorScale3D(FVector(1.5f, 1.5f, 1.5f));
+	WhiteEnemy->SetActorScale3D(FVector(0.5f, 0.5f, 0.5f));
 
 	EnemyCount = 1;
 
