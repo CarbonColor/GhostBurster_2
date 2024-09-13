@@ -47,7 +47,6 @@ public:
     UPROPERTY(BlueprintAssignable, Category = "Dispatcher")
     FFourthEventDispatcher FourthEventDispatcher;
 
-
     //ìGÇ™éÄñSÇµÇΩç€Ç…åƒÇŒÇÍÇÈÉÅÉ\ÉbÉh
     UFUNCTION(BlueprintCallable, Category = "Function")
     void EnemyDeadFunction();
@@ -69,6 +68,9 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "Event")
     void NextEventNumber();
+
+    UFUNCTION(BlueprintCallable, Category = "Event")
+    void TreasureBoxSpawn();
 
     //ìGÇÃê∂ê¨à íu
     UPROPERTY(EditAnywhere, Category = "FirstEvent")
@@ -96,6 +98,9 @@ public:
     FVector Second_Blue_Location1;
     UPROPERTY(EditAnywhere, Category = "SecondEvent")
     FVector Second_Blue_Location2;
+
+    UPROPERTY(EditAnywhere, Category = "TreasureBoxSpawn")
+    FVector TBS_Treasure_Location;
 
     UPROPERTY(EditAnywhere, Category = "ThirdEvent")
     FVector Third_White_Location1;
@@ -144,6 +149,9 @@ private:
     TObjectPtr<ATreasureBox> Box1;
     UPROPERTY()
     TObjectPtr<ATreasureBox> Box2;
+    UPROPERTY()
+    TObjectPtr<ATreasureBox> Box3;
+
 
     UPROPERTY()
     TObjectPtr<AVRPlayerCharacter> Player;

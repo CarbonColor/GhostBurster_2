@@ -165,7 +165,7 @@ void AVRPlayerCharacter::BeginPlay()
     if (LevelName == "Title")
     {
         BatteryTime *= 2;
-        for (int i = 0; i < 50; ++i)
+        for (int i = 0; i < 2; ++i)
         {
             ScoreInstance->AddPlayerItem();
         }
