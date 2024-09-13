@@ -40,34 +40,6 @@ ANormalEnemy::ANormalEnemy()
 			this->GhostMeshComponent->SetupAttachment(RootComponent);
 			//スケルタルメッシュのコリジョンを無くす
 			this->GhostMeshComponent->SetCollisionProfileName("NoCollision");
-
-			//☆マテリアル--------------------------------------------------------------------------------------------------------
-			//体のマテリアルをロード
-			TObjectPtr<UMaterial> BodyMaterial = LoadObject<UMaterial>(nullptr, TEXT("/Game/_TeamFolder/Enemy/M_White"));
-			if (BodyMaterial) // nullチェック
-			{
-				//ダイナミックマテリアルインスタンスを作成
-				this->DynamicMaterial_Body = UMaterialInstanceDynamic::Create(BodyMaterial, this);
-
-				//GhostMeshにダイナミックマテリアルを設定
-				this->GhostMeshComponent->SetMaterial(0, DynamicMaterial_Body);
-
-				//初期オパシティ値を設定
-				this->DynamicMaterial_Body->SetScalarParameterValue(FName("Opacity"), this->OpacityValue_Body);
-			}
-			//目のマテリアルをロード
-			TObjectPtr<UMaterial> EyeMaterial = LoadObject<UMaterial>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Ghost/M_Ghost_Eye"));
-			if (EyeMaterial) // nullチェック
-			{
-				//ダイナミックマテリアルインスタンスを作成
-				this->DynamicMaterial_Eye = UMaterialInstanceDynamic::Create(EyeMaterial, this);
-
-				//GhostMeshにダイナミックマテリアルを設定
-				this->GhostMeshComponent->SetMaterial(1, DynamicMaterial_Eye);
-
-				//初期オパシティ値を設定
-				this->DynamicMaterial_Eye->SetScalarParameterValue(FName("Opacity"), this->OpacityValue_Eye);
-			}
 		}
 
 		//☆コリジョン-------------------------------------------------------------------------------------------------------------
@@ -106,6 +78,33 @@ void ANormalEnemy::BeginPlay()
 	//☆白い敵の設定
 	this->EnemyColor = EEnemyColor::White;
 
+	//☆マテリアル
+	//体のマテリアルをロード
+	TObjectPtr<UMaterial> BodyMaterial = LoadObject<UMaterial>(nullptr, TEXT("/Game/_TeamFolder/Enemy/M_White"));
+	if (BodyMaterial && this->GhostMeshComponent) // nullチェック
+	{
+		//ダイナミックマテリアルインスタンスを作成
+		this->DynamicMaterial_Body = UMaterialInstanceDynamic::Create(BodyMaterial, this);
+
+		//GhostMeshにダイナミックマテリアルを設定
+		this->GhostMeshComponent->SetMaterial(0, DynamicMaterial_Body);
+
+		//初期オパシティ値を設定
+		this->DynamicMaterial_Body->SetScalarParameterValue(FName("Opacity"), this->OpacityValue_Body);
+	}
+	//目のマテリアルをロード
+	TObjectPtr<UMaterial> EyeMaterial = LoadObject<UMaterial>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Ghost/M_Ghost_Eye"));
+	if (EyeMaterial && this->GhostMeshComponent) // nullチェック
+	{
+		//ダイナミックマテリアルインスタンスを作成
+		this->DynamicMaterial_Eye = UMaterialInstanceDynamic::Create(EyeMaterial, this);
+
+		//GhostMeshにダイナミックマテリアルを設定
+		this->GhostMeshComponent->SetMaterial(1, DynamicMaterial_Eye);
+
+		//初期オパシティ値を設定
+		this->DynamicMaterial_Eye->SetScalarParameterValue(FName("Opacity"), this->OpacityValue_Eye);
+	}
 }
 
 // Called every frame
