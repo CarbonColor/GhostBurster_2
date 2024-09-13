@@ -4,6 +4,11 @@
 #include "GameFramework/Actor.h"
 #include "Player/PlayerSplinePath.h"
 #include "Player/VRPlayerCharacter.h"
+#include "Enemy/NormalEnemy.h"
+#include "Enemy/GreenEnemy.h"
+#include "Enemy/RedEnemy.h"
+#include "Enemy/BlueEnemy.h"
+#include "Enemy/BossEnemy.h"
 #include "Enemy/Enemys.h"
 #include "Sound/GameBGM.h"
 
@@ -63,6 +68,21 @@ class GHOSTBURSTER_API AEnemySpawner : public AActor
 
 public:
     AEnemySpawner();
+
+    UPROPERTY(EditAnywhere, Category = "Enemy")
+    TSubclassOf<ANormalEnemy> WhiteEnemyClass;
+
+    UPROPERTY(EditAnywhere, Category = "Enemy")
+    TSubclassOf<AGreenEnemy> GreenEnemyClass;
+
+    UPROPERTY(EditAnywhere, Category = "Enemy")
+    TSubclassOf<ARedEnemy> RedEnemyClass;
+
+    UPROPERTY(EditAnywhere, Category = "Enemy")
+    TSubclassOf<ABlueEnemy> BlueEnemyClass;
+
+    UPROPERTY(EditAnywhere, Category = "Enemy")
+    TSubclassOf<ABossEnemy> BossEnemyClass;
 
 protected:
     virtual void BeginPlay() override;
