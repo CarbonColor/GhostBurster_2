@@ -168,7 +168,7 @@ void ATitleEventManager::ThirdEvent()
 	WhiteEnemy2->SetHP(60 * 10);
 	WhiteEnemy2->SetActorScale3D(FVector(0.35f, 0.35f, 0.35f));
 
-	EnemyCount = 1;
+	EnemyCount = 2;
 
 	//•ó” ‚Ì¶¬
 	Box1 = GetWorld()->SpawnActor<ATreasureBox>(TreasureBox, Third_Treasure_Location1, FRotator::ZeroRotator);
@@ -194,7 +194,7 @@ void ATitleEventManager::FourthEvent()
 	//•ó” ‚ðÁ‚·
 	Box1->Destroy();
 	Box2->Destroy();
-
+	Box3->Destroy();
 }
 void ATitleEventManager::StartFourthEvent()
 {
@@ -211,4 +211,9 @@ void ATitleEventManager::EndFourthEvent()
 void ATitleEventManager::NextEventNumber()
 {
 	EventNumber++;
+}
+
+void ATitleEventManager::TreasureBoxSpawn()
+{
+	Box3 = GetWorld()->SpawnActor<ATreasureBox>(TreasureBox, TBS_Treasure_Location, FRotator::ZeroRotator);
 }
