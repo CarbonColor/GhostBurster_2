@@ -35,13 +35,15 @@ public:
 	//SE
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SE")
 		TObjectPtr<USoundCue> WalkSound;
-
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SE")
+		TObjectPtr<USoundCue> WalkSound_Sub;
 
 private:
 	//歩く音のオーディオコンポーネント
-	UPROPERTY()
+	UPROPERTY(EditAnywhere)
 		TObjectPtr<UAudioComponent> WalkSoundEffect;
-
+	UPROPERTY(EditAnywhere)
+		TObjectPtr<UAudioComponent> WalkSoundEffect_Sub;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spline", meta = (AllowPrivateAccess = "true"))
 		TObjectPtr<USplineComponent> SplineComponent;
