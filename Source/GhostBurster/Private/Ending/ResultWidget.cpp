@@ -52,7 +52,10 @@ void AResultWidget::BeginPlay()
 
 	//ウィジェットから各テキストを取得
 	ResultWidgetComponent->InitWidget();
-	UUserWidget* Widget = ResultWidgetComponent->GetUserWidgetObject();
+	Widget = ResultWidgetComponent->GetUserWidgetObject();
+	Alpha = 0.0f;
+	Widget->SetRenderOpacity(Alpha);
+
 	DefaultScoreText = Cast<UTextBlock>(Widget->GetWidgetFromName(TEXT("Score")));
 
 	ClearTimeText = Cast<UTextBlock>(Widget->GetWidgetFromName(TEXT("Time")));
@@ -115,6 +118,7 @@ void AResultWidget::BeginPlay()
 
 	//タイマーをセットする
 	float DelayTime = 2.5f;
+
 	GetWorld()->GetTimerManager().SetTimer(FirstView,  this, &AResultWidget::FirstViewFunction,  DelayTime, false);
 	GetWorld()->GetTimerManager().SetTimer(SecondView, this, &AResultWidget::SecondViewFunction, DelayTime + 0.5f, false);
 	GetWorld()->GetTimerManager().SetTimer(ThirdView,  this, &AResultWidget::ThirdViewFunction,  DelayTime + 1.0f, false);
@@ -159,10 +163,16 @@ void AResultWidget::SixthViewFunction()
 }
 
 
-//// Called every frame
-//void AResultWidget::Tick(float DeltaTime)
-//{
-//	Super::Tick(DeltaTime);
-//
-//}
+// Called every frame
+void AResultWidget::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (Alpha < 1.0f)
+	{
+		Alpha += DeltaTime / 2.0f;
+		Widget->SetRenderOpacity(Alpha);
+	}
+
+}
 
