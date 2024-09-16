@@ -75,9 +75,19 @@ int32 UPlayerScoreInstance::GetItemPerScore()
 // ------------------------------------------------------------------------------------
 // 各データのセッター
 // ------------------------------------------------------------------------------------
-void UPlayerScoreInstance::SetDevicePortNumber(int32 Port)
+void UPlayerScoreInstance::SetDevicePortNumber(const int32 Port)
 {
 	DevicePortNumber = Port;
+}
+
+void UPlayerScoreInstance::SetFingerBorder(const int32 Thumb, const int32 Index, const int32 Middle, const int32 Ring, const int32 Little)
+{
+	FingerBorder.SetNum(5);
+	FingerBorder[0] = Thumb;
+	FingerBorder[1] = Index;
+	FingerBorder[2] = Middle;
+	FingerBorder[3] = Ring;
+	FingerBorder[4] = Little;
 }
 
 void UPlayerScoreInstance::AddPlayerScore(int32 Value)
