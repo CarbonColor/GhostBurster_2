@@ -13,8 +13,12 @@
 #include "Components/WidgetComponent.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
+#include "Components/Image.h"
 #include "Components/AudioComponent.h"
 #include "Sound/SoundCue.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraComponent.h"
+#include "NiagaraSystem.h"
 #include "Camera/CameraComponent.h"
 #include "Blueprint/UserWidget.h"
 #include "Interface/DamageInterface.h"
@@ -25,6 +29,7 @@ class UInputAction;
 class UInputMappingContext;
 class UMotionControllerComponent;
 class UHapticFeedbackEffect_Base;
+
 
 UCLASS()
 class GHOSTBURSTER_API AVRPlayerCharacter : public APawn, public IDamageInterface
@@ -107,6 +112,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Blueprint")
 		TSubclassOf<AActor> FoxGhostModel;
 
+	//懐中電灯強化のナイアガラ
+	UPROPERTY(EditAnywhere, Category = "Niagara")
+		TObjectPtr<UNiagaraSystem> BuffEffectNiagara;
+
 	//プレイヤーのコリジョン(キューブ型)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Collision")
 		TObjectPtr<UBoxComponent> PlayerCollision;
@@ -123,12 +132,10 @@ public:
 	UPROPERTY(EditAnywhere, Category = "UI")
 		TObjectPtr<UWidgetComponent> PlayerStatusWidgetComponent;
 
+	//フェードUI
+	UPROPERTY(EditAnywhere, Category = "UI")
+		TObjectPtr<UWidgetComponent> FadeOutWidgetComponent;
 
-	//アイテムボーダーリスト
-	UPROPERTY()
-		TArray<int32> AttackItemBorder;
-	UPROPERTY()
-		TArray<int32> BuffItemBorder;
 
 	//ライトのコリジョンとの当たり判定
 	UFUNCTION()
@@ -220,9 +227,9 @@ private:
 	UPROPERTY(VisibleAnywhere)
 		TObjectPtr<USpotLightComponent> Flashlight;
 
-	//プレイヤーのUI
-	UPROPERTY()
-		TObjectPtr<UUserWidget> PlayerStatusWidget;
+	//ナイアガラコンポーネント
+	UPROPERTY(VisibleAnywhere)
+		TObjectPtr<UNiagaraComponent> NiagaraComponent;
 
 	//スコアのインスタンス
 	UPROPERTY()
@@ -309,10 +316,6 @@ private:
 	bool bIsPlayerHaptic;
 	FTimerHandle HapticTimer;
 	
-	//グローブの曲げ具合設定
-	UPROPERTY(VisibleAnywhere)
-		int32 FingerBendingBorder;
-
 	//出現する敵を判別するステージ番号
 	UPROPERTY(BlueprintReadOnly, Category = "Stage", meta = (AllowPrivateAccess = "true"))
 		int32 StageNumber;
@@ -329,9 +332,6 @@ private:
 	FTimerHandle ScoreChangeHandle;
 	UFUNCTION()
 		void ChangeScore_Step();
-
-	//デバッグ用タイマー
-	int32 DebugTimer;
 
 	//現在のワールド名
 	FString LevelName;

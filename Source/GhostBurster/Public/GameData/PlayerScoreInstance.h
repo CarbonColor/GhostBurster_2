@@ -75,9 +75,14 @@ public:
 	//グローブデバイス用のCOMポート番号
 	UPROPERTY(BlueprintReadOnly, Category = "DeviceData")
 		int32 DevicePortNumber;
+	//指の曲げ具合のボーダー
+	UPROPERTY(BlueprintReadOnly, Category = "DeviceData")
+		TArray<int32> FingerBorder;
 
 	UFUNCTION(BlueprintCallable, Category = "DeviceData")
-		void SetDevicePortNumber(int32 Port);
+		void SetDevicePortNumber(const int32 Port);
+	UFUNCTION(BlueprintCallable, Category = "DeviceData")
+		void SetFingerBorder(const int32 Thumb, const int32 Index, const int32 Middle, const int32 Ring, const int32 Little);
 
 
 	// スコアを取得するメソッド

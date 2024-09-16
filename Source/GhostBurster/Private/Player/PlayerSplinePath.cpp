@@ -13,35 +13,10 @@ APlayerSplinePath::APlayerSplinePath()
 	SplineComponent = CreateDefaultSubobject<USplineComponent>(TEXT("SplineComponent"));
 	RootComponent = SplineComponent;
 
-	//SEのロード
-	WalkSound = LoadObject<USoundCue>(nullptr, TEXT("/Game/_TeamFolder/Sound/SE/SE_Walk_Cue"));
 	//オーディオコンポーネントの作成
 	WalkSoundEffect = CreateDefaultSubobject<UAudioComponent>(TEXT("WalkAudioComponent"));
 	WalkSoundEffect->bAutoActivate = false;     //自動再生を無効にする
 	WalkSoundEffect->SetupAttachment(RootComponent);
-	if (WalkSound)
-	{
-		WalkSoundEffect->SetSound(WalkSound);
-	}
-	else
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Silver, TEXT("Not SoundEffect ! -WalkSound-"));
-	}
-
-	//SEのロード
-	WalkSound_Sub = LoadObject<USoundCue>(nullptr, TEXT("/Game/_TeamFolder/Sound/SE/SE_Walk_Sub_Cue"));
-	//オーディオコンポーネントの作成
-	WalkSoundEffect_Sub = CreateDefaultSubobject<UAudioComponent>(TEXT("WalkAudioComponent_Sub"));
-	WalkSoundEffect_Sub->bAutoActivate = false;     //自動再生を無効にする
-	WalkSoundEffect_Sub->SetupAttachment(RootComponent);
-	if (WalkSound_Sub)
-	{
-		WalkSoundEffect_Sub->SetSound(WalkSound_Sub);
-	}
-	else
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Silver, TEXT("Not SoundEffect ! -WalkSound_Sub-"));
-	}
 
 	//回転変数の初期化
 	bIsRotating = false;
@@ -75,6 +50,16 @@ void APlayerSplinePath::BeginPlay()
 	for (int i = 0; i < SplineComponent->GetNumberOfSplinePoints(); ++i)
 	{
 		SplineComponent->SetSplinePointType(i, ESplinePointType::Linear);	//移動経路が直線になるように設定
+	}
+
+	//SEの設定
+	if (WalkSound)
+	{
+		WalkSoundEffect->SetSound(WalkSound);
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Silver, TEXT("Not SoundEffect ! -WalkSound-"));
 	}
 
 	//最初は動かない
@@ -127,7 +112,6 @@ void APlayerSplinePath::StopMovement()
 
 	//SEの停止
 	WalkSoundEffect->Stop();
-	WalkSoundEffect_Sub->Stop();
 
 	//ボス戦だったらボスにプレイヤーの情報を渡す
 
@@ -142,7 +126,6 @@ void APlayerSplinePath::StartMovement()
 
 	//SEの再生
 	WalkSoundEffect->Play();
-	WalkSoundEffect_Sub->Play();
 }
 
 bool APlayerSplinePath::IsMoving()
