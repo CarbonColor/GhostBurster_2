@@ -95,11 +95,10 @@ TArray<FEnemySpawnInfo> AEnemySpawner::ParseCSV_SpawnData(const FString& FilePat
                 Line.ParseIntoArray(Values, TEXT(","), true);
 
                 //ìGÇÃñ⁄ïWínì_
-                //Å¶Values[1]ÇÕãÛîí
                 float GX = FCString::Atof(*Values[1]);
                 float GY = FCString::Atof(*Values[2]);
                 float GZ = FCString::Atof(*Values[3]);
-                PreSpawnInfo.GoalLocations.Add(FVector(GX, GY, GZ));
+                ParsedSpawnInfoArray[ParsedSpawnInfoArray.Num() - 1].GoalLocations.Add(FVector(GX, GY, GZ));
 
                 continue;
             }
@@ -142,7 +141,6 @@ TArray<FEnemySpawnInfo> AEnemySpawner::ParseCSV_SpawnData(const FString& FilePat
 
 
                 ParsedSpawnInfoArray.Add(SpawnInfo);
-                PreSpawnInfo = SpawnInfo;
                 //GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Yellow, FString::Printf(TEXT("Enemy Life -%d-"), SpawnInfo.EnemyHP));
             }
         }

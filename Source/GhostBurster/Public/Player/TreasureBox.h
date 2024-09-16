@@ -26,25 +26,30 @@ UCLASS()
 class GHOSTBURSTER_API ATreasureBox : public AActor
 {
 	GENERATED_BODY()
+
+	//•ó” ‚Ì‘Ì—Í
+	UPROPERTY(EditAnywhere, Category = "HP")
+	int32 HP;
 	
 public:	
 	// Sets default values for this actor's properties
 	ATreasureBox();
 
+	UPROPERTY(EditAnywhere, Category = "Angle")
+	ETreasureBoxDirection TreasureAngle;
+
 	UPROPERTY(VisibleAnywhere)
 		TObjectPtr<USceneComponent> DefaultComponent;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(VisibleAnywhere)
 		TObjectPtr<UStaticMeshComponent> TreasureBox;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(VisibleAnywhere)
 		TObjectPtr<UStaticMeshComponent> TreasureCover;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(VisibleAnywhere)
 		TObjectPtr<UBoxComponent> CollisionComponent;
 
-	UPROPERTY(EditAnywhere, Category = "Angle")
-		ETreasureBoxDirection TreasureAngle;
 
 	UPROPERTY(EditAnywhere, Category = "SE")
 		TObjectPtr<USoundCue> OpenBoxSound;
@@ -112,6 +117,4 @@ private:
 	UFUNCTION()
 		void OnTimelineFinished();
 
-	//•ó” ‚Ì‘Ì—Í
-	int32 HP;
 };
