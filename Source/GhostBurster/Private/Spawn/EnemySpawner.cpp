@@ -95,9 +95,9 @@ TArray<FEnemySpawnInfo> AEnemySpawner::ParseCSV_SpawnData(const FString& FilePat
                 Line.ParseIntoArray(Values, TEXT(","), true);
 
                 //“G‚Ì–Ú•W’n“_
-                float GX = FCString::Atof(*Values[1]);
-                float GY = FCString::Atof(*Values[2]);
-                float GZ = FCString::Atof(*Values[3]);
+                float GX = FCString::Atof(*Values[2]);
+                float GY = FCString::Atof(*Values[3]);
+                float GZ = FCString::Atof(*Values[4]);
                 ParsedSpawnInfoArray[ParsedSpawnInfoArray.Num() - 1].GoalLocations.Add(FVector(GX, GY, GZ));
 
                 continue;
