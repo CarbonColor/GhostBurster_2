@@ -73,8 +73,8 @@ public:
     void TreasureBoxSpawn();
 
     //敵の生成位置
-    UPROPERTY(EditAnywhere, Category = "FirstEvent")
-    FVector First_White_Location;
+    //UPROPERTY(EditAnywhere, Category = "FirstEvent")
+    //FVector First_White_Location;
     UPROPERTY(EditAnywhere, Category = "FirstEvent")
     FVector First_Green_Location;
     UPROPERTY(EditAnywhere, Category = "FirstEvent")
@@ -82,10 +82,10 @@ public:
     UPROPERTY(EditAnywhere, Category = "FirstEvent")
     FVector First_Blue_Location;
 
-    UPROPERTY(EditAnywhere, Category = "SecondEvent")
-    FVector Second_White_Location1;
-    UPROPERTY(EditAnywhere, Category = "SecondEvent")
-    FVector Second_White_Location2;
+    //UPROPERTY(EditAnywhere, Category = "SecondEvent")
+    //FVector Second_White_Location1;
+    //UPROPERTY(EditAnywhere, Category = "SecondEvent")
+    //FVector Second_White_Location2;
     UPROPERTY(EditAnywhere, Category = "SecondEvent")
     FVector Second_Green_Location1;
     UPROPERTY(EditAnywhere, Category = "SecondEvent")
@@ -103,9 +103,9 @@ public:
     FVector TBS_Treasure_Location;
 
     UPROPERTY(EditAnywhere, Category = "ThirdEvent")
-    FVector Third_White_Location1;
+    FVector Third_Green_Location1;
     UPROPERTY(EditAnywhere, Category = "ThirdEvent")
-    FVector Third_White_Location2;
+    FVector Third_Green_Location2;
     UPROPERTY(EditAnywhere, Category = "ThirdEvent")
         FVector Third_Treasure_Location1;
     UPROPERTY(EditAnywhere, Category = "ThirdEvent")
@@ -117,6 +117,14 @@ public:
     UPROPERTY(EditAnywhere, Category = "SE")
         TObjectPtr<USoundCue> EnemySpawnSound;
 
+    UFUNCTION(BlueprintCallable, Category = "CanInput")
+        bool GetCanChangeLight();
+
+    UFUNCTION(BlueprintCallable, Category = "CanInput")
+        bool GetCanUseAttackItem();
+
+    UFUNCTION(BlueprintCallable, Category = "CanInput")
+        bool GetCanUseBuffItem();
 
 private:
     //敵の数のカウント
@@ -163,5 +171,10 @@ private:
         void StartFourthEvent();
     UFUNCTION()
         void EndFourthEvent();
+
+
+    bool bCanChangeLight;
+    bool bCanUseAttackItem;
+    bool bCanUseBuffItem;
 
 };

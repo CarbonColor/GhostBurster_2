@@ -53,8 +53,6 @@ void AResultWidget::BeginPlay()
 	//ウィジェットから各テキストを取得
 	ResultWidgetComponent->InitWidget();
 	Widget = ResultWidgetComponent->GetUserWidgetObject();
-	Alpha = 0.0f;
-	Widget->SetRenderOpacity(Alpha);
 
 	DefaultScoreText = Cast<UTextBlock>(Widget->GetWidgetFromName(TEXT("Score")));
 
@@ -167,12 +165,5 @@ void AResultWidget::SixthViewFunction()
 void AResultWidget::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	if (Alpha < 1.0f)
-	{
-		Alpha += DeltaTime / 2.0f;
-		Widget->SetRenderOpacity(Alpha);
-	}
-
 }
 

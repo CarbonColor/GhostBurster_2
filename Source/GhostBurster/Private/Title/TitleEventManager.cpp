@@ -25,6 +25,10 @@ void ATitleEventManager::BeginPlay()
 	//プレイヤーの取得
 	Player = Cast<AVRPlayerCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
 
+	bCanChangeLight = false;
+	bCanUseAttackItem = false;
+	bCanUseBuffItem = false;
+
 }
 
 // Called every frame
@@ -50,6 +54,8 @@ void ATitleEventManager::EnemyDeadFunction()
 			}
 			FirstEventDispatcher.Broadcast();
 			FirstEventDispatcher.Clear();
+			//入力の制御
+			bCanChangeLight = false;
 			break;
 
 		case 2:
@@ -61,6 +67,8 @@ void ATitleEventManager::EnemyDeadFunction()
 				}
 				SecondEventDispatcher.Broadcast();
 				SecondEventDispatcher.Clear();
+				//入力の制御
+				bCanUseAttackItem = false;
 			}
 			break;
 
@@ -73,6 +81,8 @@ void ATitleEventManager::EnemyDeadFunction()
 				}
 				ThirdEventDispatcher.Broadcast();
 				ThirdEventDispatcher.Clear();
+				//入力の制御
+				bCanChangeLight = false;
 			}
 			break;
 
@@ -92,6 +102,8 @@ void ATitleEventManager::IsUseAttackItem()
 		}
 		SecondEventDispatcher.Broadcast();
 		SecondEventDispatcher.Clear();
+		//入力の制御
+		bCanUseAttackItem = false;
 	}
 }
 void ATitleEventManager::IsUseBuffItem()
@@ -105,6 +117,9 @@ void ATitleEventManager::IsUseBuffItem()
 		}
 		ThirdEventDispatcher.Broadcast();
 		ThirdEventDispatcher.Clear();
+		//入力の制御
+		bCanChangeLight = true;
+		bCanUseBuffItem = false;
 	}
 }
 
@@ -112,12 +127,12 @@ void ATitleEventManager::IsUseBuffItem()
 void ATitleEventManager::FirstEvent()
 {
 	//敵の生成
-	GetWorld()->SpawnActor<ATitleEnemy_White>(WhiteEnemyClass, First_White_Location, FRotator::ZeroRotator);
+	//GetWorld()->SpawnActor<ATitleEnemy_White>(WhiteEnemyClass, First_White_Location, FRotator::ZeroRotator);
 	GetWorld()->SpawnActor<ATitleEnemy_Green>(GreenEnemyClass, First_Green_Location, FRotator::ZeroRotator);
 	GetWorld()->SpawnActor<ATitleEnemy_Red>(RedEnemyClass, First_Red_Location, FRotator::ZeroRotator);
 	GetWorld()->SpawnActor<ATitleEnemy_Blue>(BlueEnemyClass, First_Blue_Location, FRotator::ZeroRotator);
 
-	EnemyCount = 4;
+	EnemyCount = 3;
 
 	//SEの再生
 	if (EnemySpawnSound)
@@ -125,22 +140,24 @@ void ATitleEventManager::FirstEvent()
 		UGameplayStatics::PlaySound2D(this, EnemySpawnSound);
 	}
 
+	//入力の制御
+	bCanChangeLight = true;
 }
 
 void ATitleEventManager::SecondEvent()
 {
 	//敵の生成
-	GetWorld()->SpawnActor<ATitleEnemy_White>(WhiteEnemyClass, Second_White_Location1, FRotator::ZeroRotator);
+	//GetWorld()->SpawnActor<ATitleEnemy_White>(WhiteEnemyClass, Second_White_Location1, FRotator::ZeroRotator);
 	GetWorld()->SpawnActor<ATitleEnemy_Green>(GreenEnemyClass, Second_Green_Location1, FRotator::ZeroRotator);
 	GetWorld()->SpawnActor<ATitleEnemy_Red>(RedEnemyClass, Second_Red_Location1, FRotator::ZeroRotator);
 	GetWorld()->SpawnActor<ATitleEnemy_Blue>(BlueEnemyClass, Second_Blue_Location1, FRotator::ZeroRotator);
 
-	GetWorld()->SpawnActor<ATitleEnemy_White>(WhiteEnemyClass, Second_White_Location2, FRotator::ZeroRotator);
+	//GetWorld()->SpawnActor<ATitleEnemy_White>(WhiteEnemyClass, Second_White_Location2, FRotator::ZeroRotator);
 	GetWorld()->SpawnActor<ATitleEnemy_Green>(GreenEnemyClass, Second_Green_Location2, FRotator::ZeroRotator);
 	GetWorld()->SpawnActor<ATitleEnemy_Red>(RedEnemyClass, Second_Red_Location2, FRotator::ZeroRotator);
 	GetWorld()->SpawnActor<ATitleEnemy_Blue>(BlueEnemyClass, Second_Blue_Location2, FRotator::ZeroRotator);
 
-	EnemyCount = 8;
+	EnemyCount = 6;
 
 	//アイテム使用状況の初期化
 	bIsUseAttackItem = false;
@@ -156,17 +173,20 @@ void ATitleEventManager::SecondEvent()
 		Player->AddItem();
 	}
 
+	//入力の制御
+	bCanUseAttackItem = true;
+
 }
 
 void ATitleEventManager::ThirdEvent()
 {
 	//敵の生成
-	ATitleEnemy_White* WhiteEnemy1 = GetWorld()->SpawnActor<ATitleEnemy_White>(WhiteEnemyClass, Third_White_Location1, FRotator::ZeroRotator);
-	WhiteEnemy1->SetHP(60 * 10);
-	WhiteEnemy1->SetActorScale3D(FVector(0.35f, 0.35f, 0.35f));
-	ATitleEnemy_White* WhiteEnemy2 = GetWorld()->SpawnActor<ATitleEnemy_White>(WhiteEnemyClass, Third_White_Location2, FRotator::ZeroRotator);
-	WhiteEnemy2->SetHP(60 * 10);
-	WhiteEnemy2->SetActorScale3D(FVector(0.35f, 0.35f, 0.35f));
+	ATitleEnemy_Green* GreenEnemy1 = GetWorld()->SpawnActor<ATitleEnemy_Green>(GreenEnemyClass, Third_Green_Location1, FRotator::ZeroRotator);
+	GreenEnemy1->SetHP(60 * 10 * 5);
+	GreenEnemy1->SetActorScale3D(FVector(0.35f, 0.35f, 0.35f));
+	ATitleEnemy_Green* GreenEnemy2 = GetWorld()->SpawnActor<ATitleEnemy_Green>(GreenEnemyClass, Third_Green_Location2, FRotator::ZeroRotator);
+	GreenEnemy2->SetHP(60 * 10 * 5);
+	GreenEnemy2->SetActorScale3D(FVector(0.35f, 0.35f, 0.35f));
 
 	EnemyCount = 2;
 
@@ -183,6 +203,8 @@ void ATitleEventManager::ThirdEvent()
 		UGameplayStatics::PlaySound2D(this, EnemySpawnSound);
 	}
 
+	//入力の制御
+	bCanUseBuffItem = true;
 }
 
 void ATitleEventManager::FourthEvent()
@@ -192,9 +214,18 @@ void ATitleEventManager::FourthEvent()
 	GetWorld()->GetTimerManager().SetTimer(EndFourthEventHandle, this, &ATitleEventManager::EndFourthEvent, 4.5f, false);
 
 	//宝箱を消す
-	Box1->Destroy();
-	Box2->Destroy();
-	Box3->Destroy();
+	if (Box1)
+	{
+		Box1->Destroy();
+	}
+	if (Box2)
+	{
+		Box2->Destroy();
+	}
+	if (Box3)
+	{
+		Box3->Destroy();
+	}
 }
 void ATitleEventManager::StartFourthEvent()
 {
@@ -216,4 +247,17 @@ void ATitleEventManager::NextEventNumber()
 void ATitleEventManager::TreasureBoxSpawn()
 {
 	Box3 = GetWorld()->SpawnActor<ATreasureBox>(TreasureBox, TBS_Treasure_Location, FRotator::ZeroRotator);
+}
+
+bool ATitleEventManager::GetCanChangeLight()
+{
+	return bCanChangeLight;
+}
+bool ATitleEventManager::GetCanUseAttackItem()
+{
+	return bCanUseAttackItem;
+}
+bool ATitleEventManager::GetCanUseBuffItem()
+{
+	return bCanUseBuffItem;
 }

@@ -195,15 +195,16 @@ void AVRPlayerCharacter::BeginPlay()
     ItemAttack = 60 * LightAttack * 3;
 
     //プレイヤーUIの透明度
-    float WidgetAlpha = 0.3f;
+    float WidgetAlpha = 0.5f;
 
     // ------------------------------------------------------------------------------------
     // 変更不可能な初期値設定
     // ------------------------------------------------------------------------------------
 
     // ライトの色を設定する
-    Flashlight_Color = EFlashlight_Color::White;
-    LightColor_UI = FLinearColor::White;
+    Flashlight->SetLightFColor(FColor::Green);
+    Flashlight_Color = EFlashlight_Color::Green;
+    LightColor_UI = FLinearColor::Green;
     // バッテリーの初期値
     Battery = MaxBattery;
     //ステージ番号を初期化する
@@ -230,6 +231,7 @@ void AVRPlayerCharacter::BeginPlay()
     UUserWidget* PlayerWidget = PlayerStatusWidgetComponent->GetUserWidgetObject();
     PlayerWidget->SetRenderOpacity(WidgetAlpha);
     BatteryUI = Cast<UProgressBar>(PlayerWidget->GetWidgetFromName(TEXT("LightBattery")));
+    BatteryUI->SetFillColorAndOpacity(LightColor_UI);
     ScoreUI = Cast<UTextBlock>(PlayerWidget->GetWidgetFromName(TEXT("Score")));
     ItemUI = Cast<UTextBlock>(PlayerWidget->GetWidgetFromName(TEXT("ItemNum")));
     // Widgetの更新
@@ -241,6 +243,11 @@ void AVRPlayerCharacter::BeginPlay()
     if(BuffEffectNiagara)
     {
         NiagaraComponent->SetAsset(BuffEffectNiagara);
+    }
+
+    if (LevelName == "Title")
+    {
+        TitleEvent = Cast<ATitleEventManager>(UGameplayStatics::GetActorOfClass(GetWorld(), ATitleEventManager::StaticClass()));
     }
 }
 
@@ -342,7 +349,7 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
     if (bCanToggleLight == false)    //ライトがつけられないとき
     {
         //バッテリーの回復
-        Battery += MaxBattery / (60 * 2);
+        Battery += MaxBattery / (60 * 1.5f);
         //UIバーの色を灰色にする
         BatteryUI->WidgetStyle.BackgroundImage.TintColor = FLinearColor::Black;
         //BatteryUI->SetFillColorAndOpacity(FLinearColor::Black);
@@ -379,9 +386,19 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
         //バッテリーの回復
         if (Battery < MaxBattery)
         {
-            Battery += MaxBattery / (60 * 5);
+            Battery += MaxBattery / (60 * 3.5f);
         }
         UpdateBatteryUI();
+    }
+
+    if (LevelName == "Title")
+    {
+        if (TitleEvent->GetCanChangeLight() == false && Flashlight->GetVisibleFlag())
+        {
+            Flashlight->SetVisibility(false);
+            UGameplayStatics::PlaySoundAtLocation(this, LightSwitchSound, GetActorLocation());
+            LightCollision->SetCollisionProfileName(TEXT("NoCollision"));
+        }
     }
 }
 
@@ -411,12 +428,28 @@ void AVRPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 //ライトのON/OFFメソッド
 void AVRPlayerCharacter::ToggleFlashlight_On(const FInputActionValue& value)
 {
+    if (LevelName == "Title")
+    {
+        if (TitleEvent->GetCanChangeLight() == false)
+        {
+            return;
+        }
+    }
+
     Flashlight->SetVisibility(true);
     UGameplayStatics::PlaySoundAtLocation(this, LightSwitchSound, GetActorLocation());
     LightCollision->SetCollisionProfileName(TEXT("BlockAllDynamic"));
 }
 void AVRPlayerCharacter::ToggleFlashlight_Off(const FInputActionValue& value)
 {
+    if (LevelName == "Title")
+    {
+        if (TitleEvent->GetCanChangeLight() == false)
+        {
+            return;
+        }
+    }
+
     Flashlight->SetVisibility(false);
     UGameplayStatics::PlaySoundAtLocation(this, LightSwitchSound, GetActorLocation());
     LightCollision->SetCollisionProfileName(TEXT("NoCollision"));
@@ -425,6 +458,14 @@ void AVRPlayerCharacter::ToggleFlashlight_Off(const FInputActionValue& value)
 //ライトの色を切り替えるメソッド
 void AVRPlayerCharacter::ChangeColorFlashlight(const FInputActionValue& value)
 {
+    if (LevelName == "Title")
+    {
+        if (TitleEvent->GetCanChangeLight() == false)
+        {
+            return;
+        }
+    }
+
     bool bIsPressed = value.Get<bool>();
 
     // ライトがついているときは変更可能にする
@@ -433,10 +474,10 @@ void AVRPlayerCharacter::ChangeColorFlashlight(const FInputActionValue& value)
         // ライトの色を保持する変数を変更
         switch (Flashlight_Color)
         {
-        case EFlashlight_Color::White:
-            Flashlight_Color = EFlashlight_Color::Green;
-            LightColor_UI = FLinearColor::Green;
-            break;
+        //case EFlashlight_Color::Yellow:
+        //    Flashlight_Color = EFlashlight_Color::Green;
+        //    LightColor_UI = FLinearColor::Green;
+        //    break;
 
         case EFlashlight_Color::Green:
             Flashlight_Color = EFlashlight_Color::Red;
@@ -449,8 +490,8 @@ void AVRPlayerCharacter::ChangeColorFlashlight(const FInputActionValue& value)
             break;
 
         case EFlashlight_Color::Blue:
-            Flashlight_Color = EFlashlight_Color::White;
-            LightColor_UI = FLinearColor::White;
+            Flashlight_Color = EFlashlight_Color::Green;
+            LightColor_UI = FLinearColor::Green;
             break;
         }
         // ライトの色を変更
@@ -475,8 +516,8 @@ void AVRPlayerCharacter::SettingFlashlightColor()
 {
     switch (Flashlight_Color)
     {
-    case EFlashlight_Color::White:
-        Flashlight->SetLightColor(FColor::White);
+    case EFlashlight_Color::Yellow:
+        Flashlight->SetLightColor(FColor::Yellow);
         break;
 
     case EFlashlight_Color::Green:
@@ -533,7 +574,7 @@ void AVRPlayerCharacter::CheckUsedItem(const TArray<int32> value)
 //アイテム使用メソッド
 void AVRPlayerCharacter::UseItem_Attack()
 {
-    if (bCanUseItem == false || ScoreInstance->GetPlayerItemCount() <= 0)
+    if (bCanUseItem == false || ScoreInstance->GetPlayerItemCount() <= 0 || TitleEvent->GetCanUseAttackItem() == false)
     {
         return;
     }
@@ -619,10 +660,9 @@ void AVRPlayerCharacter::AttackItemFunction()
 
 
     //タイトル画面での処理
-    ATitleEventManager* EventManager = Cast<ATitleEventManager>(UGameplayStatics::GetActorOfClass(GetWorld(), ATitleEventManager::StaticClass()));
-    if (EventManager)
+    if (TitleEvent)
     {
-        EventManager->IsUseAttackItem();
+        TitleEvent->IsUseAttackItem();
     }
     //アイテム使用処理（クールタイムや所有数減少など）
     UseItem();
@@ -630,7 +670,7 @@ void AVRPlayerCharacter::AttackItemFunction()
 
 void AVRPlayerCharacter::UseItem_Buff()
 {
-    if (bCanUseItem == false || ScoreInstance->GetPlayerItemCount() <= 0)
+    if (bCanUseItem == false || ScoreInstance->GetPlayerItemCount() <= 0 || TitleEvent->GetCanUseBuffItem() == false)
     {
         return;
     }
@@ -664,10 +704,9 @@ void AVRPlayerCharacter::UseItem_Buff()
     //タイトル画面での処理
     if (LevelName == "Title")
     {
-        ATitleEventManager* EventManager = Cast<ATitleEventManager>(UGameplayStatics::GetActorOfClass(GetWorld(), ATitleEventManager::StaticClass()));
-        if (EventManager)
+        if (TitleEvent)
         {
-            EventManager->IsUseBuffItem();
+            TitleEvent->IsUseBuffItem();
         }
     }
     //アイテム使用処理（クールタイムや所有数減少など）
