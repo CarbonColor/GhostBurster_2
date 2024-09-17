@@ -121,6 +121,17 @@ void ABlueEnemy::TickProcess()
 
 	MoveCount++;
 
+	//死亡時には行わない処理
+	if (Status.HP > 0)
+	{
+		//発光を無くす
+		if (DynamicMaterial_Body && DynamicMaterial_Eye) // nullチェック
+		{
+			this->DynamicMaterial_Body->SetScalarParameterValue(FName("Emissive"), 0.f);
+			this->DynamicMaterial_Eye->SetScalarParameterValue(FName("Emissive"), 0.f);
+		}
+	}
+
 	//エネミーの状態判断
 	Think();
 	//状態に基づいた動き
@@ -212,6 +223,8 @@ void ABlueEnemy::RecieveEnemyDamage(int DamageAmount)
 	if (this->State != EState::Appear && this->State != EState::Die)
 	{
 		Status.HP -= DamageAmount;
+
+		this->ChangeEmissiveValue();
 	}
 }
 
