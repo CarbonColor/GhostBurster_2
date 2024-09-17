@@ -29,7 +29,8 @@ class UInputAction;
 class UInputMappingContext;
 class UMotionControllerComponent;
 class UHapticFeedbackEffect_Base;
-
+class ATitleEnemy;
+class ATitleEventManager;
 
 UCLASS()
 class GHOSTBURSTER_API AVRPlayerCharacter : public APawn, public IDamageInterface
@@ -242,6 +243,10 @@ private:
 	//ライトの色を設定するメソッド
 	UFUNCTION()
 		void SettingFlashlightColor();
+
+	//タイトルのイベントマネージャー
+	UPROPERTY()
+	TObjectPtr<ATitleEventManager> TitleEvent;
 
 	// 当たり判定の壁貫通をなくす処理
 	UFUNCTION()
