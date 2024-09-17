@@ -111,7 +111,6 @@ void ATitleEventManager::IsUseBuffItem()
 	bIsUseBuffItem = true;
 	//“ü—Í‚Ì§Œä
 	bCanChangeLight = true;
-	bCanUseBuffItem = false;
 }
 
 
