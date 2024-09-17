@@ -19,7 +19,7 @@ AEnemys::AEnemys()
 	//コンポーネント関係
 	DefaultSceneRoot(nullptr), GhostMeshComponent(nullptr), GhostCollision(nullptr), DynamicMaterial_Body(nullptr), DynamicMaterial_Eye(nullptr), EnemyScale(FVector(0.3f, 0.3f, 0.3f)),
 	//マテリアル関係
-	TimeUpToTransparency(0.25f), EmissiveValue(0.f), MaxEmissiveValue(50.f), EmissiveValueAtDead(100.f),
+	TimeUpToTransparency(0.25f), EmissiveValue(0.f), MaxEmissiveValue(50.f), EmissiveValueAtDead(300.f),
 	//アニメーション関係
 	DefaultAnim(nullptr), AttackAnim(nullptr), AttackTiming(55),
 	//サウンド関係

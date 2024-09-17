@@ -109,18 +109,9 @@ void ATitleEventManager::IsUseAttackItem()
 void ATitleEventManager::IsUseBuffItem()
 {
 	bIsUseBuffItem = true;
-	if (EnemyCount <= 0 && EventNumber == 3)
-	{
-		if (PhaseClearSound)
-		{
-			UGameplayStatics::PlaySound2D(this, PhaseClearSound);
-		}
-		ThirdEventDispatcher.Broadcast();
-		ThirdEventDispatcher.Clear();
-		//“ü—Í‚Ì§Œä
-		bCanChangeLight = true;
-		bCanUseBuffItem = false;
-	}
+	//“ü—Í‚Ì§Œä
+	bCanChangeLight = true;
+	bCanUseBuffItem = false;
 }
 
 
