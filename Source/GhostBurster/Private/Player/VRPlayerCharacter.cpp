@@ -194,6 +194,9 @@ void AVRPlayerCharacter::BeginPlay()
     // アイテムの攻撃力の設定
     ItemAttack = 60 * LightAttack * 3;
 
+    //プレイヤーUIの透明度
+    float WidgetAlpha = 0.3f;
+
     // ------------------------------------------------------------------------------------
     // 変更不可能な初期値設定
     // ------------------------------------------------------------------------------------
@@ -225,6 +228,7 @@ void AVRPlayerCharacter::BeginPlay()
     // Widgetの表示
     PlayerStatusWidgetComponent->InitWidget();
     UUserWidget* PlayerWidget = PlayerStatusWidgetComponent->GetUserWidgetObject();
+    PlayerWidget->SetRenderOpacity(WidgetAlpha);
     BatteryUI = Cast<UProgressBar>(PlayerWidget->GetWidgetFromName(TEXT("LightBattery")));
     ScoreUI = Cast<UTextBlock>(PlayerWidget->GetWidgetFromName(TEXT("Score")));
     ItemUI = Cast<UTextBlock>(PlayerWidget->GetWidgetFromName(TEXT("ItemNum")));

@@ -8,6 +8,7 @@
 #include "GameData/PlayerScoreInstance.h"
 #include "Components/TextBlock.h"
 #include "Components/WidgetComponent.h"
+#include "Components/Image.h"
 #include "ResultWidget.generated.h"
 
 UCLASS()
@@ -24,8 +25,8 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
-	//// Called every frame
-	//virtual void Tick(float DeltaTime) override;
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
 
 	//ウィジェットコンポーネント
 	UPROPERTY(EditAnywhere, Category = "UI")
@@ -43,6 +44,11 @@ private:
 	//スコアのインスタンス
 	UPROPERTY()
 		TObjectPtr<UPlayerScoreInstance> ScoreInstance;
+
+	//隠し画像
+	UPROPERTY(meta = (BindWidget))
+		TObjectPtr<UUserWidget> Widget;
+		float Alpha;
 
 	//テキストUI
 	UPROPERTY(meta = (BindWidget))

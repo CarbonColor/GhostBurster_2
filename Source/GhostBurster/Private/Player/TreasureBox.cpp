@@ -28,6 +28,8 @@ ATreasureBox::ATreasureBox()
 	CollisionComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxCollision"));
 	CollisionComponent->SetupAttachment(DefaultComponent);
 	
+	HP = 60;
+
 }
 
 // Called when the game starts or when spawned
@@ -35,7 +37,6 @@ void ATreasureBox::BeginPlay()
 {
 	Super::BeginPlay();
 
-	HP = 60;
 	bIsOpened = false;
 
 	//ç¿ïWÇÃï€ë∂
