@@ -30,7 +30,7 @@ AEnemys::AEnemys()
 	//UŒ‚ŠÖŒW
 	bHasEndedAttack(false),
 	//Ž€–SŠÖŒW
-	bIsDestroy(false), TimeUpToTransparency(0.25f), bIsEscaped(false),
+	bIsDestroy(false), TimeUpToTransparency(0.25f), bIsEscaped(false), EmissiveValue(100.f),
 	//oŒ»ŠÖŒW
 	bHasEndedAppear(false), OpacityValue_Body(0.f), OpacityValue_Eye(0.f), TimeSpentInAppear(1.f), MaxOpacity_Body(1.f), MaxOpacity_Eye(1.f),
 	//‰ñ“]ŠÖŒW
@@ -193,8 +193,8 @@ void AEnemys::ChangeEmissiveValue()
 {
 	if (DynamicMaterial_Body && DynamicMaterial_Eye) // nullƒ`ƒFƒbƒN
 	{
-		DynamicMaterial_Body->SetScalarParameterValue(FName("Emissive"), 100.f);
-		DynamicMaterial_Eye->SetScalarParameterValue(FName("Emissive"), 100.f);
+		DynamicMaterial_Body->SetScalarParameterValue(FName("Emissive"), EmissiveValue);
+		DynamicMaterial_Eye->SetScalarParameterValue(FName("Emissive"), EmissiveValue);
 	}
 }
 

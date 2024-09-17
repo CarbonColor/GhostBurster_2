@@ -145,6 +145,7 @@ protected:
 	bool	bIsDestroy;					// ™X‚É“§–¾‚É‚·‚éˆ—‚ğI—¹‚·‚é‚©
 	float	TimeUpToTransparency;		// “§–¾‚É‚È‚é‚Ü‚Å‚ÌŠÔ(•b)
 	bool	bIsEscaped;					// “¦‘–‚µ‚½‚©
+	float	EmissiveValue;				// ”­Œõ‚Ì’l
 
 	//™ŠÖ”
 	void	EnemyDead();				// HP‚ª0‚É‚È‚Á‚½‚çÁ–Å‚³‚¹‚é
