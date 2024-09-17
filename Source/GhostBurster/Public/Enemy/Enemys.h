@@ -145,11 +145,13 @@ protected:
 	bool	bIsDestroy;					// 徐々に透明にする処理を終了するか
 	float	TimeUpToTransparency;		// 透明になるまでの時間(秒)
 	bool	bIsEscaped;					// 逃走したか
+	float	EmissiveValue;				// 発光の値
 
 	//☆関数
 	void	EnemyDead();				// HPが0になったら消滅させる
 	void	ProcessDoOnce_EnemyDead();	// EnemyDeadで一度だけ行う処理
 	bool	Transparentize_Dead();		// 死亡時の徐々に透明にする処理
+	void	ChangeEmissiveValue();		// 死亡時に発光させる
 
 	//出現関係---------------------------------------------------------------------------------------------------------------------
 	//☆変数 
@@ -170,6 +172,9 @@ protected:
 	
 	//☆関数
 	void FacePlayerHowTo();				// プレイヤーの方向を向く
+
+	//デバッグ用-------------------------------------------------------------------------------------------------------------------
+	int Count = 0;
 
 public:	
 	// Called every frame

@@ -30,7 +30,7 @@ AEnemys::AEnemys()
 	//攻撃関係
 	bHasEndedAttack(false),
 	//死亡関係
-	bIsDestroy(false), TimeUpToTransparency(0.25f), bIsEscaped(false),
+	bIsDestroy(false), TimeUpToTransparency(0.25f), bIsEscaped(false), EmissiveValue(100.f),
 	//出現関係
 	bHasEndedAppear(false), OpacityValue_Body(0.f), OpacityValue_Eye(0.f), TimeSpentInAppear(1.f), MaxOpacity_Body(1.f), MaxOpacity_Eye(1.f),
 	//回転関係
@@ -107,7 +107,7 @@ void AEnemys::ProcessDoOnce_EnemyDead()
 	if (!bIsEscaped) // 逃走していないか
 	{
 		//イベントに死亡通知を送る
-	// プレイヤーを取得
+		//プレイヤーを取得
 		TObjectPtr<AVRPlayerCharacter> Player = Cast<AVRPlayerCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
 		if (Player)
 		{
@@ -135,6 +135,9 @@ void AEnemys::ProcessDoOnce_EnemyDead()
 			}
 		}
 
+		//発光させる
+		ChangeEmissiveValue();
+
 		//敵消滅時の音を鳴らす
 		PlayDisappearSound();
 	}
@@ -155,7 +158,7 @@ bool AEnemys::Transparentize_Dead()
 	//DeltaTimeの取得
 	float DeltaTime = GetWorld()->GetDeltaSeconds();
 
-	if (DynamicMaterial_Body && DynamicMaterial_Eye)
+	if (DynamicMaterial_Body && DynamicMaterial_Eye) // nullチェック
 	{
 		//オパシティの値を計算
 		OpacityValue_Body -= MaxOpacity_Body / TimeUpToTransparency * DeltaTime;	// 体のオパシティの計算
@@ -183,6 +186,16 @@ bool AEnemys::Transparentize_Dead()
 
 	//もう一度この関数を呼ぶ
 	return false;
+}
+
+//死亡時に発光させる
+void AEnemys::ChangeEmissiveValue()
+{
+	if (DynamicMaterial_Body && DynamicMaterial_Eye) // nullチェック
+	{
+		DynamicMaterial_Body->SetScalarParameterValue(FName("Emissive"), EmissiveValue);
+		DynamicMaterial_Eye->SetScalarParameterValue(FName("Emissive"), EmissiveValue);
+	}
 }
 
 //出現関係---------------------------------------------------------------------------------------------------------------------
