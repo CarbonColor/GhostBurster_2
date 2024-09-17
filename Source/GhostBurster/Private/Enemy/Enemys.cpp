@@ -34,7 +34,7 @@ AEnemys::AEnemys()
 	//éÄñSä÷åW
 	bIsDestroy(false), bIsEscaped(false),
 	//èoåªä÷åW
-	bHasEndedAppear(false), OpacityValue_Body(0.f), OpacityValue_Eye(0.f), TimeSpentInAppear(1.f), MaxOpacity_Body(1.f), MaxOpacity_Eye(1.f),
+	bHasEndedAppear(false), OpacityValue_Body(0.f), OpacityValue_Eye(0.f), TimeSpentInAppear(0.75f), MaxOpacity_Body(1.f), MaxOpacity_Eye(1.f),
 	//âÒì]ä÷åW
 	RotationCorrectionValue(FRotator(0.f, -90.f, 0.f))
 {
