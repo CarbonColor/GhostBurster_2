@@ -168,42 +168,45 @@ void AEnemys::EnemyDead()
 //EnemyDeadで一度だけ行う処理
 void AEnemys::ProcessDoOnce_EnemyDead()
 {
-	if (!bIsEscaped) // 逃走していないか
+	//イベントに死亡通知を送る
+	//プレイヤーを取得
+	TObjectPtr<AVRPlayerCharacter> Player = Cast<AVRPlayerCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
+	if (Player)
 	{
-		//イベントに死亡通知を送る
-		//プレイヤーを取得
-		TObjectPtr<AVRPlayerCharacter> Player = Cast<AVRPlayerCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
-		if (Player)
+		//ステージ名を取得
+		int Stage = Player->GetStageNumber();
+		FString SpawnBPName = FString::Printf(TEXT("EnemysSpawn_BP_C_%d"), Stage + 2);
+		//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Silver, SpawnBPName);
+
+		//該当のEnemySpawnを取得
+		TArray<AActor*> Spawners;
+		UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("Spawner"), Spawners);
+
+		for (AActor* Spawner : Spawners)
 		{
-			//ステージ名を取得
-			int Stage = Player->GetStageNumber();
-			FString SpawnBPName = FString::Printf(TEXT("EnemysSpawn_BP_C_%d"), Stage + 2);
-			//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Silver, SpawnBPName);
+			//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Purple, Spawner->GetName());
 
-			//該当のEnemySpawnを取得
-			TArray<AActor*> Spawners;
-			UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("Spawner"), Spawners);
-
-			for (AActor* Spawner : Spawners)
+			if (Spawner->GetName() == SpawnBPName)
 			{
-				//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Purple, Spawner->GetName());
-
-				if (Spawner->GetName() == SpawnBPName)
+				if (UFunction* Func = Spawner->FindFunction(FName("EnemyDeadFunction")))
 				{
-					if (UFunction* Func = Spawner->FindFunction(FName("EnemyDeadFunction")))
+					Spawner->ProcessEvent(Func, nullptr);
+
+					if (!bIsEscaped) // 逃走していないか
 					{
-						Spawner->ProcessEvent(Func, nullptr);
+						//スコアの増加
 						Player->AddScore(100);
+
+						//発光させる
+						ChangeEmissiveValue();
+
+						//敵消滅時の音を鳴らす
+						PlayDisappearSound();
 					}
+
 				}
 			}
 		}
-
-		//発光させる
-		ChangeEmissiveValue();
-
-		//敵消滅時の音を鳴らす
-		PlayDisappearSound();
 	}
 	
 	//当たり判定を消す
