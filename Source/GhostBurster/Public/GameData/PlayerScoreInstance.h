@@ -19,14 +19,14 @@ private:
 
 	// ------------------------------------------------------------------------------------	
 	//ダメージのスコア
-	const int32 DamageScore = -100;
+	const int32 DamageScore = -200;
 	//タイムのスコア
-	const int32 DefaultClearTime = 0;
+	const int32 DefaultClearTime = 120;
 	const int32 TimeMaxScore = 10000;
-	const int32 TimeDecreaseScore = 80;
-	const int32 DecreasePer = 45;
+	const int32 TimeDecreaseScore = 1000;
+	const int32 DecreasePer = 30;
 	//アイテムのスコア
-	const int32 ItemScore = 2000;
+	const int32 ItemScore = 3000;
 	// ------------------------------------------------------------------------------------
 
 	// プレイヤーのデフォルトスコア

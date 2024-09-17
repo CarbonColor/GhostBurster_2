@@ -173,29 +173,22 @@ void AVRPlayerCharacter::BeginPlay()
     // ------------------------------------------------------------------------------------
 
     // ライトバッテリーの秒数設定　※タイトルの時は緩くする
-    BatteryTime = 15;
+    BatteryTime = 20;
     if (LevelName == "Title")
     {
         BatteryTime *= 2;
-        for (int i = 0; i < 2; ++i)
-        {
-            ScoreInstance->AddPlayerItem();
-        }
     }
     // バッテリー秒数の増加率設定
-    AddBatteryTime = 3;
+    AddBatteryTime = 5;
     // 最大値をセット
     MaxBattery = 60 * BatteryTime;
     // ライトの攻撃力設定
     LightAttack = 10;
     // ライトの攻撃力増加率の設定
-    AddLightAttack = 1;
+    AddLightAttack = 3;
 
     // アイテムの攻撃力の設定
-    ItemAttack = 60 * LightAttack * 3;
-
-    //プレイヤーUIの透明度
-    float WidgetAlpha = 0.5f;
+    ItemAttack = 60 * LightAttack * 3.5f;
 
     // ------------------------------------------------------------------------------------
     // 変更不可能な初期値設定
@@ -229,7 +222,6 @@ void AVRPlayerCharacter::BeginPlay()
     // Widgetの表示
     PlayerStatusWidgetComponent->InitWidget();
     UUserWidget* PlayerWidget = PlayerStatusWidgetComponent->GetUserWidgetObject();
-    PlayerWidget->SetRenderOpacity(WidgetAlpha);
     BatteryUI = Cast<UProgressBar>(PlayerWidget->GetWidgetFromName(TEXT("LightBattery")));
     BatteryUI->SetFillColorAndOpacity(LightColor_UI);
     ScoreUI = Cast<UTextBlock>(PlayerWidget->GetWidgetFromName(TEXT("Score")));
@@ -716,6 +708,10 @@ void AVRPlayerCharacter::UseItem_Buff()
     LightAttack += AddLightAttack;
     //最大値の再設定
     MaxBattery = 60 * BatteryTime;
+    //バッテリーを全回復
+    Battery = MaxBattery;
+    //UIの更新
+    UpdateBatteryUI();
 
     //タイトル画面での処理
     if (LevelName == "Title")
