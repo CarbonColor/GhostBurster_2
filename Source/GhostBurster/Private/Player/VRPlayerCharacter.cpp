@@ -18,6 +18,7 @@
 #include "Title/TitleEventManager.h"
 #include "Haptics/HapticFeedbackEffect_Base.h"
 
+
 DEFINE_LOG_CATEGORY_STATIC(PlayerScript, Log, All);
 
 
@@ -39,13 +40,21 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
     CameraComponent->SetupAttachment(VRRoot);
 
-    //ウィジェットコンポーネントの作成
+    //ウィジェットコンポーネントの作成（プレイヤーUI）
     PlayerStatusWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("PlayerStatusWidgetComponent"));
     PlayerStatusWidgetComponent->SetupAttachment(CameraComponent);
     //ウィジェットの設定
-    UClass* WidgetClass = LoadObject<UClass>(nullptr, TEXT("/Game/_TeamFolder/UI/UI_PlayerStatus.UI_PlayerStatus_C"));
-    PlayerStatusWidgetComponent->SetWidgetClass(WidgetClass);
+    UClass* PlayerWidgetClass = LoadObject<UClass>(nullptr, TEXT("/Game/_TeamFolder/UI/UI_PlayerStatus.UI_PlayerStatus_C"));
+    PlayerStatusWidgetComponent->SetWidgetClass(PlayerWidgetClass);
     PlayerStatusWidgetComponent->SetWidgetSpace(EWidgetSpace::World);
+
+    //ウィジェットコンポーネントの作成（フェードUI）
+    FadeOutWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("FadeOutWidgetComponent"));
+    FadeOutWidgetComponent->SetupAttachment(CameraComponent);
+    //ウィジェットの設定
+    UClass* FadeWidgetClass = LoadObject<UClass>(nullptr, TEXT("/Game/_TeamFolder/UI/UI_FadeOut.UI_FadeOut_C"));
+    FadeOutWidgetComponent->SetWidgetClass(FadeWidgetClass);
+    FadeOutWidgetComponent->SetWidgetSpace(EWidgetSpace::World);
 
     // モーションコントローラーコンポーネント(右手)を作る
     MotionController_Right = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("MotionController_Right"));
@@ -85,6 +94,10 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     FlashlightMesh->SetCollisionProfileName(TEXT("NoCollision"));
     // メッシュの影をなくす
     FlashlightMesh->SetCastShadow(false);
+
+    //ライトで使うナイアガラコンポーネントを作る
+    NiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraComponent"));
+    NiagaraComponent->SetupAttachment(Flashlight);
 
     //ボックスコリジョンを作る
     PlayerCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("PlayerCollision"));
@@ -140,7 +153,6 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     {
         GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Silver, TEXT("Not SoundEffect ! -EnemyHitSound-"));
     }
-
 }
 
 // Called when the game starts or when spawned
@@ -165,7 +177,7 @@ void AVRPlayerCharacter::BeginPlay()
     if (LevelName == "Title")
     {
         BatteryTime *= 2;
-        for (int i = 0; i < 50; ++i)
+        for (int i = 0; i < 2; ++i)
         {
             ScoreInstance->AddPlayerItem();
         }
@@ -180,12 +192,7 @@ void AVRPlayerCharacter::BeginPlay()
     AddLightAttack = 1;
 
     // アイテムの攻撃力の設定
-    ItemAttack = 1000;
-    // アイテム使用のボーダー設定
-    FingerBendingBorder = 1000;
-
-    // デバッグ
-    DebugTimer = 0;
+    ItemAttack = 60 * LightAttack * 3;
 
     // ------------------------------------------------------------------------------------
     // 変更不可能な初期値設定
@@ -206,9 +213,6 @@ void AVRPlayerCharacter::BeginPlay()
     bIsDamageNow = false;
     //振動状態の初期化
     bIsEnemyHaptic = false;
-    //アイテムのボーダー
-    AttackItemBorder = { 450, 0, 450, 450, 0 };
-    BuffItemBorder = { 0, 0, 450, 450, 450 };
 
     // Enhanced Input setup
     APlayerController* PlayerController = Cast<APlayerController>(GetController());
@@ -220,14 +224,20 @@ void AVRPlayerCharacter::BeginPlay()
 
     // Widgetの表示
     PlayerStatusWidgetComponent->InitWidget();
-    UUserWidget* Widget = PlayerStatusWidgetComponent->GetUserWidgetObject();
-    BatteryUI = Cast<UProgressBar>(Widget->GetWidgetFromName(TEXT("LightBattery")));
-    ScoreUI = Cast<UTextBlock>(Widget->GetWidgetFromName(TEXT("Score")));
-    ItemUI = Cast<UTextBlock>(Widget->GetWidgetFromName(TEXT("ItemNum")));
+    UUserWidget* PlayerWidget = PlayerStatusWidgetComponent->GetUserWidgetObject();
+    BatteryUI = Cast<UProgressBar>(PlayerWidget->GetWidgetFromName(TEXT("LightBattery")));
+    ScoreUI = Cast<UTextBlock>(PlayerWidget->GetWidgetFromName(TEXT("Score")));
+    ItemUI = Cast<UTextBlock>(PlayerWidget->GetWidgetFromName(TEXT("ItemNum")));
     // Widgetの更新
     UpdateBatteryUI();
     UpdateItemUI();
     UpdateScoreUI();
+
+    //ナイアガラのセット
+    if(BuffEffectNiagara)
+    {
+        NiagaraComponent->SetAsset(BuffEffectNiagara);
+    }
 }
 
 // Called every frame
@@ -369,7 +379,6 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
         }
         UpdateBatteryUI();
     }
-
 }
 
 // Called to bind functionality to input
@@ -497,21 +506,21 @@ void AVRPlayerCharacter::CheckUsedItem(const TArray<int32> value)
     }
 
     //狐の形（親指[0]・中指[2]・薬指[3]）
-    if (value[0] > FingerBendingBorder / 3 &&
-        value[1] <= FingerBendingBorder &&
-        value[2] > FingerBendingBorder &&
-        value[3] > FingerBendingBorder &&
-        value[4] <= FingerBendingBorder)
+    if (value[0] > ScoreInstance->FingerBorder[0] &&
+        value[1] <= ScoreInstance->FingerBorder[1] &&
+        value[2] > ScoreInstance->FingerBorder[2] &&
+        value[3] > ScoreInstance->FingerBorder[3] &&
+        value[4] <= ScoreInstance->FingerBorder[4])
     {
         //攻撃アイテムの処理
         UseItem_Attack();
     }
     //銃の形（中指[2]・薬指[3]・小指[4]）
-    else if (value[0] <= FingerBendingBorder &&
-             value[1] <= FingerBendingBorder &&
-             value[2] > FingerBendingBorder &&
-             value[3] > FingerBendingBorder &&
-             value[4] > FingerBendingBorder / 4)
+    else if (value[0] <= ScoreInstance->FingerBorder[0] &&
+             value[1] <= ScoreInstance->FingerBorder[1] &&
+             value[2] > ScoreInstance->FingerBorder[2] &&
+             value[3] > ScoreInstance->FingerBorder[3] &&
+             value[4] > ScoreInstance->FingerBorder[4])
     {
         //強化アイテムの処理
         UseItem_Buff();
@@ -633,6 +642,12 @@ void AVRPlayerCharacter::UseItem_Buff()
     else
     {
         //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Silver, TEXT("Not SoundEffect ! -UseBuffItemSound-"));
+    }
+
+    //ナイアガラエフェクトを一度だけ再生
+    if (NiagaraComponent && BuffEffectNiagara)
+    {
+        NiagaraComponent->Activate(true); // 再生を開始
     }
 
     //ライトのバッテリー時間を増加

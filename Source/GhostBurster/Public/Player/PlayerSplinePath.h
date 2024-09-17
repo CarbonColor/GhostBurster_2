@@ -36,15 +36,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SE")
 		TObjectPtr<USoundCue> WalkSound;
 
-
 private:
 	//歩く音のオーディオコンポーネント
-	UPROPERTY()
+	UPROPERTY(EditAnywhere)
 		TObjectPtr<UAudioComponent> WalkSoundEffect;
 
-	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spline", meta = (AllowPrivateAccess = "true"))
 		TObjectPtr<USplineComponent> SplineComponent;
+
 
 	//経路上の現在地を0～1で表す
 	float CurrentSplineDistance;
