@@ -574,9 +574,17 @@ void AVRPlayerCharacter::CheckUsedItem(const TArray<int32> value)
 //アイテム使用メソッド
 void AVRPlayerCharacter::UseItem_Attack()
 {
-    if (bCanUseItem == false || ScoreInstance->GetPlayerItemCount() <= 0 || TitleEvent->GetCanUseAttackItem() == false)
+    if (bCanUseItem == false || ScoreInstance->GetPlayerItemCount() <= 0)
     {
         return;
+    }
+
+    if (LevelName == "Title")
+    {
+        if (TitleEvent->GetCanUseAttackItem() == false)
+        {
+            return;
+        }
     }
 
     //デバッグ
@@ -670,9 +678,17 @@ void AVRPlayerCharacter::AttackItemFunction()
 
 void AVRPlayerCharacter::UseItem_Buff()
 {
-    if (bCanUseItem == false || ScoreInstance->GetPlayerItemCount() <= 0 || TitleEvent->GetCanUseBuffItem() == false)
+    if (bCanUseItem == false || ScoreInstance->GetPlayerItemCount() <= 0)
     {
         return;
+    }
+
+    if (LevelName == "Title")
+    {
+        if (TitleEvent->GetCanUseBuffItem() == false)
+        {
+            return;
+        }
     }
 
     //デバッグ
