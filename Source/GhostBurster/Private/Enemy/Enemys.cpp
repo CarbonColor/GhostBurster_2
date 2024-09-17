@@ -10,8 +10,6 @@
 // Sets default values
 AEnemys::AEnemys()
 	:
-	//状態遷移関係
-	MoveCount(0), bOnceDoProcessBeenIs(false), TimeFromWaitToStateTransition(1.f),
 	//FPS関係
 	Gamefps(60.f), AssumptionFPS(60),
 	//構造体
@@ -20,17 +18,21 @@ AEnemys::AEnemys()
 	State(EState::Appear), EnemyColor(EEnemyColor::White),
 	//コンポーネント関係
 	DefaultSceneRoot(nullptr), GhostMeshComponent(nullptr), GhostCollision(nullptr), DynamicMaterial_Body(nullptr), DynamicMaterial_Eye(nullptr), EnemyScale(FVector(0.3f, 0.3f, 0.3f)),
+	//マテリアル関係
+	TimeUpToTransparency(0.25f), EmissiveValue(0.f), MaxEmissiveValue(50.f), EmissiveValueAtDead(100.f),
 	//アニメーション関係
 	DefaultAnim(nullptr), AttackAnim(nullptr), AttackTiming(55),
 	//サウンド関係
 	AppearSound(nullptr), DisappearSound(nullptr),
+	//状態遷移関係
+	MoveCount(0), bOnceDoProcessBeenIs(false), TimeFromWaitToStateTransition(1.f),
 	//移動関係
 	MoveTime(1.f), TraveledDistance(0.f), CurrentLocation(FVector(0.f, 0.f, 0.f)), GoalLocations(), MovingTimesCount(0), GoalLocation_World(FVector(0.f, 0.f, 0.f)), bHasEndedMoving(false),
 	Direction(FVector(0.f, 0.f, 0.f)), TotalDistance(0.f), Amplitude(40.f), Frequency(1.f),
 	//攻撃関係
 	bHasEndedAttack(false),
 	//死亡関係
-	bIsDestroy(false), TimeUpToTransparency(0.25f), bIsEscaped(false), EmissiveValue(100.f),
+	bIsDestroy(false), bIsEscaped(false),
 	//出現関係
 	bHasEndedAppear(false), OpacityValue_Body(0.f), OpacityValue_Eye(0.f), TimeSpentInAppear(1.f), MaxOpacity_Body(1.f), MaxOpacity_Eye(1.f),
 	//回転関係
@@ -79,6 +81,68 @@ float AEnemys::GetWorldFPS()
 	float FPS = 1.f / DeltaTime;
 
 	return FPS;
+}
+
+//マテリアル関係-----------------------------------------------------------------------------------------------------------------
+//徐々に透明にする
+bool AEnemys::Transparentize_Dead()
+{
+	//DeltaTimeの取得
+	float DeltaTime = GetWorld()->GetDeltaSeconds();
+
+	if (DynamicMaterial_Body && DynamicMaterial_Eye) // nullチェック
+	{
+		//オパシティの値を計算
+		OpacityValue_Body -= MaxOpacity_Body / TimeUpToTransparency * DeltaTime;	// 体のオパシティの計算
+		OpacityValue_Eye -= MaxOpacity_Eye / TimeUpToTransparency * DeltaTime;		// 目のオパシティの計算
+
+		//出現が終わったら処理を終了する
+		if (OpacityValue_Body <= 0.f && OpacityValue_Eye <= 0.f)
+		{
+			//オパシティの値が0を下回らないようにする
+			OpacityValue_Body = 0.f;
+			OpacityValue_Eye = 0.f;
+
+			//オパシティを設定
+			DynamicMaterial_Body->SetScalarParameterValue(FName("Opacity"), this->OpacityValue_Body);
+			DynamicMaterial_Eye->SetScalarParameterValue(FName("Opacity"), this->OpacityValue_Eye);
+
+			//この関数が呼ばれないようにする
+			return true;
+		}
+
+		//オパシティを設定
+		DynamicMaterial_Body->SetScalarParameterValue(FName("Opacity"), this->OpacityValue_Body);
+		DynamicMaterial_Eye->SetScalarParameterValue(FName("Opacity"), this->OpacityValue_Eye);
+	}
+
+	//もう一度この関数を呼ぶ
+	return false;
+}
+
+//発光させる
+void AEnemys::ChangeEmissiveValue()
+{
+	//発光の値の計算
+	/*EmissiveValue = MaxEmissiveValue - MaxEmissiveValue * (Status.HP / Status.MaxHP);*/
+
+	if (DynamicMaterial_Body && DynamicMaterial_Eye) // nullチェック
+	{
+		//発光の値をセットする
+		DynamicMaterial_Body->SetScalarParameterValue(FName("Emissive"), MaxEmissiveValue);
+		DynamicMaterial_Eye->SetScalarParameterValue(FName("Emissive"), MaxEmissiveValue);
+	}
+}
+
+//死亡時の発光
+void AEnemys::ChangeEmissiveValue_Dead()
+{
+	if (DynamicMaterial_Body && DynamicMaterial_Eye) // nullチェック
+	{
+		//発光の値をセットする
+		DynamicMaterial_Body->SetScalarParameterValue(FName("Emissive"), EmissiveValueAtDead);
+		DynamicMaterial_Eye->SetScalarParameterValue(FName("Emissive"), EmissiveValueAtDead);
+	}
 }
 
 //死亡関係---------------------------------------------------------------------------------------------------------------------
@@ -150,52 +214,6 @@ void AEnemys::ProcessDoOnce_EnemyDead()
 
 	//複数回処理が行われないようにする
 	bOnceDoProcessBeenIs = true;
-}
-
-//徐々に透明にする
-bool AEnemys::Transparentize_Dead()
-{
-	//DeltaTimeの取得
-	float DeltaTime = GetWorld()->GetDeltaSeconds();
-
-	if (DynamicMaterial_Body && DynamicMaterial_Eye) // nullチェック
-	{
-		//オパシティの値を計算
-		OpacityValue_Body -= MaxOpacity_Body / TimeUpToTransparency * DeltaTime;	// 体のオパシティの計算
-		OpacityValue_Eye -= MaxOpacity_Eye / TimeUpToTransparency * DeltaTime;		// 目のオパシティの計算
-
-		//出現が終わったら処理を終了する
-		if (OpacityValue_Body <= 0.f && OpacityValue_Eye <= 0.f)
-		{
-			//オパシティの値が0を下回らないようにする
-			OpacityValue_Body = 0.f;
-			OpacityValue_Eye = 0.f;
-
-			//オパシティを設定
-			DynamicMaterial_Body->SetScalarParameterValue(FName("Opacity"), this->OpacityValue_Body);
-			DynamicMaterial_Eye->SetScalarParameterValue(FName("Opacity"), this->OpacityValue_Eye);
-
-			//この関数が呼ばれないようにする
-			return true;
-		}
-
-		//オパシティを設定
-		DynamicMaterial_Body->SetScalarParameterValue(FName("Opacity"), this->OpacityValue_Body);
-		DynamicMaterial_Eye->SetScalarParameterValue(FName("Opacity"), this->OpacityValue_Eye);
-	}
-
-	//もう一度この関数を呼ぶ
-	return false;
-}
-
-//死亡時に発光させる
-void AEnemys::ChangeEmissiveValue()
-{
-	if (DynamicMaterial_Body && DynamicMaterial_Eye) // nullチェック
-	{
-		DynamicMaterial_Body->SetScalarParameterValue(FName("Emissive"), EmissiveValue);
-		DynamicMaterial_Eye->SetScalarParameterValue(FName("Emissive"), EmissiveValue);
-	}
 }
 
 //出現関係---------------------------------------------------------------------------------------------------------------------

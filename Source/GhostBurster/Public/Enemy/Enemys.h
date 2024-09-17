@@ -31,9 +31,10 @@ protected:
 	//ステータス
 	struct FStatus
 	{
-		FStatus() : HP(60), Speed(0.f) {}
+		FStatus() : HP(60), MaxHP(60), Speed(0.f) {}
 
 		int		HP;		// ゴーストの体力
+		int		MaxHP;	// ゴーストの最大HP
 		float	Speed;	// 目的地までの移動速度
 	};
 
@@ -48,6 +49,7 @@ protected:
 		Appear,	//出現
 	};
 
+	//敵の色
 	enum class EEnemyColor : uint8
 	{
 		White = 0,
@@ -59,17 +61,6 @@ protected:
 	//☆関数
 	//Tickでの処理
 	virtual void TickProcess() PURE_VIRTUAL(AEnemys::TickProcess, );
-
-	//状態遷移関係-----------------------------------------------------------------------------------------------------------------
-	//☆変数
-	int				MoveCount;											// 敵の行動制御用のカウント
-	bool			bOnceDoProcessBeenIs;								// 一度だけ行う処理をしたか
-	float			TimeFromWaitToStateTransition;						// 待機から状態遷移するまでの時間
-
-	//☆関数
-	virtual void	Think() PURE_VIRTUAL(AEnemys::Think, );				// エネミーの状態判断
-	void			UpdateState(EState NowState);						// 状態の更新
-	virtual void	ActProcess() PURE_VIRTUAL(AEnemys::ActProcess, );	// 状態に基づいた動きをする
 
 	//FPS関係----------------------------------------------------------------------------------------------------------------------
 	//☆変数
@@ -98,6 +89,18 @@ protected:
 	TObjectPtr<UMaterialInstanceDynamic>	DynamicMaterial_Eye;	// 目のダイナミックマテリアル
 	FVector									EnemyScale;				// 敵のスケール
 
+	//マテリアル関係---------------------------------------------------------------------------------------------------------------
+	//☆変数
+	float	TimeUpToTransparency;		// 透明になるまでの時間(秒)
+	float	EmissiveValue;				// 発光の値
+	float	MaxEmissiveValue;			// 最大の発光の値
+	float	EmissiveValueAtDead;		// 死亡時の発光の値
+
+	//☆関数
+	bool	Transparentize_Dead();		// 死亡時の徐々に透明にする処理
+	void	ChangeEmissiveValue();		// HPの減少に伴い発光させる
+	void	ChangeEmissiveValue_Dead();	// 死亡時に発光させる
+
 	//アニメーション関係-----------------------------------------------------------------------------------------------------------
 	//☆変数
 	TObjectPtr<UAnimSequence>	DefaultAnim;	// 特定のアニメーションを使用しない状態のアニメーション
@@ -114,6 +117,17 @@ protected:
 	//☆関数
 	void PlayAppearSound();					// 敵出現時の音を鳴らす
 	void PlayDisappearSound();				// 敵消滅時の音を鳴らす
+
+	//状態遷移関係-----------------------------------------------------------------------------------------------------------------
+	//☆変数
+	int				MoveCount;											// 敵の行動制御用のカウント
+	bool			bOnceDoProcessBeenIs;								// 一度だけ行う処理をしたか
+	float			TimeFromWaitToStateTransition;						// 待機から状態遷移するまでの時間
+
+	//☆関数
+	virtual void	Think() PURE_VIRTUAL(AEnemys::Think, );				// エネミーの状態判断
+	void			UpdateState(EState NowState);						// 状態の更新
+	virtual void	ActProcess() PURE_VIRTUAL(AEnemys::ActProcess, );	// 状態に基づいた動きをする
 
 	//移動関係---------------------------------------------------------------------------------------------------------------------
 	//☆変数
@@ -143,15 +157,11 @@ protected:
 	//死亡関係---------------------------------------------------------------------------------------------------------------------
 	//☆変数
 	bool	bIsDestroy;					// 徐々に透明にする処理を終了するか
-	float	TimeUpToTransparency;		// 透明になるまでの時間(秒)
 	bool	bIsEscaped;					// 逃走したか
-	float	EmissiveValue;				// 発光の値
 
 	//☆関数
 	void	EnemyDead();				// HPが0になったら消滅させる
 	void	ProcessDoOnce_EnemyDead();	// EnemyDeadで一度だけ行う処理
-	bool	Transparentize_Dead();		// 死亡時の徐々に透明にする処理
-	void	ChangeEmissiveValue();		// 死亡時に発光させる
 
 	//出現関係---------------------------------------------------------------------------------------------------------------------
 	//☆変数 
