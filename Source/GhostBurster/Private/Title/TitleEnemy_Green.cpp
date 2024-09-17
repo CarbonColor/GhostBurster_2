@@ -109,3 +109,7 @@ bool ATitleEnemy_Green::CheckPlayerLightColor(EFlashlight_Color PlayerColor) con
 {
 	return PlayerColor == EFlashlight_Color::Green;
 }
+void ATitleEnemy_Green::SetHP(int32 Value)
+{
+	HP = Value;
+}
