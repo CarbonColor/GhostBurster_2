@@ -92,8 +92,7 @@ protected:
 	//マテリアル関係---------------------------------------------------------------------------------------------------------------
 	//☆変数
 	float	TimeUpToTransparency;		// 透明になるまでの時間(秒)
-	float	EmissiveValue;				// 発光の値
-	float	MaxEmissiveValue;			// 最大の発光の値
+	float	EmissiveValueAtDamage;		// ダメージを受けた時の発光の値
 	float	EmissiveValueAtDead;		// 死亡時の発光の値
 
 	//☆関数
