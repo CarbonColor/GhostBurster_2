@@ -221,7 +221,7 @@ void AVRPlayerCharacter::BeginPlay()
 
     // Widgetの表示
     PlayerStatusWidgetComponent->InitWidget();
-    UUserWidget* PlayerWidget = PlayerStatusWidgetComponent->GetUserWidgetObject();
+    PlayerWidget = PlayerStatusWidgetComponent->GetUserWidgetObject();
     BatteryUI = Cast<UProgressBar>(PlayerWidget->GetWidgetFromName(TEXT("LightBattery")));
     BatteryUI->SetFillColorAndOpacity(LightColor_UI);
     ScoreUI = Cast<UTextBlock>(PlayerWidget->GetWidgetFromName(TEXT("Score")));
@@ -241,6 +241,8 @@ void AVRPlayerCharacter::BeginPlay()
     {
         TitleEvent = Cast<ATitleEventManager>(UGameplayStatics::GetActorOfClass(GetWorld(), ATitleEventManager::StaticClass()));
     }
+
+    bIsGameEnd = false;
 }
 
 // Called every frame
@@ -427,7 +429,10 @@ void AVRPlayerCharacter::ToggleFlashlight_On(const FInputActionValue& value)
             return;
         }
     }
-
+    if (bIsGameEnd)
+    {
+        return;
+    }
     Flashlight->SetVisibility(true);
     UGameplayStatics::PlaySoundAtLocation(this, LightSwitchSound, GetActorLocation());
     LightCollision->SetCollisionProfileName(TEXT("BlockAllDynamic"));
@@ -441,7 +446,10 @@ void AVRPlayerCharacter::ToggleFlashlight_Off(const FInputActionValue& value)
             return;
         }
     }
-
+    if (bIsGameEnd)
+    {
+        return;
+    }
     Flashlight->SetVisibility(false);
     UGameplayStatics::PlaySoundAtLocation(this, LightSwitchSound, GetActorLocation());
     LightCollision->SetCollisionProfileName(TEXT("NoCollision"));
@@ -456,6 +464,10 @@ void AVRPlayerCharacter::ChangeColorFlashlight(const FInputActionValue& value)
         {
             return;
         }
+    }
+    if (bIsGameEnd)
+    {
+        return;
     }
 
     bool bIsPressed = value.Get<bool>();
@@ -566,7 +578,7 @@ void AVRPlayerCharacter::CheckUsedItem(const TArray<int32> value)
 //アイテム使用メソッド
 void AVRPlayerCharacter::UseItem_Attack()
 {
-    if (bCanUseItem == false || ScoreInstance->GetPlayerItemCount() <= 0)
+    if (bCanUseItem == false || ScoreInstance->GetPlayerItemCount() <= 0 || bIsGameEnd)
     {
         return;
     }
@@ -670,7 +682,7 @@ void AVRPlayerCharacter::AttackItemFunction()
 
 void AVRPlayerCharacter::UseItem_Buff()
 {
-    if (bCanUseItem == false || ScoreInstance->GetPlayerItemCount() <= 0)
+    if (bCanUseItem == false || ScoreInstance->GetPlayerItemCount() <= 0 || bIsGameEnd)
     {
         return;
     }
@@ -1058,4 +1070,10 @@ void AVRPlayerCharacter::ChangeScore_Step()
     {
         GetWorld()->GetTimerManager().ClearTimer(ScoreChangeHandle);
     }
+}
+
+void AVRPlayerCharacter::GameEndSet()
+{
+    bIsGameEnd = true;
+    PlayerStatusWidgetComponent->SetHiddenInGame(true);
 }

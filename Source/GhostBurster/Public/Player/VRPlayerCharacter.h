@@ -217,6 +217,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SE")
 		TObjectPtr<USoundCue> ChangeScoreSound;
 
+	UFUNCTION(BlueprintCallable, Category = "GameEndTrigger")
+	void GameEndSet();
 
 private:
 	
@@ -274,6 +276,9 @@ private:
 	EFlashlight_Color Flashlight_Color;
 	//UI用の色を保持する変数
 	FLinearColor LightColor_UI;
+
+	//ウィジェット
+	TObjectPtr<UUserWidget> PlayerWidget;
 
 	//ライトバッテリー秒数
 	int32 BatteryTime;
@@ -340,4 +345,6 @@ private:
 
 	//現在のワールド名
 	FString LevelName;
+
+	bool bIsGameEnd;
 };
