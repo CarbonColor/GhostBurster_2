@@ -19,9 +19,9 @@ private:
 
 	// ------------------------------------------------------------------------------------	
 	//ダメージのスコア
-	const int32 DamageScore = -200;
+	const int32 DamageScore = -100;
 	//タイムのスコア
-	const int32 DefaultClearTime = 120;
+	const int32 DefaultClearTime = 150;
 	const int32 TimeMaxScore = 10000;
 	const int32 TimeDecreaseScore = 1000;
 	const int32 DecreasePer = 30;
@@ -74,7 +74,7 @@ public:
 
 	//グローブデバイス用のCOMポート番号
 	UPROPERTY(BlueprintReadOnly, Category = "DeviceData")
-		int32 DevicePortNumber;
+		int32 DevicePortNumber = 0;
 	//指の曲げ具合のボーダー
 	UPROPERTY(BlueprintReadOnly, Category = "DeviceData")
 		TArray<int32> FingerBorder;
