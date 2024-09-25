@@ -158,11 +158,6 @@ void ATitleEventManager::SecondEvent()
 		UGameplayStatics::PlaySound2D(this, EnemySpawnSound);
 	}
 
-	for (int i = 0; i < 3; ++i)
-	{
-		Player->AddItem();
-	}
-
 	//“ü—Í‚Ì§Œä
 	bCanUseAttackItem = true;
 
@@ -172,11 +167,9 @@ void ATitleEventManager::ThirdEvent()
 {
 	//“G‚Ì¶¬
 	ATitleEnemy_Green* GreenEnemy1 = GetWorld()->SpawnActor<ATitleEnemy_Green>(GreenEnemyClass, Third_Green_Location1, FRotator::ZeroRotator);
-	GreenEnemy1->SetHP(60 * 10 * 5);
-	GreenEnemy1->SetActorScale3D(FVector(0.35f, 0.35f, 0.35f));
+	GreenEnemy1->SetActorScale3D(FVector(0.3f, 0.3f, 0.3f));
 	ATitleEnemy_Green* GreenEnemy2 = GetWorld()->SpawnActor<ATitleEnemy_Green>(GreenEnemyClass, Third_Green_Location2, FRotator::ZeroRotator);
-	GreenEnemy2->SetHP(60 * 10 * 5);
-	GreenEnemy2->SetActorScale3D(FVector(0.35f, 0.35f, 0.35f));
+	GreenEnemy2->SetActorScale3D(FVector(0.3f, 0.3f, 0.3f));
 
 	EnemyCount = 2;
 

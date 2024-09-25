@@ -22,7 +22,7 @@ void ATitleEnemy::BeginPlay()
 
 	Player = Cast<AVRPlayerCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
 
-	HP = 60 * 10 * 2.5f;
+	HP = 60 * 10 * 2;
 	RunningTime = 0;
 	InitialLocation = GetActorLocation();
 

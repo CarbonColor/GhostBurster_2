@@ -179,16 +179,16 @@ void AVRPlayerCharacter::BeginPlay()
         BatteryTime *= 2;
     }
     // バッテリー秒数の増加率設定
-    AddBatteryTime = 5;
+    AddBatteryTime = 10;
     // 最大値をセット
     MaxBattery = 60 * BatteryTime;
     // ライトの攻撃力設定
     LightAttack = 10;
     // ライトの攻撃力増加率の設定
-    AddLightAttack = 3;
+    AddLightAttack = 6;
 
     // アイテムの攻撃力の設定
-    ItemAttack = 60 * LightAttack * 3.5f;
+    ItemAttack = 60 * LightAttack * 2.5f;
 
     // ------------------------------------------------------------------------------------
     // 変更不可能な初期値設定
