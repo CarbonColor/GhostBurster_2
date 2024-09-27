@@ -342,6 +342,8 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
     // バッテリー操作
     if (bCanToggleLight == false)    //ライトがつけられないとき
     {
+        //ライトはオフにする
+        Flashlight->SetVisibility(false);
         //バッテリーの回復
         Battery += MaxBattery / (60 * 1.5f);
         //UIバーの色を灰色にする
@@ -1075,5 +1077,6 @@ void AVRPlayerCharacter::ChangeScore_Step()
 void AVRPlayerCharacter::GameEndSet()
 {
     bIsGameEnd = true;
+    Flashlight->SetVisibility(false);
     PlayerStatusWidgetComponent->SetHiddenInGame(true);
 }
