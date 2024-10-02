@@ -19,13 +19,13 @@ AEnemys::AEnemys()
 	//コンポーネント関係
 	DefaultSceneRoot(nullptr), GhostMeshComponent(nullptr), GhostCollision(nullptr), DynamicMaterial_Body(nullptr), DynamicMaterial_Eye(nullptr), EnemyScale(FVector(0.3f, 0.3f, 0.3f)),
 	//マテリアル関係
-	TimeUpToTransparency(0.25f), EmissiveValue(0.f), MaxEmissiveValue(50.f), EmissiveValueAtDead(300.f),
+	TimeUpToTransparency(0.25f), EmissiveValueAtDamage(50.f), EmissiveValueAtDead(300.f),
 	//アニメーション関係
 	DefaultAnim(nullptr), AttackAnim(nullptr), AttackTiming(55),
 	//サウンド関係
 	AppearSound(nullptr), DisappearSound(nullptr),
 	//状態遷移関係
-	MoveCount(0), bOnceDoProcessBeenIs(false), TimeFromWaitToStateTransition(1.f),
+	MoveCount(0), bOnceDoProcessBeenIs(false), TimeFromWaitToStateTransition(1.f), bShouldBeenProcessWhenFirstStateTransition(false),
 	//移動関係
 	MoveTime(1.f), TraveledDistance(0.f), CurrentLocation(FVector(0.f, 0.f, 0.f)), GoalLocations(), MovingTimesCount(0), GoalLocation_World(FVector(0.f, 0.f, 0.f)), bHasEndedMoving(false),
 	Direction(FVector(0.f, 0.f, 0.f)), TotalDistance(0.f), Amplitude(40.f), Frequency(1.f),
@@ -123,14 +123,11 @@ bool AEnemys::Transparentize_Dead()
 //発光させる
 void AEnemys::ChangeEmissiveValue()
 {
-	//発光の値の計算
-	/*EmissiveValue = MaxEmissiveValue - MaxEmissiveValue * (Status.HP / Status.MaxHP);*/
-
 	if (DynamicMaterial_Body && DynamicMaterial_Eye) // nullチェック
 	{
 		//発光の値をセットする
-		DynamicMaterial_Body->SetScalarParameterValue(FName("Emissive"), MaxEmissiveValue);
-		DynamicMaterial_Eye->SetScalarParameterValue(FName("Emissive"), MaxEmissiveValue);
+		DynamicMaterial_Body->SetScalarParameterValue(FName("Emissive"), EmissiveValueAtDamage);
+		DynamicMaterial_Eye->SetScalarParameterValue(FName("Emissive"), EmissiveValueAtDamage);
 	}
 }
 
