@@ -52,10 +52,12 @@ protected:
 	//敵の色
 	enum class EEnemyColor : uint8
 	{
-		White = 0,
-		Green = 1,
-		Red = 2,
-		Blue = 3,
+		White = 0,						//白
+		Green = 1,						//緑
+		Red = 2,						//赤
+		Blue = 3,						//青
+		ColorTypeCount UMETA(Hidden),	//色の種類の数
+		BossColor,						//ボスの色
 	};
 
 	//☆関数
@@ -122,6 +124,7 @@ protected:
 	int				MoveCount;											// 敵の行動制御用のカウント
 	bool			bOnceDoProcessBeenIs;								// 一度だけ行う処理をしたか
 	float			TimeFromWaitToStateTransition;						// 待機から状態遷移するまでの時間
+	bool			bShouldBeenProcessWhenFirstStateTransition;			// 状態遷移時にのみ行う処理を行ったか判定
 
 	//☆関数
 	virtual void	Think() PURE_VIRTUAL(AEnemys::Think, );				// エネミーの状態判断

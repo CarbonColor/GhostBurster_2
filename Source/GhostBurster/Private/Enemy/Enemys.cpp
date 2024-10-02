@@ -25,7 +25,7 @@ AEnemys::AEnemys()
 	//ƒTƒEƒ“ƒhŠÖŒW
 	AppearSound(nullptr), DisappearSound(nullptr),
 	//ó‘Ô‘JˆÚŠÖŒW
-	MoveCount(0), bOnceDoProcessBeenIs(false), TimeFromWaitToStateTransition(1.f),
+	MoveCount(0), bOnceDoProcessBeenIs(false), TimeFromWaitToStateTransition(1.f), bShouldBeenProcessWhenFirstStateTransition(false),
 	//ˆÚ“®ŠÖŒW
 	MoveTime(1.f), TraveledDistance(0.f), CurrentLocation(FVector(0.f, 0.f, 0.f)), GoalLocations(), MovingTimesCount(0), GoalLocation_World(FVector(0.f, 0.f, 0.f)), bHasEndedMoving(false),
 	Direction(FVector(0.f, 0.f, 0.f)), TotalDistance(0.f), Amplitude(40.f), Frequency(1.f),
