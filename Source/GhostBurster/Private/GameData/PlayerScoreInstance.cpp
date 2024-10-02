@@ -20,7 +20,7 @@ void UPlayerScoreInstance::AllDataResetFunction()
 	EndTime = 0;
 	Minute = 0;
 	Second = 0;
-	PlayerItem = 3;
+	PlayerItem = 4;
 }
 
 // ------------------------------------------------------------------------------------

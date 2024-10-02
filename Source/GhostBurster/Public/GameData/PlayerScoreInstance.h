@@ -21,12 +21,12 @@ private:
 	//ダメージのスコア
 	const int32 DamageScore = -100;
 	//タイムのスコア
-	const int32 DefaultClearTime = 0;
+	const int32 DefaultClearTime = 150;
 	const int32 TimeMaxScore = 10000;
-	const int32 TimeDecreaseScore = 80;
-	const int32 DecreasePer = 45;
+	const int32 TimeDecreaseScore = 1000;
+	const int32 DecreasePer = 30;
 	//アイテムのスコア
-	const int32 ItemScore = 2000;
+	const int32 ItemScore = 3000;
 	// ------------------------------------------------------------------------------------
 
 	// プレイヤーのデフォルトスコア
@@ -74,7 +74,7 @@ public:
 
 	//グローブデバイス用のCOMポート番号
 	UPROPERTY(BlueprintReadOnly, Category = "DeviceData")
-		int32 DevicePortNumber;
+		int32 DevicePortNumber = 0;
 	//指の曲げ具合のボーダー
 	UPROPERTY(BlueprintReadOnly, Category = "DeviceData")
 		TArray<int32> FingerBorder;

@@ -173,29 +173,22 @@ void AVRPlayerCharacter::BeginPlay()
     // ------------------------------------------------------------------------------------
 
     // ライトバッテリーの秒数設定　※タイトルの時は緩くする
-    BatteryTime = 15;
+    BatteryTime = 20;
     if (LevelName == "Title")
     {
         BatteryTime *= 2;
-        for (int i = 0; i < 2; ++i)
-        {
-            ScoreInstance->AddPlayerItem();
-        }
     }
     // バッテリー秒数の増加率設定
-    AddBatteryTime = 3;
+    AddBatteryTime = 10;
     // 最大値をセット
     MaxBattery = 60 * BatteryTime;
     // ライトの攻撃力設定
     LightAttack = 10;
     // ライトの攻撃力増加率の設定
-    AddLightAttack = 1;
+    AddLightAttack = 6;
 
     // アイテムの攻撃力の設定
-    ItemAttack = 60 * LightAttack * 3;
-
-    //プレイヤーUIの透明度
-    float WidgetAlpha = 0.5f;
+    ItemAttack = 60 * LightAttack * 2.5f;
 
     // ------------------------------------------------------------------------------------
     // 変更不可能な初期値設定
@@ -228,8 +221,7 @@ void AVRPlayerCharacter::BeginPlay()
 
     // Widgetの表示
     PlayerStatusWidgetComponent->InitWidget();
-    UUserWidget* PlayerWidget = PlayerStatusWidgetComponent->GetUserWidgetObject();
-    PlayerWidget->SetRenderOpacity(WidgetAlpha);
+    PlayerWidget = PlayerStatusWidgetComponent->GetUserWidgetObject();
     BatteryUI = Cast<UProgressBar>(PlayerWidget->GetWidgetFromName(TEXT("LightBattery")));
     BatteryUI->SetFillColorAndOpacity(LightColor_UI);
     ScoreUI = Cast<UTextBlock>(PlayerWidget->GetWidgetFromName(TEXT("Score")));
@@ -249,6 +241,8 @@ void AVRPlayerCharacter::BeginPlay()
     {
         TitleEvent = Cast<ATitleEventManager>(UGameplayStatics::GetActorOfClass(GetWorld(), ATitleEventManager::StaticClass()));
     }
+
+    bIsGameEnd = false;
 }
 
 // Called every frame
@@ -348,6 +342,8 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
     // バッテリー操作
     if (bCanToggleLight == false)    //ライトがつけられないとき
     {
+        //ライトはオフにする
+        Flashlight->SetVisibility(false);
         //バッテリーの回復
         Battery += MaxBattery / (60 * 1.5f);
         //UIバーの色を灰色にする
@@ -435,7 +431,10 @@ void AVRPlayerCharacter::ToggleFlashlight_On(const FInputActionValue& value)
             return;
         }
     }
-
+    if (bIsGameEnd)
+    {
+        return;
+    }
     Flashlight->SetVisibility(true);
     UGameplayStatics::PlaySoundAtLocation(this, LightSwitchSound, GetActorLocation());
     LightCollision->SetCollisionProfileName(TEXT("BlockAllDynamic"));
@@ -449,7 +448,10 @@ void AVRPlayerCharacter::ToggleFlashlight_Off(const FInputActionValue& value)
             return;
         }
     }
-
+    if (bIsGameEnd)
+    {
+        return;
+    }
     Flashlight->SetVisibility(false);
     UGameplayStatics::PlaySoundAtLocation(this, LightSwitchSound, GetActorLocation());
     LightCollision->SetCollisionProfileName(TEXT("NoCollision"));
@@ -464,6 +466,10 @@ void AVRPlayerCharacter::ChangeColorFlashlight(const FInputActionValue& value)
         {
             return;
         }
+    }
+    if (bIsGameEnd)
+    {
+        return;
     }
 
     bool bIsPressed = value.Get<bool>();
@@ -574,7 +580,7 @@ void AVRPlayerCharacter::CheckUsedItem(const TArray<int32> value)
 //アイテム使用メソッド
 void AVRPlayerCharacter::UseItem_Attack()
 {
-    if (bCanUseItem == false || ScoreInstance->GetPlayerItemCount() <= 0)
+    if (bCanUseItem == false || ScoreInstance->GetPlayerItemCount() <= 0 || bIsGameEnd)
     {
         return;
     }
@@ -678,7 +684,7 @@ void AVRPlayerCharacter::AttackItemFunction()
 
 void AVRPlayerCharacter::UseItem_Buff()
 {
-    if (bCanUseItem == false || ScoreInstance->GetPlayerItemCount() <= 0)
+    if (bCanUseItem == false || ScoreInstance->GetPlayerItemCount() <= 0 || bIsGameEnd)
     {
         return;
     }
@@ -716,6 +722,10 @@ void AVRPlayerCharacter::UseItem_Buff()
     LightAttack += AddLightAttack;
     //最大値の再設定
     MaxBattery = 60 * BatteryTime;
+    //バッテリーを全回復
+    Battery = MaxBattery;
+    //UIの更新
+    UpdateBatteryUI();
 
     //タイトル画面での処理
     if (LevelName == "Title")
@@ -1062,4 +1072,11 @@ void AVRPlayerCharacter::ChangeScore_Step()
     {
         GetWorld()->GetTimerManager().ClearTimer(ScoreChangeHandle);
     }
+}
+
+void AVRPlayerCharacter::GameEndSet()
+{
+    bIsGameEnd = true;
+    Flashlight->SetVisibility(false);
+    PlayerStatusWidgetComponent->SetHiddenInGame(true);
 }
