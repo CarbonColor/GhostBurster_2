@@ -141,12 +141,12 @@ void AGreenEnemy::Think()
 	EState NowState = this->State;
 	switch (NowState)
 	{
-	case EState::Wait:	//待機
+	case EState::Wait:		//待機
 		if (MoveCount >= TimeFromWaitToStateTransition * Gamefps) { NowState = EState::Attack; }	// 攻撃へ
 		if (Status.HP <= 0) { NowState = EState::Die; }												// 死亡へ
 		break;
 
-	case EState::Move:	//移動
+	case EState::Move:		//移動
 		if (this->bHasEndedMoving) { NowState = EState::Wait; }	// 待機へ
 		if (Status.HP <= 0) { NowState = EState::Die; }			// 死亡へ
 		break;
@@ -169,10 +169,10 @@ void AGreenEnemy::ActProcess()
 {
 	switch (this->State)
 	{
-	case EState::Wait:	//待機		
+	case EState::Wait:		//待機		
 		break;
 
-	case EState::Move:	//移動
+	case EState::Move:		//移動
 		//状態Move遷移時にのみ行う処理
 		if (this->bOnceDoProcessBeenIs == false)
 		{
@@ -325,7 +325,7 @@ bool AGreenEnemy::Attack()
 
 			//プレイヤーへダメージを与える
 			//プレイヤーの情報取得
-			AVRPlayerCharacter* Player = Cast<AVRPlayerCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
+			TObjectPtr<AVRPlayerCharacter> Player = Cast<AVRPlayerCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
 			if (Player)
 			{
 				Player->RecievePlayerDamage();

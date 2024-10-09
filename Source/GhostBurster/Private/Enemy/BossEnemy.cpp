@@ -3,6 +3,11 @@
 
 #include "Enemy/BossEnemy.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Player/VRPlayerCharacter.h"
+#include "Enemy/NormalEnemy.h"
+#include "Enemy/GreenEnemy.h"
+#include "Enemy/RedEnemy.h"
+#include "Enemy/BlueEnemy.h"
 
 ABossEnemy::ABossEnemy()
 	:
@@ -53,6 +58,34 @@ ABossEnemy::ABossEnemy()
 			this->GhostMeshComponent->SetupAttachment(RootComponent);
 			//スケルタルメッシュのコリジョンを無くす
 			this->GhostMeshComponent->SetCollisionProfileName("NoCollision");
+
+			//☆マテリアル--------------------------------------------------------------------------------------------------------
+			//体のマテリアルをロード
+			TObjectPtr<UMaterial> BodyMaterial = LoadObject<UMaterial>(nullptr, TEXT("/Game/_TeamFolder/Enemy/M_Boss"));
+			if (BodyMaterial) // nullチェック
+			{
+				//ダイナミックマテリアルインスタンスを作成
+				this->DynamicMaterial_Body = UMaterialInstanceDynamic::Create(BodyMaterial, this);
+
+				//GhostMeshにダイナミックマテリアルを設定
+				this->GhostMeshComponent->SetMaterial(0, DynamicMaterial_Body);
+
+				//初期オパシティ値を設定
+				this->DynamicMaterial_Body->SetScalarParameterValue(FName("Opacity"), this->OpacityValue_Body);
+			}
+			//目のマテリアルをロード
+			TObjectPtr<UMaterial> EyeMaterial = LoadObject<UMaterial>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Ghost/M_Ghost_Eye"));
+			if (EyeMaterial) // nullチェック
+			{
+				//ダイナミックマテリアルインスタンスを作成
+				this->DynamicMaterial_Eye = UMaterialInstanceDynamic::Create(EyeMaterial, this);
+
+				//GhostMeshにダイナミックマテリアルを設定
+				this->GhostMeshComponent->SetMaterial(1, DynamicMaterial_Eye);
+
+				//初期オパシティ値を設定
+				this->DynamicMaterial_Eye->SetScalarParameterValue(FName("Opacity"), this->OpacityValue_Eye);
+			}
 		}
 
 		//☆コリジョン-----------------------------------------------------------------------------------------------------------------
@@ -70,7 +103,7 @@ ABossEnemy::ABossEnemy()
 	//☆ボス敵の設定-----------------------------------------------------------------------------------------------
 	this->Status.MaxHP = 300;
 	this->Status.HP = Status.MaxHP;
-	this->EnemyColor = EEnemyColor::White;
+	this->EnemyColor = EEnemyColor::BossColor;
 }
 
 void ABossEnemy::BeginPlay()
@@ -86,7 +119,9 @@ void ABossEnemy::Tick(float DeltaTime)
 	TickProcess();
 }
 
-//☆追加関数
+//----------------------------------------------------------------------------------------
+//★追加関数の処理★
+//----------------------------------------------------------------------------------------
 //Tickでの処理
 void ABossEnemy::TickProcess()
 {
@@ -268,7 +303,6 @@ void ABossEnemy::ActProcess()
 		/*メモ*/
 		/*ファイル読み込み(ここで移動パターンを決定させる)*/
 		/*ファイルから読み込んだ値をアクターの座標にする*/
-		/*瞬間移動が終わったら、終わったことを示すbool型変数をtrueにする*/
 		//状態:Teleportation遷移時にのみ行う処理
 		if (this->bShouldBeenProcessWhenFirstStateTransition == false)
 		{
@@ -349,30 +383,31 @@ bool ABossEnemy::ChangeColor(const EEnemyColor ChangingColor)
 //透明にする処理
 bool ABossEnemy::Transparentize(const float DeltaTime)
 {
-	//if (DynamicMaterial)
-	//{
-	//	//オパシティの値を変更
-	//	this->OpacityValue -= DeltaTime;
+	if (DynamicMaterial_Body && DynamicMaterial_Eye) // nullチェック
+	{
+		//オパシティの値を計算
+		OpacityValue_Body -= MaxOpacity_Body / TimeUpToTransparency * DeltaTime;	// 体のオパシティの計算
+		OpacityValue_Eye -= MaxOpacity_Eye / TimeUpToTransparency * DeltaTime;		// 目のオパシティの計算
 
-	//	//出現が終わったら処理を終了する
-	//	if (this->OpacityValue <= 0.f)
-	//	{
-	//		//オパシティの値が0を下回らないようにする
-	//		this->OpacityValue = 0.f;
+		//出現が終わったら処理を終了する
+		if (OpacityValue_Body <= 0.f && OpacityValue_Eye <= 0.f)
+		{
+			//オパシティの値が0を下回らないようにする
+			OpacityValue_Body = 0.f;
+			OpacityValue_Eye = 0.f;
 
-	//		//オパシティを設定
-	//		this->DynamicMaterial->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
+			//オパシティを設定
+			DynamicMaterial_Body->SetScalarParameterValue(FName("Opacity"), this->OpacityValue_Body);
+			DynamicMaterial_Eye->SetScalarParameterValue(FName("Opacity"), this->OpacityValue_Eye);
 
-	//		//当たり判定を消す
-	//		GhostCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			//この関数が呼ばれないようにする
+			return true;
+		}
 
-	//		//この関数が呼ばれないようにする
-	//		return true;
-	//	}
-
-	//	//オパシティを設定
-	//	this->DynamicMaterial->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
-	//}
+		//オパシティを設定
+		DynamicMaterial_Body->SetScalarParameterValue(FName("Opacity"), this->OpacityValue_Body);
+		DynamicMaterial_Eye->SetScalarParameterValue(FName("Opacity"), this->OpacityValue_Eye);
+	}
 
 	//もう一度この関数を呼ぶ
 	return false;
@@ -405,7 +440,7 @@ bool ABossEnemy::ChangeDecidedColor(const EEnemyColor ChangingColor)
 	}
 
 	////色を変更
-	//DynamicMaterial->SetVectorParameterValue(FName("BaseColor"), ColorValue);
+	DynamicMaterial_Body->SetVectorParameterValue(FName("BaseColor"), ColorValue);
 
 	//この関数を終えるまでのカウント
 	FinishCount++;
@@ -426,30 +461,34 @@ bool ABossEnemy::ChangeDecidedColor(const EEnemyColor ChangingColor)
 //表示させる
 bool ABossEnemy::Show(const float DeltaTime)
 {
-	//if (DynamicMaterial)
-	//{
-	//	//オパシティの値を変更
-	//	this->OpacityValue += DeltaTime;
+	if (DynamicMaterial_Body && DynamicMaterial_Eye)
+	{
+		//オパシティの値を計算
+		OpacityValue_Body += MaxOpacity_Body / TimeSpentInAppear * DeltaTime;	// 体のオパシティの計算
+		OpacityValue_Eye += MaxOpacity_Eye / TimeSpentInAppear * DeltaTime;		// 目のオパシティの計算
 
-	//	//出現が終わったら処理を終了する
-	//	if (this->OpacityValue >= 1.f)
-	//	{
-	//		//オパシティの値が1を超えないようにする
-	//		this->OpacityValue = 1.f;
+		//出現が終わったら処理を終了する
+		if (OpacityValue_Body >= MaxOpacity_Body && OpacityValue_Eye >= MaxOpacity_Eye)
+		{
+			//オパシティの値が1を超えないようにする
+			OpacityValue_Body = MaxOpacity_Body;
+			OpacityValue_Eye = MaxOpacity_Eye;
 
-	//		//オパシティを設定
-	//		this->DynamicMaterial->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
+			//オパシティを設定
+			DynamicMaterial_Body->SetScalarParameterValue(FName("Opacity"), this->OpacityValue_Body);
+			DynamicMaterial_Eye->SetScalarParameterValue(FName("Opacity"), this->OpacityValue_Eye);
 
-	//		//当たり判定を付ける
-	//		GhostCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+			//当たり判定を付ける
+			GhostCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 
-	//		//この関数が呼ばれないようにする
-	//		return true;
-	//	}
+			//状態遷移可能にする
+			return true;
+		}
 
-	//	//オパシティを設定
-	//	this->DynamicMaterial->SetScalarParameterValue(FName("Opacity"), this->OpacityValue);
-	//}
+		//オパシティを設定
+		DynamicMaterial_Body->SetScalarParameterValue(FName("Opacity"), this->OpacityValue_Body);
+		DynamicMaterial_Eye->SetScalarParameterValue(FName("Opacity"), this->OpacityValue_Eye);
+	}
 
 	//もう一度この関数を呼ぶ
 	return false;
@@ -560,16 +599,23 @@ void ABossEnemy::ProcessJustForFirst_Attack()
 //攻撃処理
 bool ABossEnemy::Attack()
 {
-	////攻撃判定
-	//if (MoveCount == AttackUpToTime * FMath::RoundToInt(Gamefps))
-	//{
-	//	UKismetSystemLibrary::PrintString(this, TEXT("BossEnemy Attack!"), true, true, FColor::Yellow, 2.f, TEXT("None"));
+	//攻撃判定
+	if (MoveCount == 1 * FMath::RoundToInt(Gamefps))
+	{
+		UKismetSystemLibrary::PrintString(this, TEXT("BossEnemy Attack!"), true, true, FColor::Yellow, 2.f, TEXT("None"));
 
-	//	//プレイヤーへダメージを与える
+		//プレイヤーへダメージを与える
+		//プレイヤーへダメージを与える
+		//プレイヤーの情報取得
+		TObjectPtr<AVRPlayerCharacter> Player = Cast<AVRPlayerCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
+		if (Player)
+		{
+			Player->RecievePlayerDamage();
+		}
 
-	//	//攻撃終了(条件式で制御し、アニメーションが終わったらにするかも)
-	//	return true;
-	//}
+		//攻撃終了(条件式で制御し、アニメーションが終わったらにするかも)
+		return true;
+	}
 
 	//もう一度この関数を呼ぶ
 	return false;
@@ -735,24 +781,24 @@ void ABossEnemy::CreateEnemies(const int CallingEnemyNum, const TArray<FVector>&
 			TObjectPtr<AEnemys> CallingEnemy = nullptr;
 
 			////決めた色の敵を生成する
-			//switch (EnemyColors[i])
-			//{
-			//case EEnemyColor::White:	//白
-			//	CallingEnemy = GetWorld()->SpawnActor<AEnemys>(ANormalEnemy::StaticClass(), FVector(0.f, 0.f, 0.f), FRotator(0.f, 0.f, 0.f));
-			//	break;
+			switch (EnemyColors[i])
+			{
+			case EEnemyColor::White:	//白
+				CallingEnemy = GetWorld()->SpawnActor<AEnemys>(ANormalEnemy::StaticClass(), FVector(0.f, 0.f, 0.f), FRotator(0.f, 0.f, 0.f));
+				break;
 
-			//case EEnemyColor::Green:	//緑
-			//	CallingEnemy = GetWorld()->SpawnActor<AEnemys>(AGreenEnemy::StaticClass(), FVector(0.f, 0.f, 0.f), FRotator(0.f, 0.f, 0.f));
-			//	break;
+			case EEnemyColor::Green:	//緑
+				CallingEnemy = GetWorld()->SpawnActor<AEnemys>(AGreenEnemy::StaticClass(), FVector(0.f, 0.f, 0.f), FRotator(0.f, 0.f, 0.f));
+				break;
 
-			//case EEnemyColor::Red:		//赤
-			//	CallingEnemy = GetWorld()->SpawnActor<AEnemys>(ARedEnemy::StaticClass(), FVector(0.f, 0.f, 0.f), FRotator(0.f, 0.f, 0.f));
-			//	break;
+			case EEnemyColor::Red:		//赤
+				CallingEnemy = GetWorld()->SpawnActor<AEnemys>(ARedEnemy::StaticClass(), FVector(0.f, 0.f, 0.f), FRotator(0.f, 0.f, 0.f));
+				break;
 
-			//case EEnemyColor::Blue:		//青
-			//	CallingEnemy = GetWorld()->SpawnActor<AEnemys>(ABlueEnemy::StaticClass(), FVector(0.f, 0.f, 0.f), FRotator(0.f, 0.f, 0.f));
-			//	break;
-			//}
+			case EEnemyColor::Blue:		//青
+				CallingEnemy = GetWorld()->SpawnActor<AEnemys>(ABlueEnemy::StaticClass(), FVector(0.f, 0.f, 0.f), FRotator(0.f, 0.f, 0.f));
+				break;
+			}
 
 			//ボス敵を親とし、ボス敵からの相対位置で出現位置を設定する
 			if (CallingEnemy) // 敵インスタンスが生成されていたら
