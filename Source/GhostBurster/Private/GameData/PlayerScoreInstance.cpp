@@ -134,7 +134,11 @@ void UPlayerScoreInstance::ScoringFunction()
 	//最速クリアタイム分を減らす
 	ClearTime -= DefaultClearTime;
 	//減点倍率を決める
-	int32 Multiple = ClearTime / DecreasePer;
+	int32 Multiple = 0;
+	if (ClearTime > 0)
+	{
+		Multiple = (ClearTime / DecreasePer) + 1;
+	}
 	//スコア計算をする
 	PlayerTimeScore = TimeMaxScore - (TimeDecreaseScore * Multiple);
 
