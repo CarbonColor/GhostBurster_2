@@ -325,7 +325,7 @@ bool ARedEnemy::Attack()
 
 			//プレイヤーへダメージを与える
 			//プレイヤーの情報取得
-			AVRPlayerCharacter* Player = Cast<AVRPlayerCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
+			TObjectPtr<AVRPlayerCharacter> Player = Cast<AVRPlayerCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
 			if (Player)
 			{
 				Player->RecievePlayerDamage();

@@ -58,6 +58,9 @@ class GHOSTBURSTER_API ABossEnemy : public AEnemys
 	//状態に基づいた動きをする
 	virtual void ActProcess() override;
 
+	//1秒カウントしたらtrueを返す
+	bool OneSecondsPassedIs();
+
 	//待機関係----------------------------------------------------------------------------------------------
 	//☆変数
 	EEnemyColor		ChangingBossColor;										// 次に変化する色
@@ -66,6 +69,7 @@ class GHOSTBURSTER_API ABossEnemy : public AEnemys
 	bool			bHasFinishedChangeDecidedColor;							// 色が変化したか
 	FLinearColor	ColorValue;												// 色の値
 	bool			bHasFinishedShow;										// 表示が終わったか
+	bool			bIsBattleStarted;										// 戦闘が開始したか
 
 	//☆関数
 	void			ProcessJustForFirst_Wait();								// 状態：Wait遷移時にのみ行う処理
@@ -73,6 +77,7 @@ class GHOSTBURSTER_API ABossEnemy : public AEnemys
 	bool			Transparentize(const float DeltaTime);					// 透明にする処理
 	bool			ChangeDecidedColor(const EEnemyColor ChangingColor);	// 決めた色に変更する
 	bool			Show(const float DeltaTime);							// 表示する処理
+	void			BattleStart();											// ボスの戦闘行動を開始させる
 
 	//チャージ関係-------------------------------------------------------------------------------------------
 	//☆変数

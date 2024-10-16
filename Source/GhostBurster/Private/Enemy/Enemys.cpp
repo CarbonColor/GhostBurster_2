@@ -382,3 +382,9 @@ void AEnemys::SetInitialData(const int HP, const float SetTime, const TArray<FVe
 	SetGoalLocations(SetLocations);
 	SetMoveTime(MoveTimeValue);
 }
+
+//“G‚ÌFî•ñ‚ðŽæ“¾‚·‚é
+int AEnemys::GetEnemyColor()
+{
+	return static_cast<int>(EnemyColor);
+}
