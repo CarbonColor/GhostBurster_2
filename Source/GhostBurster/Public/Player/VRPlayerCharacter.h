@@ -21,6 +21,7 @@
 #include "NiagaraSystem.h"
 #include "Camera/CameraComponent.h"
 #include "Blueprint/UserWidget.h"
+#include "EnemyDirectionWIdget.h"
 #include "Interface/DamageInterface.h"
 #include "VRPlayerCharacter.generated.h"
 
@@ -137,6 +138,13 @@ public:
 	UPROPERTY(EditAnywhere, Category = "UI")
 		TObjectPtr<UWidgetComponent> FadeOutWidgetComponent;
 
+	//画面外の敵を表示するUI
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
+		TSubclassOf<UUserWidget> EnemyDirectionWidgetClass;
+
+	//画面外UIを更新する関数
+	UFUNCTION(Category = "UI")
+	void UpdateEnemyIndicators();
 
 	//ライトのコリジョンとの当たり判定
 	UFUNCTION()
@@ -160,6 +168,10 @@ public:
 	//スコアのUIを更新するメソッド
 	UFUNCTION()
 		void UpdateScoreUI();
+	//ライトレベルのUIを更新するメソッド
+		UFUNCTION()
+		void UpdateLevelUI();
+
 	//余ったアイテムをスコアに変換するメソッド（タイトル用）
 	UFUNCTION()
 		void ChangeScore();
@@ -280,6 +292,22 @@ private:
 	//ウィジェット
 	TObjectPtr<UUserWidget> PlayerWidget;
 
+	//左側の敵表示用リスト（画面外UI）
+	TArray<UEnemyDirectionWIdget*> LeftIndicators;
+	//右側の敵表示用リスト（画面外UI）
+	TArray<UEnemyDirectionWIdget*> RightIndicators;
+	//インジケーターをクリアするメソッド
+	UFUNCTION()
+	void ClearAllIndicators();
+	//新しいインジケーターを表示するメソッド
+	UFUNCTION()
+	void AddIndicator(bool bIsLeftSide, int32 EnemyColor);
+	//インジケーターの位置調整をするメソッド
+	UFUNCTION()
+	void PositionIndicator(UEnemyDirectionWIdget* IndicatorWidget, bool bIsLeftSide, int32 PositionIndex);
+
+	//ライトレベル
+	int32 LightLevel;
 	//ライトバッテリー秒数
 	int32 BatteryTime;
 	//バッテリー秒数の増加率
@@ -295,6 +323,8 @@ private:
 	//ライトバッテリーのUI
 	UPROPERTY()
 		TObjectPtr<UProgressBar> BatteryUI;
+	UPROPERTY()
+	TObjectPtr<UTextBlock> LevelUI;
 
 	//スコアのテキストUI
 	UPROPERTY()

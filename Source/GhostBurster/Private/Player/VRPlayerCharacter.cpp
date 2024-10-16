@@ -202,6 +202,8 @@ void AVRPlayerCharacter::BeginPlay()
     Battery = MaxBattery;
     //ステージ番号を初期化する
     StageNumber = 1;
+    //ライトレベルを初期化する
+    LightLevel = 1;
     //ライトのON/OFF切り替えを可能の状態にする
     bCanToggleLight = true;
     //アイテムの使用状態を可能にする
@@ -226,10 +228,12 @@ void AVRPlayerCharacter::BeginPlay()
     BatteryUI->SetFillColorAndOpacity(LightColor_UI);
     ScoreUI = Cast<UTextBlock>(PlayerWidget->GetWidgetFromName(TEXT("Score")));
     ItemUI = Cast<UTextBlock>(PlayerWidget->GetWidgetFromName(TEXT("ItemNum")));
+    LevelUI = Cast<UTextBlock>(PlayerWidget->GetWidgetFromName(TEXT("LightLevel")));
     // Widgetの更新
     UpdateBatteryUI();
     UpdateItemUI();
     UpdateScoreUI();
+    UpdateLevelUI();
 
     //ナイアガラのセット
     if(BuffEffectNiagara)
@@ -396,6 +400,9 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
             LightCollision->SetCollisionProfileName(TEXT("NoCollision"));
         }
     }
+
+    ////画面外の敵を表示するUIの更新
+    //UpdateEnemyIndicators();
 }
 
 // Called to bind functionality to input
@@ -716,6 +723,8 @@ void AVRPlayerCharacter::UseItem_Buff()
         NiagaraComponent->Activate(true); // 再生を開始
     }
 
+    //バッテリーのレベルを上げる
+    LightLevel++;
     //ライトのバッテリー時間を増加
     BatteryTime += AddBatteryTime;
     //ライトの攻撃力を増加
@@ -725,6 +734,7 @@ void AVRPlayerCharacter::UseItem_Buff()
     //バッテリーを全回復
     Battery = MaxBattery;
     //UIの更新
+    UpdateLevelUI();
     UpdateBatteryUI();
 
     //タイトル画面での処理
@@ -762,7 +772,6 @@ void AVRPlayerCharacter::ItemCoolTimeFunction()
     //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("You Can Use Item"));
 
 }
-
 
 //当たり判定のメソッド
 void AVRPlayerCharacter::OnConeBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -969,8 +978,6 @@ void AVRPlayerCharacter::StopHapticEffect()
     }
 }
 
-
-
 //ステージ番号を進めるメソッド
 void AVRPlayerCharacter::NextStage()
 {
@@ -1018,6 +1025,98 @@ void AVRPlayerCharacter::UpdateScoreUI()
     {
         UE_LOG(PlayerScript, Warning, TEXT("Score UI is null !"));
     }
+}
+//ウィジェットのライトレベルを更新するメソッド
+void AVRPlayerCharacter::UpdateLevelUI()
+{
+    if (LevelUI)
+    {
+        LevelUI->SetText(FText::AsNumber(LightLevel));
+    }
+    else
+    {
+        UE_LOG(PlayerScript, Warning, TEXT("Level UI is null !"));
+    }
+}
+
+//画面外の敵を表示するUIを更新するメソッド
+void AVRPlayerCharacter::UpdateEnemyIndicators()
+{
+    ////既存のインジケーターをクリア
+    //ClearAllIndicators();
+
+    ////全ての敵を取得
+    //TArray<AActor*> Enemies;
+    //UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEnemys::StaticClass(), Enemies);
+
+    //for (AActor* EnemyActor : Enemies)
+    //{
+    //    AEnemys* Enemy = Cast<AEnemys>(EnemyActor);
+    //    if (Enemy && !Enemy->WasRecentlyRendered(0.1f))
+    //    {
+    //        FVector DirectionToEnemy = Enemy->GetActorLocation() - GetActorLocation();
+    //        float DotProduct = FVector::DotProduct(GetActorForwardVector(), DirectionToEnemy.GetSafeNormal());
+
+    //        bool bIsLeftSide = FVector::DotProduct(GetActorRightVector(), DirectionToEnemy.GetSafeNormal()) < 0;
+
+    //        //敵が視界外かどうかを確認し適切なUIを表示
+    //        if (DotProduct < 0)  //敵が背後にいる場合のみ
+    //        {
+    //            AddIndicator(bIsLeftSide, Enemy->GetEnemyColor());
+    //        }
+    //    }
+    //}
+
+}
+//既存のインジケーターをクリアするメソッド
+void AVRPlayerCharacter::ClearAllIndicators()
+{
+    //for (UEnemyDirectionWIdget* Widget : LeftIndicators)
+    //{
+    //    Widget->RemoveFromParent();
+    //}
+    //LeftIndicators.Empty();
+    //for (UEnemyDirectionWIdget* Widget : RightIndicators)
+    //{
+    //    Widget->RemoveFromParent();
+    //}
+    //RightIndicators.Empty();
+}
+//インジケーターを追加するメソッド
+void AVRPlayerCharacter::AddIndicator(bool bIsLeftSide, int32 EnemyColor)
+{
+    //if (EnemyDirectionWidgetClass)
+    //{
+    //    UEnemyDirectionWIdget* NewWidget = CreateWidget<UEnemyDirectionWIdget>(GetWorld(), EnemyDirectionWidgetClass);
+    //    if (NewWidget)
+    //    {
+    //        NewWidget->SetEnemyColor(EnemyColor);
+    //        NewWidget->AddToViewport();
+
+    //        if (bIsLeftSide)
+    //        {
+    //            LeftIndicators.Add(NewWidget);
+    //            PositionIndicator(NewWidget, true, LeftIndicators.Num() - 1);
+    //        }
+    //        else
+    //        {
+    //            RightIndicators.Add(NewWidget);
+    //            PositionIndicator(NewWidget, false, RightIndicators.Num() - 1);
+    //        }
+    //    }
+    //}
+}
+//インジケーターの場所を設定するメソッド
+void AVRPlayerCharacter::PositionIndicator(UEnemyDirectionWIdget* IndicatorWidget, bool bIsLeftSide, int32 PositionIndex)
+{
+    //FVector2D ViewportSize;
+    //GEngine->GameViewport->GetViewportSize(ViewportSize);
+
+    //float YPos = (ViewportSize.Y / (bIsLeftSide ? LeftIndicators.Num() : RightIndicators.Num())) * (PositionIndex + 1);
+
+    ////画面の左か右に位置を調整
+    //FVector2D IndicatorPosition = bIsLeftSide ? FVector2D(50.0f, YPos) : FVector2D(ViewportSize.X - 50.0f, YPos);
+    //IndicatorWidget->SetPositionInViewport(IndicatorPosition);
 }
 
 //アイテムを増やすメソッド
