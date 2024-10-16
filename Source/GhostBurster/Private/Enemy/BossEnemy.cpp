@@ -17,6 +17,7 @@ ABossEnemy::ABossEnemy()
 	FinishCount(0.f),
 	//待機関係
 	ChangingBossColor(EEnemyColor::White), bHasEndedWait(false), bHasFinishedTransparentize(false), bHasFinishedChangeDecidedColor(false), ColorValue(FLinearColor(0, 0, 0)), bHasFinishedShow(false),
+	bIsBattleStarted(true),
 	//チャージ関係
 	ChargeTime(0.f), bIsTransitionAttack(false), bIsTransitionStan(false), CountUpToAttackStateTransition(0), TimeUpToAttackStateTransition(1), ChargeCount(0), CountUpToAttack(5), StanValue(0), 
 	MaxStanValue(5 * AssumptionFPS),
@@ -33,6 +34,10 @@ ABossEnemy::ABossEnemy()
 {
 	//Tickを有効にする
 	PrimaryActorTick.bCanEverTick = true;
+
+	//マテリアルのオパシティの値を最大値にしておく
+	this->OpacityValue_Body = 1.f;
+	this->OpacityValue_Eye = 1.f;
 
 	//☆シーンコンポーネント
 	//シーンコンポーネントの作成
@@ -146,7 +151,7 @@ void ABossEnemy::Think()
 	case EBossState::Wait:
 		if (bHasEndedWait)
 		{
-			int StateDecideNumber = FMath::RandRange((int)EBossState::Wait + 1, (int)EBossState::MaxStateCountAtTransitionFromWait - 1); //待機状態以外の、生存時になる状態をランダムで決める
+			int StateDecideNumber = FMath::RandRange((int)EBossState::Wait + 1, (int)EBossState::MaxStateCountAtTransitionFromWait - 1); //待機状態以外の生存時になる状態をランダムで決める
 			//状態遷移
 			switch (StateDecideNumber)
 			{
@@ -233,14 +238,18 @@ void ABossEnemy::ActProcess()
 	{
 	//待機-----------------------------------------------------------------------------------
 	case EBossState::Wait:
-		//状態：Wait遷移時にのみ行う処理
-		if (this->bShouldBeenProcessWhenFirstStateTransition == false)
+		//戦闘が始まっていたら色の変更を行う
+		if (bIsBattleStarted)
 		{
-			ProcessJustForFirst_Wait();
-		}
+			//状態：Wait遷移時にのみ行う処理
+			if (this->bShouldBeenProcessWhenFirstStateTransition == false)
+			{
+				ProcessJustForFirst_Wait();
+			}
 
-		//色の変更処理
-		bHasEndedWait = ChangeColor(ChangingBossColor);
+			//色の変更処理
+			bHasEndedWait = ChangeColor(ChangingBossColor);
+		}
 		break;
 
 	//チャージ-------------------------------------------------------------------------------
@@ -334,7 +343,7 @@ void ABossEnemy::ProcessJustForFirst_Wait()
 	//変更する色を決める
 	do
 	{
-		ChangingBossColor = (EEnemyColor)FMath::RandRange(0, static_cast<int>(EEnemyColor::ColorTypeCount) - 1);
+		ChangingBossColor = (EEnemyColor)FMath::RandRange(1, static_cast<int>(EEnemyColor::ColorTypeCount) - 1);
 	} while (ChangingBossColor == this->EnemyColor);
 
 	//呼ばれる関数を制御する変数をfalseにする
@@ -373,6 +382,8 @@ bool ABossEnemy::ChangeColor(const EEnemyColor ChangingColor)
 	//色の変更処理終了
 	if (bHasFinishedShow == true)
 	{
+		//1秒待ったら状態を変更できるようにする
+
 		return true;
 	}
 
@@ -422,24 +433,20 @@ bool ABossEnemy::ChangeDecidedColor(const EEnemyColor ChangingColor)
 	//どの色に変更するか判別
 	switch (ChangingColor)
 	{
-	case EEnemyColor::White:	//白
-		ColorValue = FLinearColor(1.f, 1.f, 1.f);		// 白い敵と同じ色
-		break;
-
 	case EEnemyColor::Green:	//緑
 		ColorValue = FLinearColor(0.f, 1.f, 0.f);		// 緑の敵と同じ色
 		break;
 
-	case EEnemyColor::Red:	//赤
+	case EEnemyColor::Red:		//赤
 		ColorValue = FLinearColor(1.f, 0.f, 0.f);		// 赤の敵と同じ色
 		break;
 
-	case EEnemyColor::Blue:	//青
+	case EEnemyColor::Blue:		//青
 		ColorValue = FLinearColor(0.f, 0.f, 1.f);		// 青の敵と同じ色
 		break;
 	}
 
-	////色を変更
+	//色を変更
 	DynamicMaterial_Body->SetVectorParameterValue(FName("BaseColor"), ColorValue);
 
 	//この関数を終えるまでのカウント
@@ -492,6 +499,12 @@ bool ABossEnemy::Show(const float DeltaTime)
 
 	//もう一度この関数を呼ぶ
 	return false;
+}
+
+//ボスの戦闘行動を開始させる
+void ABossEnemy::BattleStart()
+{
+	bIsBattleStarted = true;
 }
 
 //☆状態：Chargeの処理------------------------------------------------------------------------------------------- 
@@ -725,7 +738,7 @@ void ABossEnemy::DecideCreateEnemyColor(const int CallingEnemyNum)
 	for (int i = 0; i < CallingEnemyNum; ++i) // 生成する敵の数だけループする
 	{
 		//何色の敵を生成するかランダムで決める
-		CallingEnemyColors.Add(static_cast<EEnemyColor>(FMath::RandRange(0, static_cast<int>(EEnemyColor::ColorTypeCount) - 1)));
+		CallingEnemyColors.Add(static_cast<EEnemyColor>(FMath::RandRange(1, static_cast<int>(EEnemyColor::ColorTypeCount) - 1)));
 	}
 }
 
