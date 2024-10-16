@@ -59,7 +59,7 @@ class GHOSTBURSTER_API ABossEnemy : public AEnemys
 	virtual void ActProcess() override;
 
 	//1秒カウントしたらtrueを返す
-	bool OneSecondsPassedIs();
+	bool bOneSecondsPassedIs();
 
 	//待機関係----------------------------------------------------------------------------------------------
 	//☆変数

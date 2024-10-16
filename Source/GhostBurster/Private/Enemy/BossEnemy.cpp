@@ -301,7 +301,7 @@ void ABossEnemy::ActProcess()
 	//通常敵の討伐後-------------------------------------------------------------------------
 	case EBossState::AfterEnemyExpedition:
 		//通常敵の討伐後状態で行う処理
-		if (MoveCount >= 1 * Gamefps) // Gamefpsにかけている数は敵を生成するまでの秒数
+		if (MoveCount >= 1 * FMath::RoundToInt(Gamefps)) // Gamefpsにかけている数は敵を生成するまでの秒数
 		{
 			AfterEnemyExpeditionProcess();
 		}
@@ -334,6 +334,20 @@ void ABossEnemy::GetPlayerLocationAndRotation(const FVector PlayerLocation, cons
 {
 	PlayerLocation_BossRoom = PlayerLocation;
 	PlayerRotation_Z_BossRoom = PlayerRotation_Z;
+}
+
+//1秒カウントしたらtrueを返す
+bool ABossEnemy::bOneSecondsPassedIs()
+{
+	FinishCount++;
+
+	if (FinishCount >= FMath::RoundToInt(Gamefps) * 1)
+	{
+		FinishCount = 0;
+		return true;
+	}
+
+	return false;
 }
 
 //☆状態：Waitの処理---------------------------------------------------------------------------------------------
@@ -383,8 +397,10 @@ bool ABossEnemy::ChangeColor(const EEnemyColor ChangingColor)
 	if (bHasFinishedShow == true)
 	{
 		//1秒待ったら状態を変更できるようにする
-
-		return true;
+		if (bOneSecondsPassedIs())
+		{
+			return true;
+		}
 	}
 
 	//色の変更処理続行
@@ -548,7 +564,7 @@ void ABossEnemy::ChargeAttack()
 	if (ChargeCount < CountUpToAttack)
 	{
 		//決まった秒数たったら
-		if (MoveCount % (FMath::RoundToInt(Gamefps) * 1) == 0) // マジックナンバーは秒数を表す
+		if (MoveCount % (FMath::RoundToInt(Gamefps) * 1) == 0) // FMath::RoundToInt(Gamefps)に掛けているマジックナンバーは秒数を表す
 		{
 			//瞬間移動し、チャージ回数のカウントを増やす
 			Teleportation_Charge();
