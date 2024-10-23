@@ -87,15 +87,19 @@ protected:
 	TObjectPtr<USkeletalMeshComponent>		GhostMeshComponent;		// スケルタルメッシュコンポーネント
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<USphereComponent>			GhostCollision;			// コリジョン
-	TObjectPtr<UMaterialInstanceDynamic>	DynamicMaterial_Body;	// 体のダイナミックマテリアル
-	TObjectPtr<UMaterialInstanceDynamic>	DynamicMaterial_Eye;	// 目のダイナミックマテリアル
 	FVector									EnemyScale;				// 敵のスケール
 
 	//マテリアル関係---------------------------------------------------------------------------------------------------------------
 	//☆変数
-	float	TimeUpToTransparency;		// 透明になるまでの時間(秒)
-	float	EmissiveValueAtDamage;		// ダメージを受けた時の発光の値
-	float	EmissiveValueAtDead;		// 死亡時の発光の値
+	TObjectPtr<UMaterialInstanceDynamic>	DynamicMaterial_Body;	// 体のダイナミックマテリアル
+	TObjectPtr<UMaterialInstanceDynamic>	DynamicMaterial_Eye;	// 目のダイナミックマテリアル
+	float									OpacityValue_Body;		// 体のオパシティの値
+	float									OpacityValue_Eye;		// 目のオパシティの値
+	float									MaxOpacity_Body;		// 体のオパシティの最大値(0～1の範囲)
+	float									MaxOpacity_Eye;			// 目のオパシティの最大値(0～1の範囲)
+	float									TimeUpToTransparency;	// 透明になるまでの時間(秒)
+	float									EmissiveValueAtDamage;	// ダメージを受けた時の発光の値
+	float									EmissiveValueAtDead;	// 死亡時の発光の値
 
 	//☆関数
 	bool	Transparentize_Dead();		// 死亡時の徐々に透明にする処理
@@ -168,11 +172,7 @@ protected:
 	//出現関係---------------------------------------------------------------------------------------------------------------------
 	//☆変数 
 	bool	bHasEndedAppear;	// 出現が終了したか
-	float	OpacityValue_Body;	// 体のオパシティの値
-	float	OpacityValue_Eye;	// 目のオパシティの値
 	float	TimeSpentInAppear;	// 出現するのにかかる時間(秒)
-	float	MaxOpacity_Body;	// 体のオパシティの最大値(0～1の範囲)
-	float	MaxOpacity_Eye;		// 目のオパシティの最大値(0～1の範囲)
 
 	//☆関数
 	void ProcessJustForFirst_Appear();	// 状態：Appearで最初に一度だけする処理
