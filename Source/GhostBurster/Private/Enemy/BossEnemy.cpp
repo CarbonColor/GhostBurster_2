@@ -15,9 +15,13 @@ ABossEnemy::ABossEnemy()
 	PlayerLocation_BossRoom(FVector(0, 0, 0)),
 	PlayerRotation_Z_BossRoom(0.f),
 	FinishCount(0.f),
+	//マテリアル関係
+	DynamicMaterial_String(nullptr), OpacityValue_String(0.f), MaxOpacity_String(1.f),
+	//アニメーション関係
+	DeadAnim(nullptr), StanAnim(nullptr), SummonAnim(nullptr), WarpAnim(nullptr),
 	//待機関係
 	ChangingBossColor(EEnemyColor::White), bHasEndedWait(false), bHasFinishedTransparentize(false), bHasFinishedChangeDecidedColor(false), ColorValue(FLinearColor(0, 0, 0)), bHasFinishedShow(false),
-	bIsBattleStarted(true),
+	bIsBattleStarted(false),
 	//チャージ関係
 	ChargeTime(0.f), bIsTransitionAttack(false), bIsTransitionStan(false), CountUpToAttackStateTransition(0), TimeUpToAttackStateTransition(1), ChargeCount(0), CountUpToAttack(5), StanValue(0), 
 	MaxStanValue(5 * AssumptionFPS),
@@ -35,6 +39,9 @@ ABossEnemy::ABossEnemy()
 	//Tickを有効にする
 	PrimaryActorTick.bCanEverTick = true;
 
+	//スケールを設定
+	EnemyScale = FVector(20.f, 20.f, 20.f);
+
 	//マテリアルのオパシティの値を最大値にしておく
 	this->OpacityValue_Body = 1.f;
 	this->OpacityValue_Eye = 1.f;
@@ -46,12 +53,14 @@ ABossEnemy::ABossEnemy()
 	{
 		//シーンコンポーネントをルートコンポーネントに設定
 		RootComponent = this->DefaultSceneRoot;
+		//スケールをコンポーネントに適応
+		DefaultSceneRoot->SetWorldScale3D(EnemyScale);
 
 		//☆スケルタルメッシュコンポーネント------------------------------------------------------------------------------------------
 		//スケルタルメッシュコンポーネントの作成
 		this->GhostMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Ghost"));
 		//スケルタルメッシュをロード
-		TObjectPtr<USkeletalMesh> GhostMesh = LoadObject<USkeletalMesh>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Ghost/SKM_TestGhost"));
+		TObjectPtr<USkeletalMesh> GhostMesh = LoadObject<USkeletalMesh>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Boss/ghost_boss_modeling"));
 		if (this->GhostMeshComponent)
 		{
 			if (GhostMesh)
@@ -91,6 +100,19 @@ ABossEnemy::ABossEnemy()
 				//初期オパシティ値を設定
 				this->DynamicMaterial_Eye->SetScalarParameterValue(FName("Opacity"), this->OpacityValue_Eye);
 			}
+			//紐のマテリアルをロード
+			TObjectPtr<UMaterial> StringMaterial = LoadObject<UMaterial>(nullptr, TEXT("/Game/_TeamFolder/Enemy/M_StringColor"));
+			if (StringMaterial)
+			{
+				//ダイナミックマテリアルインスタンスを作成
+				DynamicMaterial_String = UMaterialInstanceDynamic::Create(StringMaterial, this);
+
+				//GhostMeshにダイナミックマテリアルを設定
+				this->GhostMeshComponent->SetMaterial(2, DynamicMaterial_String);
+
+				//初期オパシティ値を設定
+				DynamicMaterial_String->SetScalarParameterValue(FName("Opacity"), OpacityValue_String);
+			}
 		}
 
 		//☆コリジョン-----------------------------------------------------------------------------------------------------------------
@@ -102,8 +124,20 @@ ABossEnemy::ABossEnemy()
 			GhostCollision->SetupAttachment(RootComponent);
 			//GhostCollisionのコリジョンプリセットをOverlapAllDynamicにする
 			GhostCollision->SetCollisionProfileName("OverlapAllDynamic");
+			//GhostCollisionの相対座標を設定
+			GhostCollision->SetRelativeLocation(FVector(0.f, 0.f, 4.5f));
+			//GhostCollisionの半径を設定
+			GhostCollision->SetSphereRadius(5.f);
 		}
 	}
+
+	//☆アニメーション-------------------------------------------------------------------------------------------------------------
+	this->DefaultAnim = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Boss/ghost_boss_idle_Anim"));	// 特定のアニメーションを使用しない状態のアニメーション
+	this->AttackAnim = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Boss/ghost_boss_attack_Anim"));	// 攻撃状態のアニメーション
+	DeadAnim = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Boss/ghost_boss_dead_Anim"));				// 死亡状態のアニメーション
+	StanAnim = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Boss/ghost_boss_stun_Anim"));				// スタン状態のアニメーション
+	SummonAnim = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Boss/ghost_boss_summon_Anim"));			// 敵呼び時のアニメーション
+	WarpAnim = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Boss/ghost_boss_summon_Anim"));	// 瞬間移動時のアニメ－ション
 
 	//☆ボス敵の設定-----------------------------------------------------------------------------------------------
 	this->Status.MaxHP = 300;
@@ -327,6 +361,9 @@ void ABossEnemy::ActProcess()
 		EnemyDead();
 		break;
 	}
+
+	//状態関係なく行う処理--------------------------------------------------
+	this->FacePlayerHowTo(); // プレイヤーの方向を向く
 }
 
 //プレイヤーがボス部屋で止まった時、位置と回転を取得する
@@ -348,6 +385,74 @@ bool ABossEnemy::bOneSecondsPassedIs()
 	}
 
 	return false;
+}
+
+//アニメーション関係---------------------------------------------------------------------------------------------
+//アニメーションの変更
+void ABossEnemy::ChangeBossAnimation(const EBossState PreState, const EBossState NewState)
+{
+	//状態に合わせたアニメーション変更
+	switch (NewState)
+	{
+	case EBossState::EnemyCall:
+		if (SummonAnim) // nullチェック
+		{
+			GhostMeshComponent->PlayAnimation(SummonAnim, false);
+		}
+		break;
+
+	case EBossState::Teleportation:
+		if (WarpAnim) // nullチェック
+		{
+			GhostMeshComponent->PlayAnimation(WarpAnim, false);
+		}
+		break;
+
+	case EBossState::Attack: // 攻撃状態
+		if (AttackAnim)	// nullチェック
+		{
+			GhostMeshComponent->PlayAnimation(AttackAnim, false);
+		}
+		break;
+
+	case EBossState::Stan:
+		if (StanAnim) // nullチェック
+		{
+			GhostMeshComponent->PlayAnimation(StanAnim, true);
+		}
+		break;
+
+	case EBossState::AfterEnemyExpedition:
+		if (WarpAnim)
+		{
+			GhostMeshComponent->PlayAnimation(WarpAnim, false);
+		}
+		break;
+
+	default: // 特定のアニメーションがない状態
+		if (DefaultAnim) // nullチェック
+		{
+			if (PreState == EBossState::Attack || PreState == EBossState::Appear) // 変更前の状態が特定のアニメーションを持っているまたは、アニメーションを使用しない状態だったら
+			{
+				GhostMeshComponent->PlayAnimation(DefaultAnim, true);
+			}
+		}
+		break;
+
+		//アニメーションを使用しない状態-------------------------------------------------------------------------
+	case EBossState::Appear: // この状態は敵の最初の状態なのでアニメーションの強制終了は必要ない
+		break;
+
+	case EBossState::Charge:
+		break;
+
+	case EBossState::Die: // この状態の後にアニメーションが変更されることはないのでdefaultのif文の変更前の状態は死亡状態かどうかの確認はしなくてよい
+		if (GhostMeshComponent)
+		{
+			GhostMeshComponent->PlayAnimation(DeadAnim, false);
+		}
+		break;
+	}
 }
 
 //☆状態：Waitの処理---------------------------------------------------------------------------------------------
@@ -410,22 +515,31 @@ bool ABossEnemy::ChangeColor(const EEnemyColor ChangingColor)
 //透明にする処理
 bool ABossEnemy::Transparentize(const float DeltaTime)
 {
-	if (DynamicMaterial_Body && DynamicMaterial_Eye) // nullチェック
+	if (DynamicMaterial_Body && DynamicMaterial_Eye && DynamicMaterial_String) // nullチェック
 	{
 		//オパシティの値を計算
-		OpacityValue_Body -= MaxOpacity_Body / TimeUpToTransparency * DeltaTime;	// 体のオパシティの計算
-		OpacityValue_Eye -= MaxOpacity_Eye / TimeUpToTransparency * DeltaTime;		// 目のオパシティの計算
+		OpacityValue_Body -= MaxOpacity_Body / TimeUpToTransparency * DeltaTime;		// 体のオパシティの計算
+		OpacityValue_Eye -= MaxOpacity_Eye / TimeUpToTransparency * DeltaTime;			// 目のオパシティの計算
+		//OpacityValue_String -= MaxOpacity_String / TimeUpToTransparency * DeltaTime;	// 紐のオパシティの計算
 
 		//出現が終わったら処理を終了する
-		if (OpacityValue_Body <= 0.f && OpacityValue_Eye <= 0.f)
+		if (OpacityValue_Body <= 0.f && OpacityValue_Eye <= 0.f && OpacityValue_String <= 0.f)
 		{
 			//オパシティの値が0を下回らないようにする
 			OpacityValue_Body = 0.f;
 			OpacityValue_Eye = 0.f;
+			/*OpacityValue_String = 0.f;*/
 
 			//オパシティを設定
 			DynamicMaterial_Body->SetScalarParameterValue(FName("Opacity"), this->OpacityValue_Body);
 			DynamicMaterial_Eye->SetScalarParameterValue(FName("Opacity"), this->OpacityValue_Eye);
+			/*DynamicMaterial_String->SetScalarParameterValue(FName("Opacity"), this->OpacityValue_String);*/
+
+			//当たり判定を無くす
+			if (GhostCollision) // nullチェック
+			{
+				GhostCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			}
 
 			//この関数が呼ばれないようにする
 			return true;
@@ -434,6 +548,7 @@ bool ABossEnemy::Transparentize(const float DeltaTime)
 		//オパシティを設定
 		DynamicMaterial_Body->SetScalarParameterValue(FName("Opacity"), this->OpacityValue_Body);
 		DynamicMaterial_Eye->SetScalarParameterValue(FName("Opacity"), this->OpacityValue_Eye);
+		/*DynamicMaterial_String->SetScalarParameterValue(FName("Opacity"), this->OpacityValue_String);*/
 	}
 
 	//もう一度この関数を呼ぶ
@@ -487,8 +602,9 @@ bool ABossEnemy::Show(const float DeltaTime)
 	if (DynamicMaterial_Body && DynamicMaterial_Eye)
 	{
 		//オパシティの値を計算
-		OpacityValue_Body += MaxOpacity_Body / TimeSpentInAppear * DeltaTime;	// 体のオパシティの計算
-		OpacityValue_Eye += MaxOpacity_Eye / TimeSpentInAppear * DeltaTime;		// 目のオパシティの計算
+		OpacityValue_Body += MaxOpacity_Body / TimeSpentInAppear * DeltaTime;			// 体のオパシティの計算
+		OpacityValue_Eye += MaxOpacity_Eye / TimeSpentInAppear * DeltaTime;				// 目のオパシティの計算
+		//OpacityValue_String += MaxOpacity_String / TimeUpToTransparency * DeltaTime;	// 紐のオパシティの計算
 
 		//出現が終わったら処理を終了する
 		if (OpacityValue_Body >= MaxOpacity_Body && OpacityValue_Eye >= MaxOpacity_Eye)
@@ -496,13 +612,18 @@ bool ABossEnemy::Show(const float DeltaTime)
 			//オパシティの値が1を超えないようにする
 			OpacityValue_Body = MaxOpacity_Body;
 			OpacityValue_Eye = MaxOpacity_Eye;
+			/*OpacityValue_String = MaxOpacity_String;*/
 
 			//オパシティを設定
 			DynamicMaterial_Body->SetScalarParameterValue(FName("Opacity"), this->OpacityValue_Body);
 			DynamicMaterial_Eye->SetScalarParameterValue(FName("Opacity"), this->OpacityValue_Eye);
+			/*DynamicMaterial_String->SetScalarParameterValue(FName("Opacity"), this->OpacityValue_String);*/
 
 			//当たり判定を付ける
-			GhostCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+			if (GhostCollision)
+			{
+				GhostCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+			}
 
 			//状態遷移可能にする
 			return true;
@@ -511,6 +632,7 @@ bool ABossEnemy::Show(const float DeltaTime)
 		//オパシティを設定
 		DynamicMaterial_Body->SetScalarParameterValue(FName("Opacity"), this->OpacityValue_Body);
 		DynamicMaterial_Eye->SetScalarParameterValue(FName("Opacity"), this->OpacityValue_Eye);
+		/*DynamicMaterial_String->SetScalarParameterValue(FName("Opacity"), this->OpacityValue_String);*/
 	}
 
 	//もう一度この関数を呼ぶ

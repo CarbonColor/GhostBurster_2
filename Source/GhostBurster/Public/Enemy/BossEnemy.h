@@ -61,7 +61,22 @@ class GHOSTBURSTER_API ABossEnemy : public AEnemys
 	//1秒カウントしたらtrueを返す
 	bool bOneSecondsPassedIs();
 
-	//待機関係----------------------------------------------------------------------------------------------
+	//マテリアル関係------------------------------------------------------------------------------------------
+	TObjectPtr<UMaterialInstanceDynamic> DynamicMaterial_String; // 紐のダイナミックマテリアル
+	float								 OpacityValue_String;	 // 紐のオパシティの値
+	float								 MaxOpacity_String;		 // 紐のオパシティの最大値(0～1の範囲)
+
+	//アニメーション関係--------------------------------------------------------------------------------------
+	//☆変数
+	TObjectPtr<UAnimSequence> DeadAnim;				// 死亡状態のアニメーション
+	TObjectPtr<UAnimSequence> StanAnim;				// スタン状態のアニメーション
+	TObjectPtr<UAnimSequence> SummonAnim;			// 敵呼び時のアニメーション
+	TObjectPtr<UAnimSequence> WarpAnim;				// 瞬間移動、敵が消える時のアニメ－ション
+
+	//☆関数
+	void ChangeBossAnimation(const EBossState PreState, const EBossState NewState);	// 状態遷移時のアニメーションの変更
+
+	//待機関係------------------------------------------------------------------------------------------------
 	//☆変数
 	EEnemyColor		ChangingBossColor;										// 次に変化する色
 	bool			bHasEndedWait;											// 待機状態を終了するか

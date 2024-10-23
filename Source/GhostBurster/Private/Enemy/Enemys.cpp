@@ -17,9 +17,10 @@ AEnemys::AEnemys()
 	//列挙型
 	State(EState::Appear), EnemyColor(EEnemyColor::White),
 	//コンポーネント関係
-	DefaultSceneRoot(nullptr), GhostMeshComponent(nullptr), GhostCollision(nullptr), DynamicMaterial_Body(nullptr), DynamicMaterial_Eye(nullptr), EnemyScale(FVector(0.3f, 0.3f, 0.3f)),
+	DefaultSceneRoot(nullptr), GhostMeshComponent(nullptr), GhostCollision(nullptr), EnemyScale(FVector(0.3f, 0.3f, 0.3f)),
 	//マテリアル関係
-	TimeUpToTransparency(0.25f), EmissiveValueAtDamage(50.f), EmissiveValueAtDead(300.f),
+	DynamicMaterial_Body(nullptr), DynamicMaterial_Eye(nullptr), OpacityValue_Body(0.f), OpacityValue_Eye(0.f), MaxOpacity_Body(1.f), MaxOpacity_Eye(1.f), TimeUpToTransparency(0.25f), 
+	EmissiveValueAtDamage(50.f), EmissiveValueAtDead(300.f),
 	//アニメーション関係
 	DefaultAnim(nullptr), AttackAnim(nullptr), AttackTiming(55),
 	//サウンド関係
@@ -34,7 +35,7 @@ AEnemys::AEnemys()
 	//死亡関係
 	bIsDestroy(false), bIsEscaped(false),
 	//出現関係
-	bHasEndedAppear(false), OpacityValue_Body(0.f), OpacityValue_Eye(0.f), TimeSpentInAppear(0.75f), MaxOpacity_Body(1.f), MaxOpacity_Eye(1.f),
+	bHasEndedAppear(false), TimeSpentInAppear(0.75f),
 	//回転関係
 	RotationCorrectionValue(FRotator(0.f, -90.f, 0.f))
 {
