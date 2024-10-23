@@ -56,6 +56,15 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     FadeOutWidgetComponent->SetWidgetClass(FadeWidgetClass);
     FadeOutWidgetComponent->SetWidgetSpace(EWidgetSpace::World);
 
+    //左耳のオーディオコンポーネント
+    LeftEarComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("LeftEarAudioComponent"));
+    LeftEarComponent->SetupAttachment(CameraComponent);
+    LeftEarComponent->SetRelativeLocation(FVector(0, -15, 0));
+    //右耳のオーディオコンポーネント
+    RightEarComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("RightEarAudioComponent"));
+    RightEarComponent->SetupAttachment(CameraComponent);
+    LeftEarComponent->SetRelativeLocation(FVector(0, 15, 0));
+
     // モーションコントローラーコンポーネント(右手)を作る
     MotionController_Right = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("MotionController_Right"));
     // VRRootコンポーネントにアタッチする
@@ -400,6 +409,10 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
             LightCollision->SetCollisionProfileName(TEXT("NoCollision"));
         }
     }
+
+    //画面外の敵のSEの更新メソッド
+    UpdateViewOutEnemySound();
+
 
     ////画面外の敵を表示するUIの更新
     //UpdateEnemyIndicators();
@@ -883,7 +896,6 @@ FHitResult AVRPlayerCharacter::CheckHitEnemy(AActor* OtherActor)
 //    }
 //    return false;
 //}
-
 void AVRPlayerCharacter::OnConeEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
     //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Light EndOverlap Called"));
@@ -902,6 +914,13 @@ void AVRPlayerCharacter::OnConeEndOverlap(UPrimitiveComponent* OverlappedComp, A
     {
         TreasureBoxes.Remove(OtherActor);
     }
+}
+
+//画面外の敵を検知するメソッド
+void AVRPlayerCharacter::UpdateViewOutEnemySound()
+{
+    FVector PlayerLocation = GetActorLocation();
+    FRotator PlayerRotation = GetActorRotation();
 }
 
 //オバケからの攻撃を受けた時のメソッド

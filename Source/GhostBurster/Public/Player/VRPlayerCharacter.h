@@ -202,6 +202,10 @@ public:
 	UFUNCTION()
 		void StopHapticEffect();
 
+	//画面外の敵を検知するメソッド
+	UFUNCTION()
+	void UpdateViewOutEnemySound();
+
 	//ステージ番号を増やす
 	UFUNCTION(BlueprintCallable, Category = "Stage")
 		void NextStage();
@@ -229,6 +233,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SE")
 		TObjectPtr<USoundCue> ChangeScoreSound;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SE")
+	TObjectPtr<USoundCue> OutViewEnemySound;
+
 	UFUNCTION(BlueprintCallable, Category = "GameEndTrigger")
 	void GameEndSet();
 
@@ -253,6 +260,12 @@ private:
 	//敵へのダメージ音のオーディオコンポーネント
 	UPROPERTY()
 		TObjectPtr<UAudioComponent> EnemyDamageSoundEffect;
+
+	//画面外の敵の音を流すためのオーディオコンポーネント
+	UPROPERTY()
+	TObjectPtr<UAudioComponent> LeftEarComponent;
+	UPROPERTY()
+	TObjectPtr<UAudioComponent> RightEarComponent;
 
 	//ライトの色を設定するメソッド
 	UFUNCTION()
