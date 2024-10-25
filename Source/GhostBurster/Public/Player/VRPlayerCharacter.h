@@ -32,6 +32,8 @@ class UMotionControllerComponent;
 class UHapticFeedbackEffect_Base;
 class ATitleEnemy;
 class ATitleEventManager;
+class APlayerSplinePath;
+class AEnemySpawner;
 
 UCLASS()
 class GHOSTBURSTER_API AVRPlayerCharacter : public APawn, public IDamageInterface
@@ -210,6 +212,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Stage")
 		void NextStage();
 
+	//当たったスポナーを取得するメソッド
+	UFUNCTION(BlueprintCallable, Category = "Setter")
+	void SetNowSpawner(AEnemySpawner* HitSpawner);
+	UFUNCTION(BlueprintCallable, Category = "Setter")
+	void RemoveNowSpawner();
+
 	//ステージ番号を取得する
 	UFUNCTION(BlueprintCallable, Category = "Stage")
 		int32 GetStageNumber();
@@ -274,6 +282,14 @@ private:
 	//タイトルのイベントマネージャー
 	UPROPERTY()
 	TObjectPtr<ATitleEventManager> TitleEvent;
+
+	//プレイヤーのスプライン
+	UPROPERTY()
+	TObjectPtr<APlayerSplinePath> Spline;
+	
+	//当たっているスポナー
+	UPROPERTY()
+	TObjectPtr<AEnemySpawner> Spawner;
 
 	// 当たり判定の壁貫通をなくす処理
 	UFUNCTION()

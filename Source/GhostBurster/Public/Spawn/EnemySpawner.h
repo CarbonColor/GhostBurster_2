@@ -106,6 +106,9 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Enemy Spawning")
     void EnemyDeadFunction();
 
+    UFUNCTION(BlueprintCallable, Category = "Enemy Spawning")
+    TArray<AEnemys*> GetSpawnEnemies();
+
 
 private:
     void LogCurrentEnemyCount(const int32& Wave) const;
