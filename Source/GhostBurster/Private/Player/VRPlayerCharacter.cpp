@@ -222,6 +222,9 @@ void AVRPlayerCharacter::BeginPlay()
     //振動状態の初期化
     bIsEnemyHaptic = false;
 
+    //スプラインの取得
+    Spline = Cast<APlayerSplinePath>(UGameplayStatics::GetActorOfClass(GetWorld(), APlayerSplinePath::StaticClass()));
+
     // Enhanced Input setup
     APlayerController* PlayerController = Cast<APlayerController>(GetController());
     UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer());
@@ -410,8 +413,11 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
         }
     }
 
-    //画面外の敵のSEの更新メソッド
-    UpdateViewOutEnemySound();
+    //画面外の敵のSEの更新メソッド（移動していないとき -> ステージ内）
+    if (Spline->IsMoving() == false)
+    {
+        UpdateViewOutEnemySound();
+    }
 
 
     ////画面外の敵を表示するUIの更新
@@ -921,6 +927,77 @@ void AVRPlayerCharacter::UpdateViewOutEnemySound()
 {
     FVector PlayerLocation = GetActorLocation();
     FRotator PlayerRotation = GetActorRotation();
+    FQuat PlayerQuat = FQuat(PlayerRotation);
+
+    bool bLeftEnemyDetected = false;
+    bool bRightEnemyDetected = false;
+
+    TArray<AEnemys*> AllEnemies = Spawner->GetSpawnEnemies();
+    for (AActor* Enemy : AllEnemies)
+    {
+        if (!Enemy) continue;
+
+        FVector EnemyLocation = Enemy->GetActorLocation();
+        FVector DirectionToEnemy = (EnemyLocation - PlayerLocation).GetSafeNormal();
+
+        //プレイヤーの前方ベクトル
+        FVector ForwardVector = PlayerQuat.GetForwardVector();
+
+        //左右判定
+        float DotProduct = FVector::DotProduct(ForwardVector, DirectionToEnemy);
+        if (DotProduct > 0)
+        {
+            float CrossProductZ = FVector::CrossProduct(ForwardVector, DirectionToEnemy).Z;
+            if (CrossProductZ > 0)
+            {
+                bRightEnemyDetected = true;
+            }
+            else
+            {
+                bLeftEnemyDetected = true;
+            }
+        }
+    }
+
+    //音の再生処理
+    if (bLeftEnemyDetected)
+    {
+        if (LeftEarComponent->IsPlaying() == false)
+        {
+            LeftEarComponent->Play();
+        }
+    }
+    else
+    {
+        if (LeftEarComponent->IsPlaying())
+        {
+            LeftEarComponent->Stop();
+        }
+    }
+    if (bRightEnemyDetected)
+    {
+        if (RightEarComponent->IsPlaying() == false)
+        {
+            RightEarComponent->Play();
+        }
+    }
+    else
+    {
+        if (RightEarComponent->IsPlaying())
+        {
+            RightEarComponent->Stop();
+        }
+    }
+
+}
+//当たっているスポナーを取得するメソッド
+void AVRPlayerCharacter::SetNowSpawner(AEnemySpawner* HitSpawner)
+{
+    Spawner = HitSpawner;
+}
+void AVRPlayerCharacter::RemoveNowSpawner()
+{
+    Spawner = nullptr;
 }
 
 //オバケからの攻撃を受けた時のメソッド

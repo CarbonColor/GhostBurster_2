@@ -407,4 +407,10 @@ void AEnemySpawner::HandleEnemyCountZero()
         BGM->ChangeBGM();
     }
 
+    Player->RemoveNowSpawner();
+}
+
+TArray<AEnemys*> AEnemySpawner::GetSpawnEnemies()
+{
+    return SpawnEnemies;
 }
