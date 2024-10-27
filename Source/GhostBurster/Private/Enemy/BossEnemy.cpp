@@ -957,7 +957,7 @@ void ABossEnemy::CreateEnemies(const int CallingEnemyNum, const TArray<FVector>&
 				//ボスアクターを親とする
 				CallingEnemy->AttachToActor(BossEnemy, FAttachmentTransformRules::KeepRelativeTransform);
 
-				// 子コンポーネントが親のスケールに影響されないようにする
+				//子コンポーネントが親のスケールに影響されないようにする
 				CallingEnemy->SetActorScale3D(FVector(0.3f, 0.3f, 0.3f));
 
 				//相対位置を設定
