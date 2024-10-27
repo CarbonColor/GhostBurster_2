@@ -185,7 +185,7 @@ void ABossEnemy::Think()
 	case EBossState::Wait:
 		if (bHasEndedWait)
 		{
-			int StateDecideNumber = FMath::RandRange((int)EBossState::Wait + 1, (int)EBossState::MaxStateCountAtTransitionFromWait - 1); //待機状態以外の生存時になる状態をランダムで決める
+			int StateDecideNumber = 2/*FMath::RandRange((int)EBossState::Wait + 1, (int)EBossState::MaxStateCountAtTransitionFromWait - 1)*/; //待機状態以外の生存時になる状態をランダムで決める
 			//状態遷移
 			switch (StateDecideNumber)
 			{
@@ -957,6 +957,9 @@ void ABossEnemy::CreateEnemies(const int CallingEnemyNum, const TArray<FVector>&
 				//ボスアクターを親とする
 				CallingEnemy->AttachToActor(BossEnemy, FAttachmentTransformRules::KeepRelativeTransform);
 
+				// 子コンポーネントが親のスケールに影響されないようにする
+				CallingEnemy->SetActorScale3D(FVector(0.3f, 0.3f, 0.3f));
+
 				//相対位置を設定
 				CallingEnemy->SetActorRelativeLocation(PopLocations[i]);
 			}
@@ -1018,8 +1021,6 @@ bool ABossEnemy::Move()
 
 	return true;
 }
-
-//☆状態：Appearの処理-------------------------------------------------------------------------------------------
 
 //ダメージを受ける処理、引数でもらった攻撃力分体力を減らす
 void ABossEnemy::RecieveEnemyDamage(int DamageAmount)
