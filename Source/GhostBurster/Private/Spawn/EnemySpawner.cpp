@@ -341,6 +341,11 @@ void AEnemySpawner::SpawnEnemy(const FEnemySpawnInfo& SpawnInfo)
             //Enemy->SetMoveTime(SpawnInfo.MoveTime);
             //Enemy->SetAttackUpToTime(SpawnInfo.AttackTime);
 
+            if (ABossEnemy* Boss = Cast<ABossEnemy>(SpawnedEnemy))
+            {
+                Boss->BattleStart();
+            }
+
             SpawnEnemies.Add(Enemy);
         }
 
