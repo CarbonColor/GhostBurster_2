@@ -21,7 +21,7 @@ ABossEnemy::ABossEnemy()
 	DeadAnim(nullptr), StanAnim(nullptr), SummonAnim(nullptr), WarpAnim(nullptr),
 	//待機関係
 	ChangingBossColor(EEnemyColor::White), bHasEndedWait(false), bHasFinishedTransparentize(false), bHasFinishedChangeDecidedColor(false), ColorValue(FLinearColor(0, 0, 0)), bHasFinishedShow(false),
-	bIsBattleStarted(false),
+	bIsBattleStarted(true),
 	//チャージ関係
 	ChargeTime(0.f), bIsTransitionAttack(false), bIsTransitionStan(false), CountUpToAttackStateTransition(0), TimeUpToAttackStateTransition(1), ChargeCount(0), CountUpToAttack(5), StanValue(0), 
 	MaxStanValue(5 * AssumptionFPS),
@@ -844,21 +844,21 @@ void ABossEnemy::DecideEnemyPopLocations(const int CallingEnemyNum)
 	switch (CallingEnemyNum)
 	{
 	case 2:		//2体
-		NormalEnemyPopLocations.Add(FVector(0.f, 300.f, 0.f));		// ボスから右に300ユニットの位置
-		NormalEnemyPopLocations.Add(FVector(0.f, -300.f, 0.f));		// ボスから左に300ユニットの位置
+		NormalEnemyPopLocations.Add(FVector(300.f, 0.f, 0.f));		// ボスから右に300ユニットの位置
+		NormalEnemyPopLocations.Add(FVector(-300.f, 0.f, 0.f));		// ボスから左に300ユニットの位置
 		break;
 
 	case 3:		//3体
-		NormalEnemyPopLocations.Add(FVector(0.f, 300.f, -50.f));	// ボスから右に300ユニット、下に50ユニットの位置
-		NormalEnemyPopLocations.Add(FVector(0.f, -300.f, -50.f));	// ボスから左に300ユニット、下に50ユニットの位置
+		NormalEnemyPopLocations.Add(FVector(300.f, 0.f, -50.f));	// ボスから右に300ユニット、下に50ユニットの位置
+		NormalEnemyPopLocations.Add(FVector(-300.f, 0.f, -50.f));	// ボスから左に300ユニット、下に50ユニットの位置
 		NormalEnemyPopLocations.Add(FVector(0.f, 0.f, 100.f));		// ボスから上に100ユニットの位置
 		break;
 
 	case 4:		//4体
-		NormalEnemyPopLocations.Add(FVector(0.f, 300.f, -100.f));	// ボスから右に300ユニット、下に100ユニットの位置
-		NormalEnemyPopLocations.Add(FVector(0.f, -300.f, -100.f));	// ボスから左に300ユニット、下に100ユニットの位置
-		NormalEnemyPopLocations.Add(FVector(0.f, 300.f, 100.f));	// ボスから右に300ユニット、上に100ユニットの位置
-		NormalEnemyPopLocations.Add(FVector(0.f, -300.f, 100.f));	// ボスから左に300ユニット、上に100ユニットの位置
+		NormalEnemyPopLocations.Add(FVector(300.f, 0.f, -100.f));	// ボスから右に300ユニット、下に100ユニットの位置
+		NormalEnemyPopLocations.Add(FVector(-300.f, 0.f, -100.f));	// ボスから左に300ユニット、下に100ユニットの位置
+		NormalEnemyPopLocations.Add(FVector(300.f, 0.f, 100.f));	// ボスから右に300ユニット、上に100ユニットの位置
+		NormalEnemyPopLocations.Add(FVector(-300.f, 0.f, 100.f));	// ボスから左に300ユニット、上に100ユニットの位置
 		break;
 
 	default:	//不正な数
@@ -931,7 +931,10 @@ void ABossEnemy::CreateEnemies(const int CallingEnemyNum, const TArray<FVector>&
 			//生成する敵のインスタンス
 			TObjectPtr<AEnemys> CallingEnemy = nullptr;
 
-			////決めた色の敵を生成する
+			//出現する敵を倒せるまでの照射秒数
+			float DefeatUpToSeconds = 0.f;
+
+			//決めた色の敵を生成する
 			switch (EnemyColors[i])
 			{
 			case EEnemyColor::White:	//白
@@ -939,15 +942,23 @@ void ABossEnemy::CreateEnemies(const int CallingEnemyNum, const TArray<FVector>&
 				break;
 
 			case EEnemyColor::Green:	//緑
+				DefeatUpToSeconds = 2.f;
 				CallingEnemy = GetWorld()->SpawnActor<AEnemys>(AGreenEnemy::StaticClass(), FVector(0.f, 0.f, 0.f), FRotator(0.f, 0.f, 0.f));
+				CallingEnemy->SetHP(AssumptionFPS * 10 * DefeatUpToSeconds);							// HPの設定　10はデフォルトのプレイヤーの攻撃力
+				CallingEnemy->SetTimeFromWaitToStateTransition(CallingEnemyNum * DefeatUpToSeconds);	// 攻撃までの時間の設定
 				break;
 
 			case EEnemyColor::Red:		//赤
+				DefeatUpToSeconds = 2.f;
 				CallingEnemy = GetWorld()->SpawnActor<AEnemys>(ARedEnemy::StaticClass(), FVector(0.f, 0.f, 0.f), FRotator(0.f, 0.f, 0.f));
+				CallingEnemy->SetHP(AssumptionFPS * 10 * DefeatUpToSeconds);							// HPの設定　10はデフォルトのプレイヤーの攻撃力
+				CallingEnemy->SetTimeFromWaitToStateTransition(CallingEnemyNum * DefeatUpToSeconds);	// 攻撃までの時間の設定
 				break;
 
 			case EEnemyColor::Blue:		//青
+				DefeatUpToSeconds = 3.5f;
 				CallingEnemy = GetWorld()->SpawnActor<AEnemys>(ABlueEnemy::StaticClass(), FVector(0.f, 0.f, 0.f), FRotator(0.f, 0.f, 0.f));
+				CallingEnemy->SetHP(AssumptionFPS * 10 * DefeatUpToSeconds);
 				break;
 			}
 
@@ -955,13 +966,17 @@ void ABossEnemy::CreateEnemies(const int CallingEnemyNum, const TArray<FVector>&
 			if (CallingEnemy) // 敵インスタンスが生成されていたら
 			{
 				//ボスアクターを親とする
-				CallingEnemy->AttachToActor(BossEnemy, FAttachmentTransformRules::KeepRelativeTransform);
+				CallingEnemy->AttachToActor(BossEnemy, FAttachmentTransformRules::KeepWorldTransform);
 
-				//子コンポーネントが親のスケールに影響されないようにする
-				CallingEnemy->SetActorScale3D(FVector(0.3f, 0.3f, 0.3f));
+				//親の位置と回転を取得
+				FVector		BossPosition = GetActorLocation();	// ボス敵の現在の位置
+				FRotator	BossRotation = GetActorRotation();	// ボス敵の現在の回転
+
+				//相対位置を計算
+				FVector NewLocation = BossPosition + BossRotation.RotateVector(PopLocations[i]);
 
 				//相対位置を設定
-				CallingEnemy->SetActorRelativeLocation(PopLocations[i]);
+				CallingEnemy->SetActorLocation(NewLocation);
 			}
 
 			//呼んだ(生成した)敵の数をカウントする

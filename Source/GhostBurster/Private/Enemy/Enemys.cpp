@@ -354,7 +354,8 @@ void AEnemys::PlayDisappearSound()
 //HP‚Ìİ’è—pŠÖ”
 void AEnemys::SetHP(const int HPValue)
 {
-	Status.HP = HPValue;
+	Status.MaxHP = HPValue;
+	Status.HP = Status.MaxHP;
 }
 
 //UŒ‚‚Ü‚Å‚ÌŠÔİ’è—pŠÖ”
