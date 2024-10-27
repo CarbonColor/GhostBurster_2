@@ -92,8 +92,11 @@ class GHOSTBURSTER_API ABossEnemy : public AEnemys
 	bool			Transparentize(const float DeltaTime);					// 透明にする処理
 	bool			ChangeDecidedColor(const EEnemyColor ChangingColor);	// 決めた色に変更する
 	bool			Show(const float DeltaTime);							// 表示する処理
+
+public:
 	void			BattleStart();											// ボスの戦闘行動を開始させる
 
+private:
 	//チャージ関係-------------------------------------------------------------------------------------------
 	//☆変数
 	float	ChargeTime;						// チャージ時間
