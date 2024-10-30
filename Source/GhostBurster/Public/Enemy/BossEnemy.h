@@ -53,7 +53,7 @@ class GHOSTBURSTER_API ABossEnemy : public AEnemys
 	virtual void Think() override;
 
 	//状態の更新
-	void UpdateState(EBossState nowState);
+	void UpdateState(EBossState NowState);
 
 	//状態に基づいた動きをする
 	virtual void ActProcess() override;
@@ -68,13 +68,15 @@ class GHOSTBURSTER_API ABossEnemy : public AEnemys
 
 	//アニメーション関係--------------------------------------------------------------------------------------
 	//☆変数
-	TObjectPtr<UAnimSequence> DeadAnim;				// 死亡状態のアニメーション
-	TObjectPtr<UAnimSequence> StanAnim;				// スタン状態のアニメーション
-	TObjectPtr<UAnimSequence> SummonAnim;			// 敵呼び時のアニメーション
-	TObjectPtr<UAnimSequence> WarpAnim;				// 瞬間移動、敵が消える時のアニメ－ション
+	TObjectPtr<UAnimSequence>	DeadAnim;								// 死亡状態のアニメーション
+	TObjectPtr<UAnimSequence>	StanAnim;								// スタン状態のアニメーション
+	TObjectPtr<UAnimSequence>	SummonAnim;								// 敵呼び時のアニメーション
+	TObjectPtr<UAnimSequence>	WarpAnim;								// 瞬間移動、敵が消える時のアニメ－ション
+	bool						ActProcessingWithDoAnimationChangeDoIs;	// 行動処理と共に行うアニメーション変更を行うか
 
 	//☆関数
-	void ChangeBossAnimation(const EBossState PreState, const EBossState NewState);	// 状態遷移時のアニメーションの変更
+	void AnimationChangeAtStateChange(const EBossState NowState);		// 状態遷移時のアニメーションの変更
+	void ActProcessingWithAnimationChange(const EBossState NowState);	// 行動処理と共に行うアニメーションの変更
 
 	//待機関係------------------------------------------------------------------------------------------------
 	//☆変数

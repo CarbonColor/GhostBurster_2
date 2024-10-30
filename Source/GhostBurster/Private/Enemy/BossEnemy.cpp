@@ -18,7 +18,7 @@ ABossEnemy::ABossEnemy()
 	//マテリアル関係
 	DynamicMaterial_String(nullptr), OpacityValue_String(0.f), MaxOpacity_String(1.f),
 	//アニメーション関係
-	DeadAnim(nullptr), StanAnim(nullptr), SummonAnim(nullptr), WarpAnim(nullptr),
+	DeadAnim(nullptr), StanAnim(nullptr), SummonAnim(nullptr), WarpAnim(nullptr), ActProcessingWithDoAnimationChangeDoIs(true),
 	//待機関係
 	ChangingBossColor(EEnemyColor::White), bHasEndedWait(false), bHasFinishedTransparentize(false), bHasFinishedChangeDecidedColor(false), ColorValue(FLinearColor(0, 0, 0)), bHasFinishedShow(false),
 	bIsBattleStarted(true),
@@ -149,6 +149,11 @@ void ABossEnemy::BeginPlay()
 {
 	Super::BeginPlay();
 
+	//デフォルトのアニメーションを開始する
+	if (this->DefaultAnim) // nullチェック
+	{
+		GhostMeshComponent->PlayAnimation(DefaultAnim, true);
+	}
 }
 
 void ABossEnemy::Tick(float DeltaTime)
@@ -185,7 +190,7 @@ void ABossEnemy::Think()
 	case EBossState::Wait:
 		if (bHasEndedWait)
 		{
-			int StateDecideNumber = 2/*FMath::RandRange((int)EBossState::Wait + 1, (int)EBossState::MaxStateCountAtTransitionFromWait - 1)*/; //待機状態以外の生存時になる状態をランダムで決める
+			int StateDecideNumber = 1/*FMath::RandRange((int)EBossState::Wait + 1, (int)EBossState::MaxStateCountAtTransitionFromWait - 1)*/; //待機状態以外の生存時になる状態をランダムで決める
 			//状態遷移
 			switch (StateDecideNumber)
 			{
@@ -255,13 +260,16 @@ void ABossEnemy::Think()
 }
 
 //状態の更新
-void ABossEnemy::UpdateState(EBossState nowState)
+void ABossEnemy::UpdateState(EBossState NowState)
 {
-	if (nowState != this->BossState)
+	if (NowState != this->BossState)
 	{
-		this->BossState = nowState;
+		this->BossState = NowState;
 		this->MoveCount = 0;
 		this->bShouldBeenProcessWhenFirstStateTransition = false;
+
+		//状態変化時のアニメーション変更
+		AnimationChangeAtStateChange(NowState);
 	}
 }
 
@@ -389,70 +397,100 @@ bool ABossEnemy::bOneSecondsPassedIs()
 
 //アニメーション関係---------------------------------------------------------------------------------------------
 //アニメーションの変更
-void ABossEnemy::ChangeBossAnimation(const EBossState PreState, const EBossState NewState)
+void ABossEnemy::AnimationChangeAtStateChange(const EBossState NowState)
 {
 	//状態に合わせたアニメーション変更
-	switch (NewState)
+	switch (NowState)
 	{
-	case EBossState::EnemyCall:
-		if (SummonAnim) // nullチェック
-		{
-			GhostMeshComponent->PlayAnimation(SummonAnim, false);
-		}
+	case EBossState::Attack:
 		break;
 
-	case EBossState::Teleportation:
-		if (WarpAnim) // nullチェック
-		{
-			GhostMeshComponent->PlayAnimation(WarpAnim, false);
-		}
-		break;
-
-	case EBossState::Attack: // 攻撃状態
-		if (AttackAnim)	// nullチェック
-		{
-			GhostMeshComponent->PlayAnimation(AttackAnim, false);
-		}
-		break;
-
-	case EBossState::Stan:
-		if (StanAnim) // nullチェック
-		{
-			GhostMeshComponent->PlayAnimation(StanAnim, true);
-		}
-		break;
-
-	case EBossState::AfterEnemyExpedition:
-		if (WarpAnim)
-		{
-			GhostMeshComponent->PlayAnimation(WarpAnim, false);
-		}
-		break;
-
-	default: // 特定のアニメーションがない状態
+	default:	// 特定のアニメーションがない場合
 		if (DefaultAnim) // nullチェック
 		{
-			if (PreState == EBossState::Attack || PreState == EBossState::Appear) // 変更前の状態が特定のアニメーションを持っているまたは、アニメーションを使用しない状態だったら
-			{
-				GhostMeshComponent->PlayAnimation(DefaultAnim, true);
-			}
-		}
-		break;
-
-		//アニメーションを使用しない状態-------------------------------------------------------------------------
-	case EBossState::Appear: // この状態は敵の最初の状態なのでアニメーションの強制終了は必要ない
-		break;
-
-	case EBossState::Charge:
-		break;
-
-	case EBossState::Die: // この状態の後にアニメーションが変更されることはないのでdefaultのif文の変更前の状態は死亡状態かどうかの確認はしなくてよい
-		if (GhostMeshComponent)
-		{
-			GhostMeshComponent->PlayAnimation(DeadAnim, false);
+			GhostMeshComponent->PlayAnimation(DefaultAnim, true);
 		}
 		break;
 	}
+
+//	//状態に合わせたアニメーション変更
+//	switch (NewState)
+//	{
+//	case EBossState::EnemyCall:
+//		if (SummonAnim) // nullチェック
+//		{
+//			GhostMeshComponent->PlayAnimation(SummonAnim, false);
+//		}
+//		break;
+//
+//	case EBossState::Teleportation:
+//		if (WarpAnim) // nullチェック
+//		{
+//			GhostMeshComponent->PlayAnimation(WarpAnim, false);
+//		}
+//		break;
+//
+//	case EBossState::Attack: // 攻撃状態
+//		if (AttackAnim)	// nullチェック
+//		{
+//			GhostMeshComponent->PlayAnimation(AttackAnim, false);
+//		}
+//		break;
+//
+//	case EBossState::Stan:
+//		if (StanAnim) // nullチェック
+//		{
+//			GhostMeshComponent->PlayAnimation(StanAnim, true);
+//		}
+//		break;
+//
+//	case EBossState::AfterEnemyExpedition:
+//		if (WarpAnim)
+//		{
+//			GhostMeshComponent->PlayAnimation(WarpAnim, false);
+//		}
+//		break;
+//
+//	default: // 特定のアニメーションがない状態
+//		if (DefaultAnim) // nullチェック
+//		{
+//			if (PreState == EBossState::Attack || PreState == EBossState::Appear) // 変更前の状態が特定のアニメーションを持っているまたは、アニメーションを使用しない状態だったら
+//			{
+//				GhostMeshComponent->PlayAnimation(DefaultAnim, true);
+//			}
+//		}
+//		break;
+//
+//		//アニメーションを使用しない状態-------------------------------------------------------------------------
+//	case EBossState::Appear: // この状態は敵の最初の状態なのでアニメーションの強制終了は必要ない
+//		break;
+//
+//	case EBossState::Charge:
+//		break;
+//
+//	case EBossState::Die: // この状態の後にアニメーションが変更されることはないのでdefaultのif文の変更前の状態は死亡状態かどうかの確認はしなくてよい
+//		if (GhostMeshComponent)
+//		{
+//			GhostMeshComponent->PlayAnimation(DeadAnim, false);
+//		}
+//		break;
+//	}
+}
+
+void ABossEnemy::ActProcessingWithAnimationChange(const EBossState NowState)
+{
+	//状態に合わせたアニメーション変更
+	switch (NowState)
+	{
+	case EBossState::Charge:	// チャージ状態のテレポーテーション時のアニメーション
+		if (WarpAnim) // nullチェック
+			{
+				GhostMeshComponent->PlayAnimation(WarpAnim, false);
+			}
+		break;
+	}
+
+	ActProcessingWithDoAnimationChangeDoIs = false;
 }
 
 //☆状態：Waitの処理---------------------------------------------------------------------------------------------
@@ -685,10 +723,15 @@ void ABossEnemy::ChargeAttack()
 	//チャージが終わっていなかったら
 	if (ChargeCount < CountUpToAttack)
 	{
-		//決まった秒数たったら
-		if (MoveCount % (FMath::RoundToInt(Gamefps) * 1) == 0) // FMath::RoundToInt(Gamefps)に掛けているマジックナンバーは秒数を表す
+		if (ActProcessingWithDoAnimationChangeDoIs)
 		{
-			//瞬間移動し、チャージ回数のカウントを増やす
+			//テレポートのアニメーション
+			ActProcessingWithAnimationChange(BossState);
+		}
+
+		//アニメーションが終了したら瞬間移動しながらチャージを行う処理を行う
+		if (!GhostMeshComponent->IsPlaying())
+		{
 			Teleportation_Charge();
 		}
 	}
@@ -734,6 +777,9 @@ void ABossEnemy::Teleportation_Charge()
 
 	//チャージする
 	ChargeCount++;
+
+	//
+	ActProcessingWithDoAnimationChangeDoIs = true;
 }
 
 //☆状態：Attackの処理-------------------------------------------------------------------------------------------
