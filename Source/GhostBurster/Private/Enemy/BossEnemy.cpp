@@ -16,7 +16,7 @@ ABossEnemy::ABossEnemy()
 	PlayerRotation_Z_BossRoom(0.f),
 	FinishCount(0.f),
 	//マテリアル関係
-	DynamicMaterial_String(nullptr), OpacityValue_String(0.f), MaxOpacity_String(1.f),
+	DynamicMaterial_String(nullptr), OpacityValue_String(0.f), MaxOpacity_String(1.f), EyeValueChangeStartingRate(40.f),
 	//アニメーション関係
 	DeadAnim(nullptr), StanAnim(nullptr), SummonAnim(nullptr), WarpAnim(nullptr), ActProcessingWithDoAnimationChangeDoIs(true),
 	//待機関係
@@ -140,10 +140,9 @@ ABossEnemy::ABossEnemy()
 	WarpAnim = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Boss/ghost_boss_warp_Anim"));				// 瞬間移動時のアニメ－ション							ループ再生しない
 
 	//☆ボス敵の設定-----------------------------------------------------------------------------------------------
-	this->Status.MaxHP = 300;
-	this->Status.HP = Status.MaxHP;
 	this->EnemyColor = EEnemyColor::BossColor;	// 初期の色設定
 	this->AttackTiming = 85;					// 攻撃判定のタイミング設定(フレーム数)
+	this->Status.Score = 1000;
 }
 
 void ABossEnemy::BeginPlay()
@@ -379,6 +378,9 @@ void ABossEnemy::ActProcess()
 
 	//死亡-----------------------------------------------------------------------------------
 	case EBossState::Die:
+		//死亡時の透明化するまでの時間をアニメーションに合った値に変更する
+		TimeUpToTransparency = 2;
+
 		EnemyDead();
 		break;
 	}
@@ -438,6 +440,13 @@ void ABossEnemy::AnimationChangeAtStateChange(const EBossState NowState)
 			}
 			break;
 
+		case EBossState::Die:
+			if (DeadAnim)
+			{
+				GhostMeshComponent->PlayAnimation(DeadAnim, false);
+			}
+			break;
+
 		default:	// 特定のアニメーションがない場合
 			if (DefaultAnim) // nullチェック
 			{
@@ -454,70 +463,6 @@ void ABossEnemy::AnimationChangeAtStateChange(const EBossState NowState)
 
 		}
 	}
-	
-
-//	//状態に合わせたアニメーション変更
-//	switch (NewState)
-//	{
-//	case EBossState::EnemyCall:
-//		if (SummonAnim) // nullチェック
-//		{
-//			GhostMeshComponent->PlayAnimation(SummonAnim, false);
-//		}
-//		break;
-//
-//	case EBossState::Teleportation:
-//		if (WarpAnim) // nullチェック
-//		{
-//			GhostMeshComponent->PlayAnimation(WarpAnim, false);
-//		}
-//		break;
-//
-//	case EBossState::Attack: // 攻撃状態
-//		if (AttackAnim)	// nullチェック
-//		{
-//			GhostMeshComponent->PlayAnimation(AttackAnim, false);
-//		}
-//		break;
-//
-//	case EBossState::Stan:
-//		if (StanAnim) // nullチェック
-//		{
-//			GhostMeshComponent->PlayAnimation(StanAnim, true);
-//		}
-//		break;
-//
-//	case EBossState::AfterEnemyExpedition:
-//		if (WarpAnim)
-//		{
-//			GhostMeshComponent->PlayAnimation(WarpAnim, false);
-//		}
-//		break;
-//
-//	default: // 特定のアニメーションがない状態
-//		if (DefaultAnim) // nullチェック
-//		{
-//			if (PreState == EBossState::Attack || PreState == EBossState::Appear) // 変更前の状態が特定のアニメーションを持っているまたは、アニメーションを使用しない状態だったら
-//			{
-//				GhostMeshComponent->PlayAnimation(DefaultAnim, true);
-//			}
-//		}
-//		break;
-//
-//		//アニメーションを使用しない状態-------------------------------------------------------------------------
-//	case EBossState::Appear: // この状態は敵の最初の状態なのでアニメーションの強制終了は必要ない
-//		break;
-//
-//	case EBossState::Charge:
-//		break;
-//
-//	case EBossState::Die: // この状態の後にアニメーションが変更されることはないのでdefaultのif文の変更前の状態は死亡状態かどうかの確認はしなくてよい
-//		if (GhostMeshComponent)
-//		{
-//			GhostMeshComponent->PlayAnimation(DeadAnim, false);
-//		}
-//		break;
-//	}
 }
 
 void ABossEnemy::ActProcessingWithAnimationChange(const EBossState NowState)
@@ -621,13 +566,18 @@ bool ABossEnemy::Transparentize(const float DeltaTime)
 {
 	if (DynamicMaterial_Body && DynamicMaterial_Eye && DynamicMaterial_String) // nullチェック
 	{
-		//オパシティの値を計算
-		OpacityValue_Body -= MaxOpacity_Body / TimeUpToTransparency * DeltaTime;		// 体のオパシティの計算
-		OpacityValue_Eye -= MaxOpacity_Eye / TimeUpToTransparency * DeltaTime;			// 目のオパシティの計算
+		//体のオパシティの値を計算
+		OpacityValue_Body -= MaxOpacity_Body / TimeUpToTransparency * DeltaTime;			// 体のオパシティの計算
 		/*OpacityValue_String -= MaxOpacity_String / TimeUpToTransparency * DeltaTime;*/	// 紐のオパシティの計算
 
+		//目・口のオパシティの値を計算(同時に透明化すると口から体が見えてしまう)
+		if (OpacityValue_Body <= MaxOpacity_Body / EyeValueChangeStartingRate)
+		{
+			OpacityValue_Eye -= MaxOpacity_Eye / (TimeUpToTransparency / EyeValueChangeStartingRate) * DeltaTime;	// 目・口のオパシティの計算
+		}
+
 		//出現が終わったら処理を終了する
-		if (OpacityValue_Body <= 0.f && OpacityValue_Eye <= 0.f && OpacityValue_String <= 0.f)
+		if (OpacityValue_Body <= 0.f && OpacityValue_Eye <= 0.f)
 		{
 			//オパシティの値が0を下回らないようにする
 			OpacityValue_Body = 0.f;
@@ -706,9 +656,9 @@ bool ABossEnemy::Show(const float DeltaTime)
 	if (DynamicMaterial_Body && DynamicMaterial_Eye)
 	{
 		//オパシティの値を計算
-		OpacityValue_Body += MaxOpacity_Body / TimeSpentInAppear * DeltaTime;			// 体のオパシティの計算
-		OpacityValue_Eye += MaxOpacity_Eye / TimeSpentInAppear * DeltaTime;				// 目のオパシティの計算
-		/*OpacityValue_String += MaxOpacity_String / TimeUpToTransparency * DeltaTime;*/	// 紐のオパシティの計算
+		OpacityValue_Body += MaxOpacity_Body / TimeSpentInAppear * DeltaTime;								// 体のオパシティの計算
+		OpacityValue_Eye += MaxOpacity_Eye / (TimeSpentInAppear / EyeValueChangeStartingRate) * DeltaTime;	// 目・口のオパシティの計算
+		/*OpacityValue_String += MaxOpacity_String / TimeUpToTransparency * DeltaTime;*/					// 紐のオパシティの計算
 
 		//出現が終わったら処理を終了する
 		if (OpacityValue_Body >= MaxOpacity_Body && OpacityValue_Eye >= MaxOpacity_Eye)
@@ -1184,6 +1134,58 @@ bool ABossEnemy::Move()
 		return true;
 	}
 	
+	return false;
+}
+
+//☆死亡関係-----------------------------------------------------------------------------------------------
+//死亡時の徐々に透明にする処理
+bool ABossEnemy::Transparentize_Dead()
+{
+	//DeltaTimeの取得
+	float DeltaTime = GetWorld()->GetDeltaSeconds();
+
+	if (DynamicMaterial_Body && DynamicMaterial_Eye && DynamicMaterial_String) // nullチェック
+	{
+		//体のオパシティの値を計算
+		OpacityValue_Body -= MaxOpacity_Body / TimeUpToTransparency * DeltaTime;			// 体のオパシティの計算
+		/*OpacityValue_String -= MaxOpacity_String / TimeUpToTransparency * DeltaTime;*/	// 紐のオパシティの計算
+
+		//目・口のオパシティの値を計算(同時に透明化すると口から体が見えてしまう)
+		if (OpacityValue_Body <= MaxOpacity_Body / EyeValueChangeStartingRate)
+		{
+			OpacityValue_Eye -= MaxOpacity_Eye / (TimeUpToTransparency / EyeValueChangeStartingRate) * DeltaTime;	// 目・口のオパシティの計算
+		}
+
+		//出現が終わったら処理を終了する
+		if (OpacityValue_Body <= 0.f && OpacityValue_Eye <= 0.f)
+		{
+			//オパシティの値が0を下回らないようにする
+			OpacityValue_Body = 0.f;
+			OpacityValue_Eye = 0.f;
+			/*OpacityValue_String = 0.f;*/
+
+			//オパシティを設定
+			DynamicMaterial_Body->SetScalarParameterValue(FName("Opacity"), this->OpacityValue_Body);
+			DynamicMaterial_Eye->SetScalarParameterValue(FName("Opacity"), this->OpacityValue_Eye);
+			/*DynamicMaterial_String->SetScalarParameterValue(FName("Opacity"), this->OpacityValue_String);*/
+
+			//当たり判定を無くす
+			if (GhostCollision) // nullチェック
+			{
+				GhostCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			}
+
+			//この関数が呼ばれないようにする
+			return true;
+		}
+
+		//オパシティを設定
+		DynamicMaterial_Body->SetScalarParameterValue(FName("Opacity"), this->OpacityValue_Body);
+		DynamicMaterial_Eye->SetScalarParameterValue(FName("Opacity"), this->OpacityValue_Eye);
+		/*DynamicMaterial_String->SetScalarParameterValue(FName("Opacity"), this->OpacityValue_String);*/
+	}
+
+	//もう一度この関数を呼ぶ
 	return false;
 }
 

@@ -201,7 +201,7 @@ void AEnemys::ProcessDoOnce_EnemyDead()
 					if (!bIsEscaped) // “¦‘–‚µ‚Ä‚¢‚È‚¢‚©
 					{
 						//ƒXƒRƒA‚Ì‘‰Á
-						Player->AddScore(100);
+						Player->AddScore(Status.Score);
 
 						//”­Œõ‚³‚¹‚é
 						ChangeEmissiveValue();
