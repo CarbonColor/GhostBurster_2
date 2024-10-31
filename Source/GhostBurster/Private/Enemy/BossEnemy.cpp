@@ -177,6 +177,17 @@ void ABossEnemy::TickProcess()
 	//現在のFPSを取得
 	Gamefps = GetWorldFPS();
 
+	//死亡時には行わない処理
+	if (Status.HP > 0)
+	{
+		//発光を無くす
+		if (DynamicMaterial_Body && DynamicMaterial_Eye) // nullチェック
+		{
+			this->DynamicMaterial_Body->SetScalarParameterValue(FName("Emissive"), 0.f);
+			this->DynamicMaterial_Eye->SetScalarParameterValue(FName("Emissive"), 0.f);
+		}
+	}
+
 	MoveCount++;
 
 	//エネミーの状態判断
@@ -1179,8 +1190,12 @@ bool ABossEnemy::Move()
 //ダメージを受ける処理、引数でもらった攻撃力分体力を減らす
 void ABossEnemy::RecieveEnemyDamage(int DamageAmount)
 {
-	//ライトの色と敵の色が一致したときだけダメージを受ける
-	Status.HP -= DamageAmount;
+	if (BossState != EBossState::EnemyExpeditionWait && this->State != EState::Die)
+	{
+		Status.HP -= DamageAmount;
+
+		this->ChangeEmissiveValue();
+	}
 }
 
 //プレイヤーのライトの色と敵のライトの色をチェックする関数

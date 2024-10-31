@@ -30,7 +30,6 @@ class GHOSTBURSTER_API ABossEnemy : public AEnemys
 		Stan,					//スタン
 		EnemyExpeditionWait,	//通常敵の討伐待機
 		AfterEnemyExpedition,	//通常敵の討伐後
-		Appear,					//出現
 		Die,					//死亡
 	};
 	
