@@ -10,9 +10,6 @@
 UPlayerScoreInstance::UPlayerScoreInstance()
 {
 	FingerBorder = { 0, 0, 0, 0, 0 };
-	NormalFinger = { 0, 0, 0, 0, 0 };
-	FoxFinger = { 5000, 0, 5000, 5000, 0 };
-	GunFinger = { 0, 0, 5000, 5000, 5000 };
 }
 
 // ------------------------------------------------------------------------------------
@@ -91,7 +88,7 @@ void UPlayerScoreInstance::SetDevicePortNumber(const int32 Port)
 	DevicePortNumber = Port;
 }
 
-void UPlayerScoreInstance::SetFingerBorder()
+void UPlayerScoreInstance::SetFingerBorder(const TArray<int32> NormalFinger, const TArray<int32> FoxFinger, const TArray<int32> GunFinger)
 {
 	int32 Thumb = 0, Index = 0, Middle = 0, Ring = 0, Little = 0;
 
@@ -157,94 +154,13 @@ void UPlayerScoreInstance::SetFingerBorder()
 	FingerBorder[2] = Middle;
 	FingerBorder[3] = Ring;
 	FingerBorder[4] = Little;
+
+	FString String = FString::FromInt(Thumb) + ", " + FString::FromInt(Index) + ", " + FString::FromInt(Middle) + ", " + FString::FromInt(Ring) + ", " + FString::FromInt(Little);
+
+	GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, String);
+
 }
 
-void UPlayerScoreInstance::CheckNormalFinger(const int32 Thumb, const int32 Index, const int32 Middle, const int32 Ring, const int32 Little)
-{
-	//親指：伸びる指の最大値を設定
-	if (NormalFinger[0] < Thumb)
-	{
-		NormalFinger[0] = Thumb;
-	}
-	//人差し指：伸びる指の最大値を設定
-	if (NormalFinger[1] < Index)
-	{
-		NormalFinger[1] = Index;
-	}
-	//中指：伸びる指の最大値を設定
-	if (NormalFinger[2] < Middle)
-	{
-		NormalFinger[2] = Middle;
-	}
-	//薬指：伸びる指の最大値を設定
-	if (NormalFinger[3] < Ring)
-	{
-		NormalFinger[3] = Ring;
-	}
-	//小指：伸びる指の最大値を設定
-	if (NormalFinger[4] < Little)
-	{
-		NormalFinger[4] = Little;
-	}
-}
-
-void UPlayerScoreInstance::CheckFoxFinger(const int32 Thumb, const int32 Index, const int32 Middle, const int32 Ring, const int32 Little)
-{
-	//親指：曲げる指の最小値を設定
-	if (FoxFinger[0] > Thumb)
-	{
-		FoxFinger[0] = Thumb;
-	}
-	//人差し指：伸びる指の最大値を設定
-	if (FoxFinger[1] < Index)
-	{
-		FoxFinger[1] = Index;
-	}
-	//中指：曲げる指の最小値を設定
-	if (FoxFinger[2] > Middle)
-	{
-		FoxFinger[2] = Middle;
-	}
-	//薬指：曲げる指の最小値を設定
-	if (FoxFinger[3] > Ring)
-	{
-		FoxFinger[3] = Ring;
-	}
-	//小指：伸びる指の最大値を設定
-	if (FoxFinger[4] < Little)
-	{
-		FoxFinger[4] = Little;
-	}
-}
-
-void UPlayerScoreInstance::CheckGunFinger(const int32 Thumb, const int32 Index, const int32 Middle, const int32 Ring, const int32 Little)
-{
-	//親指：伸びる指の最大値を設定
-	if (GunFinger[0] < Thumb)
-	{
-		GunFinger[0] = Thumb;
-	}
-	//人差し指：伸びる指の最大値を設定
-	if (GunFinger[1] < Index)
-	{
-		GunFinger[1] = Index;
-	}
-	//中指：曲げる指の最小値を設定
-	if (GunFinger[2] > Middle)
-	{
-		GunFinger[2] = Middle;
-	}
-	//薬指：曲げる指の最小値を設定
-	if (GunFinger[3] > Ring)
-	{
-		GunFinger[3] = Ring;
-	}
-	//小指：曲げる指の最小値を設定
-	if (GunFinger[4] > Little)
-	{
-		GunFinger[4] = Little;
-	}
-}
 
 void UPlayerScoreInstance::AddPlayerScore(int32 Value)
 {

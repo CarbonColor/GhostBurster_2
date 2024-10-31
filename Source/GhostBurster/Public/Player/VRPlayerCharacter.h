@@ -23,6 +23,7 @@
 #include "Blueprint/UserWidget.h"
 #include "EnemyDirectionWIdget.h"
 #include "Interface/DamageInterface.h"
+
 #include "VRPlayerCharacter.generated.h"
 
 class USpotLightComponent;

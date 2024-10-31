@@ -81,28 +81,13 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "DeviceData")
 		TArray<int32> FingerBorder;
 
-	//通常の手の値
-	UPROPERTY(BlueprintReadOnly, Category = "DeviceData")
-	TArray<int32> NormalFinger;
-	//狐の手の値
-	UPROPERTY(BlueprintReadOnly, Category = "DeviceData")
-	TArray<int32> FoxFinger;
-	//銃の手の値
-	UPROPERTY(BlueprintReadOnly, Category = "DeviceData")
-	TArray<int32> GunFinger;
 
 	//デバイス関係のセッター
 	UFUNCTION(BlueprintCallable, Category = "DeviceData")
 		void SetDevicePortNumber(const int32 Port);
 	UFUNCTION(BlueprintCallable, Category = "DeviceData")
-		void SetFingerBorder();
+		void SetFingerBorder(const TArray<int32> NormalFinger, const TArray<int32> FoxFinger, const TArray<int32> GunFinger);
 
-	UFUNCTION(BlueprintCallable, Category = "DeviceData")
-		void CheckNormalFinger(const int32 Thumb, const int32 Index, const int32 Middle, const int32 Ring, const int32 Little);
-	UFUNCTION(BlueprintCallable, Category = "DeviceData")
-		void CheckFoxFinger(const int32 Thumb, const int32 Index, const int32 Middle, const int32 Ring, const int32 Little);
-	UFUNCTION(BlueprintCallable, Category = "DeviceData")
-		void CheckGunFinger(const int32 Thumb, const int32 Index, const int32 Middle, const int32 Ring, const int32 Little);
 
 	// スコアを取得するメソッド
 	UFUNCTION(BlueprintCallable, Category = "PlayerData")
