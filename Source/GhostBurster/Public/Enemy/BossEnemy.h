@@ -61,9 +61,13 @@ class GHOSTBURSTER_API ABossEnemy : public AEnemys
 	bool bOneSecondsPassedIs();
 
 	//マテリアル関係------------------------------------------------------------------------------------------
-	TObjectPtr<UMaterialInstanceDynamic> DynamicMaterial_String; // 紐のダイナミックマテリアル
-	float								 OpacityValue_String;	 // 紐のオパシティの値
-	float								 MaxOpacity_String;		 // 紐のオパシティの最大値(0～1の範囲)
+	TObjectPtr<UMaterialInstanceDynamic> DynamicMaterial_String;		// 紐のダイナミックマテリアル
+	float								 OpacityValue_String;			// 紐のオパシティの値
+	float								 MaxOpacity_String;				// 紐のオパシティの最大値(0～1の範囲)
+	int									 EyeValueChangeStartingRate;	// 目のオパシティ値の変更を始める割合
+
+
+
 
 	//アニメーション関係--------------------------------------------------------------------------------------
 	//☆変数
@@ -169,6 +173,10 @@ private:
 	//☆関数
 	virtual void	ProcessJustForFirst_Move() override;	// 状態Move遷移時にのみ行う処理
 	virtual bool	Move() override;						// 移動
+
+	//死亡関係-----------------------------------------------------------------------------------------------
+	//☆関数
+	virtual bool	Transparentize_Dead() override;			// 死亡時の徐々に透明にする処理
 
 protected:
 	virtual void BeginPlay() override;

@@ -31,11 +31,12 @@ protected:
 	//ステータス
 	struct FStatus
 	{
-		FStatus() : HP(60), MaxHP(60), Speed(0.f) {}
+		FStatus() : HP(60), MaxHP(60), Speed(0.f), Score(100) {}
 
 		int		HP;		// ゴーストの体力
 		int		MaxHP;	// ゴーストの最大HP
 		float	Speed;	// 目的地までの移動速度
+		int		Score;	// 倒したときに加算されるスコア
 	};
 
 	//☆列挙型
@@ -102,9 +103,9 @@ protected:
 	float									EmissiveValueAtDead;	// 死亡時の発光の値
 
 	//☆関数
-	bool	Transparentize_Dead();		// 死亡時の徐々に透明にする処理
-	void	ChangeEmissiveValue();		// HPの減少に伴い発光させる
-	void	ChangeEmissiveValue_Dead();	// 死亡時に発光させる
+	virtual bool	Transparentize_Dead();							// 死亡時の徐々に透明にする処理
+	void			ChangeEmissiveValue();							// HPの減少に伴い発光させる
+	void			ChangeEmissiveValue_Dead();						// 死亡時に発光させる
 
 	//アニメーション関係-----------------------------------------------------------------------------------------------------------
 	//☆変数
@@ -162,8 +163,8 @@ protected:
 
 	//死亡関係---------------------------------------------------------------------------------------------------------------------
 	//☆変数
-	bool	bIsDestroy;					// 徐々に透明にする処理を終了するか
-	bool	bIsEscaped;					// 逃走したか
+	bool	bIsDestroy;							// 徐々に透明にする処理を終了するか
+	bool	bIsEscaped;							// 逃走したか
 
 	//☆関数
 	void	EnemyDead();				// HPが0になったら消滅させる
