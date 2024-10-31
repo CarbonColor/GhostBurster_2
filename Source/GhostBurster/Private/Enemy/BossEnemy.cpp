@@ -21,14 +21,14 @@ ABossEnemy::ABossEnemy()
 	DeadAnim(nullptr), StanAnim(nullptr), SummonAnim(nullptr), WarpAnim(nullptr), ActProcessingWithDoAnimationChangeDoIs(true),
 	//待機関係
 	ChangingBossColor(EEnemyColor::White), bHasEndedWait(false), bHasFinishedTransparentize(false), bHasFinishedChangeDecidedColor(false), ColorValue(FLinearColor(0, 0, 0)), bHasFinishedShow(false),
-	bIsBattleStarted(true),
+	bIsBattleStarted(true), TimeUpToColorChange(1.5f),
 	//チャージ関係
 	ChargeTime(0.f), bIsTransitionAttack(false), bIsTransitionStan(false), CountUpToAttackStateTransition(0), TimeUpToAttackStateTransition(1), ChargeCount(0), CountUpToAttack(5), StanValue(0), 
 	MaxStanValue(5 * AssumptionFPS),
 	//スタン関係
 	bHasEndedStan(false),
 	//通常敵呼び関係
-	bHasEndedEnemyCall(false), CallingEnemyNumber(0),
+	bHasEndedEnemyCall(false), CallingEnemyNumber(0), EnemyCallTiming(240),
 	//通常敵の討伐待機関係
 	NowExistsEnemyNumber(0),
 	//通常敵の討伐後関係
@@ -132,17 +132,18 @@ ABossEnemy::ABossEnemy()
 	}
 
 	//☆アニメーション-------------------------------------------------------------------------------------------------------------
-	this->DefaultAnim = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Boss/ghost_boss_idle_Anim"));	// 特定のアニメーションを使用しない状態のアニメーション
-	this->AttackAnim = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Boss/ghost_boss_attack_Anim"));	// 攻撃状態のアニメーション
-	DeadAnim = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Boss/ghost_boss_dead_Anim"));				// 死亡状態のアニメーション
-	StanAnim = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Boss/ghost_boss_stun_Anim"));				// スタン状態のアニメーション
-	SummonAnim = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Boss/ghost_boss_summon_Anim"));			// 敵呼び時のアニメーション
-	WarpAnim = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Boss/ghost_boss_summon_Anim"));	// 瞬間移動時のアニメ－ション
+	this->DefaultAnim = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Boss/ghost_boss_idle_Anim"));	// 特定のアニメーションを使用しない状態のアニメーション 基本ループ再生する
+	this->AttackAnim = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Boss/ghost_boss_attack_Anim"));	// 攻撃状態のアニメーション								ループ再生しない
+	DeadAnim = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Boss/ghost_boss_dead_Anim"));				// 死亡状態のアニメーション								ループ再生しない
+	StanAnim = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Boss/ghost_boss_stun_Anim"));				// スタン状態のアニメーション							ループ再生しない
+	SummonAnim = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Boss/ghost_boss_summon_Anim"));			// 敵呼び時のアニメーション								ループ再生しない
+	WarpAnim = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Boss/ghost_boss_warp_Anim"));				// 瞬間移動時のアニメ－ション							ループ再生しない
 
 	//☆ボス敵の設定-----------------------------------------------------------------------------------------------
 	this->Status.MaxHP = 300;
 	this->Status.HP = Status.MaxHP;
-	this->EnemyColor = EEnemyColor::BossColor;
+	this->EnemyColor = EEnemyColor::BossColor;	// 初期の色設定
+	this->AttackTiming = 85;					// 攻撃判定のタイミング設定(フレーム数)
 }
 
 void ABossEnemy::BeginPlay()
@@ -160,7 +161,11 @@ void ABossEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	TickProcess();
+	//戦闘を開始したら処理を始める
+	if (bIsBattleStarted)
+	{
+		TickProcess();
+	}
 }
 
 //----------------------------------------------------------------------------------------
@@ -190,23 +195,23 @@ void ABossEnemy::Think()
 	case EBossState::Wait:
 		if (bHasEndedWait)
 		{
-			int StateDecideNumber = 1/*FMath::RandRange((int)EBossState::Wait + 1, (int)EBossState::MaxStateCountAtTransitionFromWait - 1)*/; //待機状態以外の生存時になる状態をランダムで決める
+			int StateDecideNumber = FMath::RandRange((int)EBossState::Wait + 1, (int)EBossState::MaxStateCountAtTransitionFromWait - 1); //待機状態以外の生存時になる状態をランダムで決める
 			//状態遷移
 			switch (StateDecideNumber)
 			{
 			case 1:	// チャージ状態へ
 				NowState = EBossState::Charge;
-				UKismetSystemLibrary::PrintString(this, TEXT("Change Charge"), true, true, FColor::Red, 2.f);
+				/*UKismetSystemLibrary::PrintString(this, TEXT("Change Charge"), true, true, FColor::Red, 2.f);*/
 				break;
 
 			case 2:	// 雑魚敵を呼ぶ状態へ
 				NowState = EBossState::EnemyCall;
-				UKismetSystemLibrary::PrintString(this, TEXT("Change EnemyCall"), true, true, FColor::Green, 2.f);
+				/*UKismetSystemLibrary::PrintString(this, TEXT("Change EnemyCall"), true, true, FColor::Green, 2.f);*/
 				break;
 
 			case 3:	// 瞬間移動状態へ
 				NowState = EBossState::Teleportation;
-				UKismetSystemLibrary::PrintString(this, TEXT("Change Teleportation"), true, true, FColor::Blue, 2.f);
+				/*UKismetSystemLibrary::PrintString(this, TEXT("Change Teleportation"), true, true, FColor::Blue, 2.f);*/
 				break;
 			}
 		}
@@ -251,7 +256,7 @@ void ABossEnemy::Think()
 
 	//瞬間移動-------------------------------------------------------------------------------
 	case EBossState::Teleportation:
-		if (MoveCount >= 1 * Gamefps) { NowState = EBossState::Wait; }	//待機状態へ
+		if (bHasEndedTeleportation) { NowState = EBossState::Wait; }	//待機状態へ
 		if (Status.HP <= 0) { NowState = EBossState::Die; }				//死亡状態へ
 		break;
 	}
@@ -280,15 +285,15 @@ void ABossEnemy::ActProcess()
 	{
 	//待機-----------------------------------------------------------------------------------
 	case EBossState::Wait:
-		//戦闘が始まっていたら色の変更を行う
-		if (bIsBattleStarted)
+		//状態：Wait遷移時にのみ行う処理
+		if (this->bShouldBeenProcessWhenFirstStateTransition == false)
 		{
-			//状態：Wait遷移時にのみ行う処理
-			if (this->bShouldBeenProcessWhenFirstStateTransition == false)
-			{
-				ProcessJustForFirst_Wait();
-			}
+			ProcessJustForFirst_Wait();
+		}
 
+		//色変更までの時間が経ったか判定
+		if (MoveCount >= FMath::RoundToInt(TimeUpToColorChange * Gamefps))
+		{
 			//色の変更処理
 			bHasEndedWait = ChangeColor(ChangingBossColor);
 		}
@@ -351,9 +356,6 @@ void ABossEnemy::ActProcess()
 
 	//瞬間移動-------------------------------------------------------------------------------
 	case EBossState::Teleportation:
-		/*メモ*/
-		/*ファイル読み込み(ここで移動パターンを決定させる)*/
-		/*ファイルから読み込んだ値をアクターの座標にする*/
 		//状態:Teleportation遷移時にのみ行う処理
 		if (this->bShouldBeenProcessWhenFirstStateTransition == false)
 		{
@@ -400,18 +402,48 @@ bool ABossEnemy::bOneSecondsPassedIs()
 void ABossEnemy::AnimationChangeAtStateChange(const EBossState NowState)
 {
 	//状態に合わせたアニメーション変更
-	switch (NowState)
+	if (GhostMeshComponent)
 	{
-	case EBossState::Attack:
-		break;
-
-	default:	// 特定のアニメーションがない場合
-		if (DefaultAnim) // nullチェック
+		switch (NowState)
 		{
-			GhostMeshComponent->PlayAnimation(DefaultAnim, true);
+		case EBossState::Attack:
+			if (AttackAnim) // nullチェック
+			{
+				GhostMeshComponent->PlayAnimation(AttackAnim, false);
+			}
+			break;
+
+		case EBossState::Stan:
+			if (StanAnim)
+			{
+				GhostMeshComponent->PlayAnimation(StanAnim, false);
+			}
+			break;
+
+		case EBossState::EnemyCall:
+			if (SummonAnim)
+			{
+				GhostMeshComponent->PlayAnimation(SummonAnim, false);
+			}
+			break;
+
+		default:	// 特定のアニメーションがない場合
+			if (DefaultAnim) // nullチェック
+			{
+				GhostMeshComponent->PlayAnimation(DefaultAnim, true);
+			}
+			break;
+
+		//アニメーションを止める状態-------------------------------------------------------------------------
+		case EBossState::EnemyExpeditionWait:
+			GhostMeshComponent->Stop();
+			break;
+
+		//アニメーションを使用しない状態-------------------------------------------------------------------------
+
 		}
-		break;
 	}
+	
 
 //	//状態に合わせたアニメーション変更
 //	switch (NewState)
@@ -480,15 +512,35 @@ void ABossEnemy::AnimationChangeAtStateChange(const EBossState NowState)
 void ABossEnemy::ActProcessingWithAnimationChange(const EBossState NowState)
 {
 	//状態に合わせたアニメーション変更
-	switch (NowState)
+	if (GhostMeshComponent)
 	{
-	case EBossState::Charge:	// チャージ状態のテレポーテーション時のアニメーション
-		if (WarpAnim) // nullチェック
+		switch (NowState)
+		{
+		case EBossState::Charge:	// チャージ状態のテレポートのアニメーションに変更
+			if (WarpAnim) // nullチェック
 			{
 				GhostMeshComponent->PlayAnimation(WarpAnim, false);
 			}
-		break;
+
+			//チャージが終わっていたらデフォルトのアニメーションに変更
+			if (ChargeCount == CountUpToAttack)
+			{
+				if (DefaultAnim) // nullチェック
+				{
+					GhostMeshComponent->PlayAnimation(DefaultAnim, true);
+				}
+			}
+			break;
+
+		case EBossState::Teleportation:
+			if (WarpAnim) // nullチェック
+			{
+				GhostMeshComponent->PlayAnimation(WarpAnim, false);
+			}
+			break;
+		}
 	}
+	
 
 	ActProcessingWithDoAnimationChangeDoIs = false;
 }
@@ -507,6 +559,9 @@ void ABossEnemy::ProcessJustForFirst_Wait()
 	bHasFinishedTransparentize = false;
 	bHasFinishedChangeDecidedColor = false;
 	bHasFinishedShow = false;
+
+	//次の状態に遷移しないようにする
+	bHasEndedWait = false;
 
 	//この関数が複数回呼ばれないようにする
 	this->bShouldBeenProcessWhenFirstStateTransition = true;
@@ -558,7 +613,7 @@ bool ABossEnemy::Transparentize(const float DeltaTime)
 		//オパシティの値を計算
 		OpacityValue_Body -= MaxOpacity_Body / TimeUpToTransparency * DeltaTime;		// 体のオパシティの計算
 		OpacityValue_Eye -= MaxOpacity_Eye / TimeUpToTransparency * DeltaTime;			// 目のオパシティの計算
-		//OpacityValue_String -= MaxOpacity_String / TimeUpToTransparency * DeltaTime;	// 紐のオパシティの計算
+		/*OpacityValue_String -= MaxOpacity_String / TimeUpToTransparency * DeltaTime;*/	// 紐のオパシティの計算
 
 		//出現が終わったら処理を終了する
 		if (OpacityValue_Body <= 0.f && OpacityValue_Eye <= 0.f && OpacityValue_String <= 0.f)
@@ -642,7 +697,7 @@ bool ABossEnemy::Show(const float DeltaTime)
 		//オパシティの値を計算
 		OpacityValue_Body += MaxOpacity_Body / TimeSpentInAppear * DeltaTime;			// 体のオパシティの計算
 		OpacityValue_Eye += MaxOpacity_Eye / TimeSpentInAppear * DeltaTime;				// 目のオパシティの計算
-		//OpacityValue_String += MaxOpacity_String / TimeUpToTransparency * DeltaTime;	// 紐のオパシティの計算
+		/*OpacityValue_String += MaxOpacity_String / TimeUpToTransparency * DeltaTime;*/	// 紐のオパシティの計算
 
 		//出現が終わったら処理を終了する
 		if (OpacityValue_Body >= MaxOpacity_Body && OpacityValue_Eye >= MaxOpacity_Eye)
@@ -691,6 +746,9 @@ void ABossEnemy::ProcessJustForFirst_Charge()
 	bIsTransitionAttack = false;	// 攻撃状態に遷移するか
 	bIsTransitionStan = false;		// スタン状態に遷移するか
 
+	//チャージ回数を0にする
+	ChargeCount = 0;
+
 	//ボスの出現座標をクリアする
 	BossGoalLocations.Empty();
 
@@ -712,6 +770,9 @@ void ABossEnemy::ProcessJustForFirst_Charge()
 		//ボスの出現位置を設定
 		BossGoalLocations.Add(FVector(GoalX, GoalY, GoalZ));
 	}
+
+	//アニメーションが始まるようにする
+	ActProcessingWithDoAnimationChangeDoIs = true;
 
 	//この関数が複数回呼ばれないようにする
 	this->bShouldBeenProcessWhenFirstStateTransition = true;
@@ -739,6 +800,9 @@ void ABossEnemy::ChargeAttack()
 	//チャージが完了したら
 	if (ChargeCount == CountUpToAttack)
 	{
+		//待機のアニメーションに変更
+		ActProcessingWithAnimationChange(BossState);
+
 		//状態：Attackに遷移するまでの時間をカウントする
 		CountUpToAttackStateTransition++;
 
@@ -796,21 +860,29 @@ void ABossEnemy::ProcessJustForFirst_Attack()
 //攻撃処理
 bool ABossEnemy::Attack()
 {
-	//攻撃判定
-	if (MoveCount == 1 * FMath::RoundToInt(Gamefps))
+	if (GhostMeshComponent && AttackAnim) // nullチェック
 	{
-		UKismetSystemLibrary::PrintString(this, TEXT("BossEnemy Attack!"), true, true, FColor::Yellow, 2.f, TEXT("None"));
-
-		//プレイヤーへダメージを与える
-		//プレイヤーへダメージを与える
-		//プレイヤーの情報取得
-		TObjectPtr<AVRPlayerCharacter> Player = Cast<AVRPlayerCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
-		if (Player)
+		//攻撃判定
+		if (MoveCount == FMath::RoundToInt(AttackTiming * Gamefps / AssumptionFPS))
 		{
-			Player->RecievePlayerDamage();
-		}
+			/*UKismetSystemLibrary::PrintString(this, TEXT("BossEnemy Attack!"), true, true, FColor::Yellow, 2.f, TEXT("None"));*/
 
-		//攻撃終了(条件式で制御し、アニメーションが終わったらにするかも)
+			//プレイヤーの情報取得
+			TObjectPtr<AVRPlayerCharacter> Player = Cast<AVRPlayerCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
+			//プレイヤーへダメージを与える
+			if (Player)
+			{
+				Player->RecievePlayerDamage();
+			}
+		}
+		//アニメーションが終わったら攻撃状態終了
+		if (!GhostMeshComponent->IsPlaying())
+		{
+			return true;
+		}
+	}
+	else // モデル、アニメーションがnullな場合攻撃せず終了する
+	{
 		return true;
 	}
 
@@ -822,17 +894,17 @@ bool ABossEnemy::Attack()
 //スタン処理
 bool ABossEnemy::Stan()
 {
-	//スタン値の減少
-	StanValue -= FMath::RoundToInt(1 * Gamefps / AssumptionFPS);
-
-	//スタン値が0になったら待機状態に戻る
-	if (StanValue <= 0)
+	if (GhostMeshComponent && StanAnim) // nullチェック
 	{
-		//スタン値を0未満にならないようにする
-		StanValue = 0;
+		//アニメーションが終わったら待機状態に戻る
+		if (!GhostMeshComponent->IsPlaying())
+		{
+			//スタン値を0にする
+			StanValue = 0;
 
-		//スタン状態終了
-		return true;
+			//スタン状態終了
+			return true;
+		}
 	}
 
 	//もう一度この関数を呼ぶ
@@ -932,12 +1004,21 @@ bool ABossEnemy::EnemyCall()
 	//DeltaTimeの取得
 	float DeltaTime = GetWorld()->GetDeltaSeconds();
 
-	//敵が出現するワープホールのようなエフェクトの生成
-
-	//透明化する(Waitでの透明化処理を流用)
-	if (bHasFinishedTransparentize == false)
+	//アニメーションに合わせて敵の生成を行う
+	if (MoveCount == FMath::RoundToInt(EnemyCallTiming * Gamefps / AssumptionFPS))
 	{
-		bHasFinishedTransparentize = Transparentize(DeltaTime);
+		//通常敵の生成
+		CreateEnemies(CallingEnemyNumber, NormalEnemyPopLocations, CallingEnemyColors);
+	}
+
+	//アニメーションが終了したか
+	if (!GhostMeshComponent->IsPlaying())
+	{
+		//透明化する(Waitでの透明化処理を流用)
+		if (bHasFinishedTransparentize == false)
+		{
+			bHasFinishedTransparentize = Transparentize(DeltaTime);
+		}
 	}
 
 	//透明化後の処理
@@ -950,9 +1031,6 @@ bool ABossEnemy::EnemyCall()
 		{
 			//FinishCountをゼロクリアする
 			FinishCount = 0;
-
-			//通常敵の生成
-			CreateEnemies(CallingEnemyNumber, NormalEnemyPopLocations, CallingEnemyColors);
 
 			//ボス敵の状態を敵の討伐待機状態に遷移できるようにする
 			return true;
@@ -1070,6 +1148,9 @@ void ABossEnemy::ProcessJustForFirst_Move()
 	//ボスの出現位置を設定
 	BossGoalLocation = FVector(GoalX, GoalY, GoalZ);
 
+	//アニメーションが始まるようにする
+	ActProcessingWithDoAnimationChangeDoIs = true;
+
 	//この関数が複数回呼ばれないようにする
 	this->bShouldBeenProcessWhenFirstStateTransition = true;
 }
@@ -1077,10 +1158,22 @@ void ABossEnemy::ProcessJustForFirst_Move()
 //瞬間移動
 bool ABossEnemy::Move()
 {
-	//瞬間移動する
-	SetActorLocation(this->BossGoalLocation);
+	//テレポートのアニメーション
+	if (ActProcessingWithDoAnimationChangeDoIs)
+	{
+		ActProcessingWithAnimationChange(BossState);
+	}
 
-	return true;
+	//アニメーションが終了したら
+	if (!GhostMeshComponent->IsPlaying())
+	{
+		//瞬間移動する
+		SetActorLocation(this->BossGoalLocation);
+
+		return true;
+	}
+	
+	return false;
 }
 
 //ダメージを受ける処理、引数でもらった攻撃力分体力を減らす
