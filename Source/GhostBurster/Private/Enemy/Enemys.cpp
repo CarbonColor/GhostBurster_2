@@ -6,6 +6,7 @@
 #include "Player/VRPlayerCharacter.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Enemy/BossEnemy.h"
 
 // Sets default values
 AEnemys::AEnemys()
@@ -166,6 +167,13 @@ void AEnemys::EnemyDead()
 //EnemyDeadで一度だけ行う処理
 void AEnemys::ProcessDoOnce_EnemyDead()
 {
+	//親子関係がある時、親に死亡したことを伝える
+	TObjectPtr<ABossEnemy> Parent = Cast<ABossEnemy>(GetAttachParentActor());
+	if (Parent)
+	{
+		Parent->ReceiveInfoDeadCalledEnemy();
+	}
+
 	//イベントに死亡通知を送る
 	//プレイヤーを取得
 	TObjectPtr<AVRPlayerCharacter> Player = Cast<AVRPlayerCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
@@ -299,35 +307,35 @@ void AEnemys::FacePlayerHowTo()
 void AEnemys::ChangeAnimation(const EState PreState, const EState NewState)
 {
 	//状態に合わせたアニメーション変更
-	switch (NewState)
+	if (GhostMeshComponent)
 	{
-	case EState::Attack: // 攻撃状態
-		if (AttackAnim)	// nullチェック
+		switch (NewState)
 		{
-			GhostMeshComponent->PlayAnimation(AttackAnim, false);
-		}
-		break;
-
-	default: // 特定のアニメーションがない状態
-		if (DefaultAnim) // nullチェック
-		{
-			if (PreState == EState::Attack || PreState == EState::Appear) // 変更前の状態が特定のアニメーションを持っているまたは、アニメーションを使用しない状態だったら
+		case EState::Attack: // 攻撃状態
+			if (AttackAnim)	// nullチェック
 			{
-				GhostMeshComponent->PlayAnimation(DefaultAnim, true);
+				GhostMeshComponent->PlayAnimation(AttackAnim, false);
 			}
-		}
-		break;
+			break;
 
-	//アニメーションを使用しない状態-------------------------------------------------------------------------
-	case EState::Appear: // この状態は敵の最初の状態なのでアニメーションの強制終了は必要ない
-		break;
+		default: // 特定のアニメーションがない状態
+			if (DefaultAnim) // nullチェック
+			{
+				if (PreState == EState::Attack || PreState == EState::Appear) // 変更前の状態が特定のアニメーションを持っているまたは、アニメーションを使用しない状態だったら
+				{
+					GhostMeshComponent->PlayAnimation(DefaultAnim, true);
+				}
+			}
+			break;
 
-	case EState::Die: // この状態の後にアニメーションが変更されることはないのでdefaultのif文の変更前の状態は死亡状態かどうかの確認はしなくてよい
-		if (GhostMeshComponent)
-		{
+			//アニメーションを使用しない状態-------------------------------------------------------------------------
+		case EState::Appear: // この状態は敵の最初の状態なのでアニメーションの強制終了は必要ない
+			break;
+
+		case EState::Die: // この状態の後にアニメーションが変更されることはないのでdefaultのif文の変更前の状態は死亡状態かどうかの確認はしなくてよい
 			GhostMeshComponent->Stop();
+			break;
 		}
-		break;
 	}
 }
 
