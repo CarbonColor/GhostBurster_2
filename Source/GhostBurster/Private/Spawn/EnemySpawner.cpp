@@ -343,6 +343,7 @@ void AEnemySpawner::SpawnEnemy(const FEnemySpawnInfo& SpawnInfo)
 
             if (ABossEnemy* Boss = Cast<ABossEnemy>(SpawnedEnemy))
             {
+                Boss->GetPlayerLocationAndRotation(Player->GetActorLocation(), Player->GetActorRotation().Yaw);
                 Boss->BattleStart();
             }
 

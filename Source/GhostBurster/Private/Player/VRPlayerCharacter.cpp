@@ -7,8 +7,6 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "MotionControllerComponent.h"
-#include "InputAction.h"
-#include "InputMappingContext.h"
 #include "Kismet/KismetStringLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "Enemy/Enemys.h"
