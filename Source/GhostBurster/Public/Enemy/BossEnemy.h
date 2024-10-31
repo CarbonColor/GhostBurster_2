@@ -53,7 +53,7 @@ class GHOSTBURSTER_API ABossEnemy : public AEnemys
 	virtual void Think() override;
 
 	//状態の更新
-	void UpdateState(EBossState nowState);
+	void UpdateState(EBossState NowState);
 
 	//状態に基づいた動きをする
 	virtual void ActProcess() override;
@@ -68,13 +68,15 @@ class GHOSTBURSTER_API ABossEnemy : public AEnemys
 
 	//アニメーション関係--------------------------------------------------------------------------------------
 	//☆変数
-	TObjectPtr<UAnimSequence> DeadAnim;				// 死亡状態のアニメーション
-	TObjectPtr<UAnimSequence> StanAnim;				// スタン状態のアニメーション
-	TObjectPtr<UAnimSequence> SummonAnim;			// 敵呼び時のアニメーション
-	TObjectPtr<UAnimSequence> WarpAnim;				// 瞬間移動、敵が消える時のアニメ－ション
+	TObjectPtr<UAnimSequence>	DeadAnim;								// 死亡状態のアニメーション
+	TObjectPtr<UAnimSequence>	StanAnim;								// スタン状態のアニメーション
+	TObjectPtr<UAnimSequence>	SummonAnim;								// 敵呼び時のアニメーション
+	TObjectPtr<UAnimSequence>	WarpAnim;								// 瞬間移動、敵が消える時のアニメ－ション
+	bool						ActProcessingWithDoAnimationChangeDoIs;	// 行動処理と共に行うアニメーション変更を行うか
 
 	//☆関数
-	void ChangeBossAnimation(const EBossState PreState, const EBossState NewState);	// 状態遷移時のアニメーションの変更
+	void AnimationChangeAtStateChange(const EBossState NowState);		// 状態遷移時のアニメーションの変更
+	void ActProcessingWithAnimationChange(const EBossState NowState);	// 行動処理と共に行うアニメーションの変更
 
 	//待機関係------------------------------------------------------------------------------------------------
 	//☆変数
@@ -85,6 +87,7 @@ class GHOSTBURSTER_API ABossEnemy : public AEnemys
 	FLinearColor	ColorValue;												// 色の値
 	bool			bHasFinishedShow;										// 表示が終わったか
 	bool			bIsBattleStarted;										// 戦闘が開始したか
+	int				TimeUpToColorChange;									// 色変更までの時間(秒)
 
 	//☆関数
 	void			ProcessJustForFirst_Wait();								// 状態：Wait遷移時にのみ行う処理
@@ -121,10 +124,10 @@ private:
 
 	//スタン関係---------------------------------------------------------------------------------------------
 	//☆変数
-	bool bHasEndedStan;	// スタン状態を終了するか
+	bool	bHasEndedStan;		// スタン状態を終了するか
 
 	//☆関数
-	bool Stan();		// スタン処理
+	bool	Stan();				// スタン処理
 
 	//通常敵呼び関係-----------------------------------------------------------------------------------------
 	//☆変数
@@ -132,6 +135,7 @@ private:
 	bool				bHasEndedEnemyCall;			// 通常敵呼び状態を終了するか
 	int					CallingEnemyNumber;			// 通常敵の生成数
 	TArray<EEnemyColor>	CallingEnemyColors;			// 生成する敵の色
+	int					EnemyCallTiming;			// 敵の生成するタイミング(フレーム数)
 
 	//☆関数
 	void				ProcessJustForFirst_EnemyCall();																						// 状態：EnemyCall遷移時にのみ行う処理
