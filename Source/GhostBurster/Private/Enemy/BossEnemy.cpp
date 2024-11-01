@@ -22,7 +22,7 @@ ABossEnemy::ABossEnemy()
 	DeadAnim(nullptr), StanAnim(nullptr), SummonAnim(nullptr), WarpAnim(nullptr), ActProcessingWithDoAnimationChangeDoIs(true),
 	//待機関係
 	ChangingBossColor(EEnemyColor::White), bHasEndedWait(false), bHasFinishedTransparentize(false), bHasFinishedChangeDecidedColor(false), ColorValue(FLinearColor(0, 0, 0)), bHasFinishedShow(false),
-	bIsBattleStarted(false), TimeUpToColorChange(1.5f),
+	bIsBattleStarted(true), TimeUpToColorChange(1.5f),
 	//チャージ関係
 	ChargeTime(0.f), bIsTransitionAttack(false), bIsTransitionStan(false), CountUpToAttackStateTransition(0), TimeUpToAttackStateTransition(1), ChargeCount(0), CountUpToAttack(5), StanValue(0), 
 	MaxStanValue(5 * AssumptionFPS),
@@ -735,8 +735,8 @@ void ABossEnemy::ProcessJustForFirst_Charge()
 		float GoalRadians = FMath::DegreesToRadians(GoalDegrees);												// ラジアンに変換
 
 		//ボスの移動位置を決める
-		float GoalX = (PlayerLocation_BossRoom.X + 500) * FMath::Sin(GoalRadians);
-		float GoalY = (PlayerLocation_BossRoom.Y + 500) * FMath::Cos(GoalRadians);
+		float GoalX = PlayerLocation_BossRoom.X + (550 * FMath::Cos(GoalRadians));
+		float GoalY = PlayerLocation_BossRoom.Y + (550 * FMath::Sin(GoalRadians));
 		float GoalZ = CurrentLocation.Z;
 
 		//デバッグ用
@@ -1116,8 +1116,8 @@ void ABossEnemy::ProcessJustForFirst_Move()
 	float GoalRadians = FMath::DegreesToRadians(GoalDegrees);						// ラジアンに変換
 
 	//ボスの移動位置を決める
-	float GoalX = (PlayerLocation_BossRoom.X + 500) * FMath::Sin(GoalRadians);
-	float GoalY = (PlayerLocation_BossRoom.Y + 500) * FMath::Cos(GoalRadians);
+	float GoalX = PlayerLocation_BossRoom.X + (550 * FMath::Cos(GoalRadians));
+	float GoalY = PlayerLocation_BossRoom.Y + (550 * FMath::Sin(GoalRadians));
 	float GoalZ = CurrentLocation.Z;
 
 	//デバッグ用
