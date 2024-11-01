@@ -58,10 +58,20 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     LeftEarComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("LeftEarAudioComponent"));
     LeftEarComponent->SetupAttachment(CameraComponent);
     LeftEarComponent->SetRelativeLocation(FVector(0, -15, 0));
+    if (OutViewEnemySound)
+    {
+        LeftEarComponent->SetSound(OutViewEnemySound);
+    }
+
     //右耳のオーディオコンポーネント
     RightEarComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("RightEarAudioComponent"));
     RightEarComponent->SetupAttachment(CameraComponent);
-    LeftEarComponent->SetRelativeLocation(FVector(0, 15, 0));
+    RightEarComponent->SetRelativeLocation(FVector(0, 15, 0));
+    if (OutViewEnemySound)
+    {
+        RightEarComponent->SetSound(OutViewEnemySound);
+    }
+
 
     // モーションコントローラーコンポーネント(右手)を作る
     MotionController_Right = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("MotionController_Right"));
@@ -963,6 +973,7 @@ void AVRPlayerCharacter::UpdateViewOutEnemySound()
         if (LeftEarComponent->IsPlaying() == false)
         {
             LeftEarComponent->Play();
+            GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Green, TEXT("Left Ear"));
         }
     }
     else
@@ -977,6 +988,7 @@ void AVRPlayerCharacter::UpdateViewOutEnemySound()
         if (RightEarComponent->IsPlaying() == false)
         {
             RightEarComponent->Play();
+            GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Green, TEXT("Right Ear"));
         }
     }
     else
