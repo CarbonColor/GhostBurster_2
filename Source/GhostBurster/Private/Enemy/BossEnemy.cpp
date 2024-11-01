@@ -735,8 +735,8 @@ void ABossEnemy::ProcessJustForFirst_Charge()
 		float GoalRadians = FMath::DegreesToRadians(GoalDegrees);												// ラジアンに変換
 
 		//ボスの移動位置を決める
-		float GoalX = (PlayerLocation_BossRoom.X + 500) * FMath::Cos(GoalRadians);
-		float GoalY = (PlayerLocation_BossRoom.Y + 500) * FMath::Sin(GoalRadians);
+		float GoalX = (PlayerLocation_BossRoom.X + 500) * FMath::Sin(GoalRadians);
+		float GoalY = (PlayerLocation_BossRoom.Y + 500) * FMath::Cos(GoalRadians);
 		float GoalZ = CurrentLocation.Z;
 
 		//ボスの出現位置を設定
@@ -1113,8 +1113,8 @@ void ABossEnemy::ProcessJustForFirst_Move()
 	float GoalRadians = FMath::DegreesToRadians(GoalDegrees);						// ラジアンに変換
 
 	//ボスの移動位置を決める
-	float GoalX = (PlayerLocation_BossRoom.X + 500) * FMath::Cos(GoalRadians);
-	float GoalY = (PlayerLocation_BossRoom.Y + 500) * FMath::Sin(GoalRadians);
+	float GoalX = (PlayerLocation_BossRoom.X + 500) * FMath::Sin(GoalRadians);
+	float GoalY = (PlayerLocation_BossRoom.Y + 500) * FMath::Cos(GoalRadians);
 	float GoalZ = CurrentLocation.Z;
 
 	//ボスの出現位置を設定
