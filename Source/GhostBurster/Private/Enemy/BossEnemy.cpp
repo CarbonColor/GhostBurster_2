@@ -35,7 +35,7 @@ ABossEnemy::ABossEnemy()
 	//通常敵の討伐後関係
 	bHasEndedAfterEnemyExpedition(false),
 	//移動関係
-	BossGoalLocation(FVector(0.f, 0.f, 0.f)), bHasEndedTeleportation(false), DegreeLimit_Min(-60), DegreeLimit_Max(60),
+	BossGoalLocation(FVector(0.f, 0.f, 0.f)), bHasEndedTeleportation(false), DegreeLimit_Min(-60), DegreeLimit_Max(60), RadiusFromPlayer(650.f),
 	//死亡関係
 	InRate_Destroy(1.5f)
 {
@@ -735,8 +735,8 @@ void ABossEnemy::ProcessJustForFirst_Charge()
 		float GoalRadians = FMath::DegreesToRadians(GoalDegrees);												// ラジアンに変換
 
 		//ボスの移動位置を決める
-		float GoalX = PlayerLocation_BossRoom.X + (550 * FMath::Cos(GoalRadians));
-		float GoalY = PlayerLocation_BossRoom.Y + (550 * FMath::Sin(GoalRadians));
+		float GoalX = PlayerLocation_BossRoom.X + (RadiusFromPlayer * FMath::Cos(GoalRadians));
+		float GoalY = PlayerLocation_BossRoom.Y + (RadiusFromPlayer * FMath::Sin(GoalRadians));
 		float GoalZ = CurrentLocation.Z;
 
 		//デバッグ用
@@ -1116,8 +1116,8 @@ void ABossEnemy::ProcessJustForFirst_Move()
 	float GoalRadians = FMath::DegreesToRadians(GoalDegrees);						// ラジアンに変換
 
 	//ボスの移動位置を決める
-	float GoalX = PlayerLocation_BossRoom.X + (550 * FMath::Cos(GoalRadians));
-	float GoalY = PlayerLocation_BossRoom.Y + (550 * FMath::Sin(GoalRadians));
+	float GoalX = PlayerLocation_BossRoom.X + (RadiusFromPlayer * FMath::Cos(GoalRadians));
+	float GoalY = PlayerLocation_BossRoom.Y + (RadiusFromPlayer * FMath::Sin(GoalRadians));
 	float GoalZ = CurrentLocation.Z;
 
 	//デバッグ用
