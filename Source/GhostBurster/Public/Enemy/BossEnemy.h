@@ -66,9 +66,6 @@ class GHOSTBURSTER_API ABossEnemy : public AEnemys
 	float								 MaxOpacity_String;				// 紐のオパシティの最大値(0～1の範囲)
 	int									 EyeValueChangeStartingRate;	// 目のオパシティ値の変更を始める割合
 
-
-
-
 	//アニメーション関係--------------------------------------------------------------------------------------
 	//☆変数
 	TObjectPtr<UAnimSequence>	DeadAnim;								// 死亡状態のアニメーション
