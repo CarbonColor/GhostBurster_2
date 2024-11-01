@@ -736,8 +736,8 @@ void ABossEnemy::ProcessJustForFirst_Charge()
 		{
 			AngleRate = FMath::RandRange(AngleRate_Min, AngleRate_Max); // 何度にするかの割合を決定
 			
-			//AngleRateが前回のAngleRateの+-1以上になったら計算を終える
-			if (AngleRate >= PreAngleRate + 1 || AngleRate <= PreAngleRate - 1)
+			//AngleRateが前回のAngleRateの+-1より大きくまたは小さくになったら計算を終える
+			if (AngleRate > PreAngleRate + 1 || AngleRate < PreAngleRate - 1)
 			{
 				PreAngleRate = AngleRate;	// 次の計算のために移動先を決める度数の割合を代入
 				break;
@@ -1129,8 +1129,8 @@ void ABossEnemy::ProcessJustForFirst_Move()
 	{
 		AngleRate = FMath::RandRange(AngleRate_Min, AngleRate_Max); // 何度にするかの割合を決定
 
-		//AngleRateが前回のAngleRateの+-1以上になったら計算を終える
-		if (AngleRate >= PreAngleRate + 1 || AngleRate <= PreAngleRate - 1)
+		//AngleRateが前回のAngleRateの+-1より大きくまたは小さくになったら計算を終える
+		if (AngleRate > PreAngleRate + 1 || AngleRate < PreAngleRate - 1)
 		{
 			PreAngleRate = AngleRate;	// 次の計算のために移動先を決める度数の割合を代入
 			break;
