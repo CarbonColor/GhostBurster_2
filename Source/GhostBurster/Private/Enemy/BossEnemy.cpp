@@ -1164,6 +1164,9 @@ void ABossEnemy::EnemyDead()
 
 			//死亡後n秒遅らせてからアクターの消滅とそれと同時に行う処理をさせる
 			GetWorld()->GetTimerManager().SetTimer(DestroyTimerHundle, this, &ABossEnemy::ProcessAtDestroy, InRate_Destroy);
+
+			//デバッグ
+			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Yellow, TEXT("Set Timer"));
 		}
 	}
 }
@@ -1226,7 +1229,11 @@ void ABossEnemy::ProcessAtDestroy()
 	TObjectPtr<AEnemySpawner> Spawner = Cast<AEnemySpawner>(UGameplayStatics::GetActorOfClass(GetWorld(), AEnemySpawner::StaticClass()));
 	if (Spawner)
 	{
-		Spawner->HandleEnemyCountZero();
+		Spawner->HandleEnemyCountZero(true);
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Spawner Null"));
 	}
 
 	//消滅させる
