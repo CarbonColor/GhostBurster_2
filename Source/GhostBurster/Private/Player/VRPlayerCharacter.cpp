@@ -58,20 +58,10 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     LeftEarComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("LeftEarAudioComponent"));
     LeftEarComponent->SetupAttachment(CameraComponent);
     LeftEarComponent->SetRelativeLocation(FVector(0, -15, 0));
-    if (OutViewEnemySound)
-    {
-        LeftEarComponent->SetSound(OutViewEnemySound);
-    }
-
     //右耳のオーディオコンポーネント
     RightEarComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("RightEarAudioComponent"));
     RightEarComponent->SetupAttachment(CameraComponent);
     RightEarComponent->SetRelativeLocation(FVector(0, 15, 0));
-    if (OutViewEnemySound)
-    {
-        RightEarComponent->SetSound(OutViewEnemySound);
-    }
-
 
     // モーションコントローラーコンポーネント(右手)を作る
     MotionController_Right = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("MotionController_Right"));
@@ -159,17 +149,9 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     UseBuffItemSound = LoadObject<USoundCue>(nullptr, TEXT("/Game/_TeamFolder/Sound/SE/SE_UseBuffItem_Cue"));
 
     //オーディオコンポーネントの作成
-    EnemyDamageSoundEffect = CreateDefaultSubobject<UAudioComponent>(TEXT("AudioComponent"));
+    EnemyDamageSoundEffect = CreateDefaultSubobject<UAudioComponent>(TEXT("EnemyDamageAudioComponent"));
     EnemyDamageSoundEffect->bAutoActivate = false;     //自動再生を無効にする
     EnemyDamageSoundEffect->SetupAttachment(VRRoot);
-    if (EnemyHitSound)
-    {
-        EnemyDamageSoundEffect->SetSound(EnemyHitSound);
-    }
-    else
-    {
-        GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Silver, TEXT("Not SoundEffect ! -EnemyHitSound-"));
-    }
 }
 
 // Called when the game starts or when spawned
@@ -259,6 +241,25 @@ void AVRPlayerCharacter::BeginPlay()
     if(BuffEffectNiagara)
     {
         NiagaraComponent->SetAsset(BuffEffectNiagara);
+    }
+
+    //SEのセット
+    if (OutViewEnemySound)
+    {
+        LeftEarComponent->SetSound(OutViewEnemySound);
+        RightEarComponent->SetSound(OutViewEnemySound);
+    }
+    else
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Silver, TEXT("Not SoundEffect ! -OutView-"));
+    }
+    if (EnemyHitSound)
+    {
+        EnemyDamageSoundEffect->SetSound(EnemyHitSound);
+    }
+    else
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Silver, TEXT("Not SoundEffect ! -EnemyHitSound-"));
     }
 
     if (LevelName == "Title")
@@ -940,6 +941,7 @@ void AVRPlayerCharacter::UpdateViewOutEnemySound()
     bool bLeftEnemyDetected = false;
     bool bRightEnemyDetected = false;
 
+    // 全ての敵を取得
     TArray<AEnemys*> AllEnemies = Spawner->GetSpawnEnemies();
     for (AActor* Enemy : AllEnemies)
     {
@@ -948,32 +950,32 @@ void AVRPlayerCharacter::UpdateViewOutEnemySound()
         FVector EnemyLocation = Enemy->GetActorLocation();
         FVector DirectionToEnemy = (EnemyLocation - PlayerLocation).GetSafeNormal();
 
-        //プレイヤーの前方ベクトル
+        // プレイヤーの前方ベクトル
         FVector ForwardVector = PlayerQuat.GetForwardVector();
 
-        //左右判定
+        // 敵が前方にいるかどうかを判定（例：±90度以内）
         float DotProduct = FVector::DotProduct(ForwardVector, DirectionToEnemy);
-        if (DotProduct > 0)
+        if (DotProduct < 0.5f) // 前方判定の閾値
         {
+            // 左右判定
             float CrossProductZ = FVector::CrossProduct(ForwardVector, DirectionToEnemy).Z;
             if (CrossProductZ > 0)
             {
-                bRightEnemyDetected = true;
+                bRightEnemyDetected = true;  // 右側に敵がいる
             }
             else
             {
-                bLeftEnemyDetected = true;
+                bLeftEnemyDetected = true;   // 左側に敵がいる
             }
         }
     }
-
     //音の再生処理
     if (bLeftEnemyDetected)
     {
         if (LeftEarComponent->IsPlaying() == false)
         {
             LeftEarComponent->Play();
-            GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Green, TEXT("Left Ear"));
+            GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green, TEXT("Left Ear"));
         }
     }
     else
@@ -988,7 +990,7 @@ void AVRPlayerCharacter::UpdateViewOutEnemySound()
         if (RightEarComponent->IsPlaying() == false)
         {
             RightEarComponent->Play();
-            GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Green, TEXT("Right Ear"));
+            GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green, TEXT("Right Ear"));
         }
     }
     else

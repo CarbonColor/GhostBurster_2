@@ -144,7 +144,8 @@ private:
 	TObjectPtr<UUserWidget> TextWidget;
 
 	//テキストブロック
-	TObjectPtr<UTextBlock> EventText;
+	TObjectPtr<UTextBlock> EventText_JPN;
+	TObjectPtr<UTextBlock> EventText_Eng;
 	TObjectPtr<UTextBlock> SencerText;
 	TObjectPtr<UTextBlock> NormalText;
 	TObjectPtr<UTextBlock> StaticNormalText;

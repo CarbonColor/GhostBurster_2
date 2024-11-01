@@ -28,7 +28,7 @@ private:
 	const int32 TimeDecreaseScore = 100;
 	const int32 DecreasePer = 30;
 	//アイテムのスコア
-	const int32 ItemScore = 200;
+	const int32 ItemScore = 300;
 	// ------------------------------------------------------------------------------------
 
 	// プレイヤーのデフォルトスコア
