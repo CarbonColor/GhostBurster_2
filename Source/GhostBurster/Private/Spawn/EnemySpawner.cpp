@@ -343,8 +343,14 @@ void AEnemySpawner::SpawnEnemy(const FEnemySpawnInfo& SpawnInfo)
             if (ABossEnemy* Boss = Cast<ABossEnemy>(SpawnedEnemy))
             {
                 Boss->GetPlayerLocationAndRotation(Player->GetActorLocation(), Player->GetActorRotation().Yaw);
-                Boss->BattleStart();
                 bIsBossBattle = true;
+
+                //BossEventƒNƒ‰ƒX‚ÌBossAppearEvent‚ðŽæ“¾‚µ‚ÄŒÄ‚Ño‚·
+                ABossEvent* BossEvent = GetWorld()->SpawnActor<ABossEvent>(ABossEvent::StaticClass(), GetActorLocation() + FVector(500.0f, 0.0f, 1000.0f), FRotator::ZeroRotator);
+                if (BossEvent)
+                {
+                    BossEvent->BossAppearEvent(Boss);
+                }
             }
 
             SpawnEnemies.Add(Enemy);
@@ -390,7 +396,7 @@ void AEnemySpawner::EnemyDeadFunction()
 
 void AEnemySpawner::HandleEnemyCountZero(bool bIsBoss)
 {
-    GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Blue, TEXT("Call Handle -EnemyZero-"));
+    //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Blue, TEXT("Call Handle -EnemyZero-"));
 
     if (PlayerSpline)
     {

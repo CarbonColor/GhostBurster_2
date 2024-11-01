@@ -11,6 +11,7 @@
 #include "Enemy/BlueEnemy.h"
 #include "Enemy/BossEnemy.h"
 #include "Enemy/Enemys.h"
+#include "Spawn/BossEvent.h"
 #include "Sound/GameBGM.h"
 
 #include "EnemySpawner.generated.h"
@@ -84,6 +85,9 @@ public:
 
     UPROPERTY(EditAnywhere, Category = "Enemy")
     TSubclassOf<ABossEnemy> BossEnemyClass;
+
+    UPROPERTY(EditAnywhere, Category = "BossEvent")
+    TSubclassOf<ABossEvent> BossEventClass;
 
 protected:
     virtual void BeginPlay() override;
