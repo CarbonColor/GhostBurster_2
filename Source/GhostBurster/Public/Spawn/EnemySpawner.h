@@ -109,6 +109,12 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Enemy Spawning")
     TArray<AEnemys*> GetSpawnEnemies();
 
+    UFUNCTION(BlueprintCallable, Category = "Enemy Spawning")
+    void SendSelfToPlayer();
+
+    UFUNCTION(BlueprintCallable, Category = "Enemy Spawning")
+    void HandleEnemyCountZero(); // EnemyCountが0になったときの処理を実装するためのメソッド
+
 
 private:
     void LogCurrentEnemyCount(const int32& Wave) const;
@@ -123,7 +129,6 @@ private:
     int32 MaxStageNumber;
     mutable TArray<int32> WaveEnemyCount;
 
-    void HandleEnemyCountZero(); // EnemyCountが0になったときの処理を実装するためのメソッド
     TObjectPtr<AVRPlayerCharacter> Player;
 
     TArray<int32> ParseCSV_StageTime(const FString& FilePath) const;
@@ -136,5 +141,7 @@ private:
 
     // ステージ内の敵の配列
     TArray<AEnemys*> SpawnEnemies;
+
+    bool bIsBossBattle;
 
 };
