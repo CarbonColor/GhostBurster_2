@@ -739,6 +739,9 @@ void ABossEnemy::ProcessJustForFirst_Charge()
 		float GoalY = (PlayerLocation_BossRoom.Y + 500) * FMath::Cos(GoalRadians);
 		float GoalZ = CurrentLocation.Z;
 
+		//デバッグ用
+		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, FString::Printf(TEXT("x:%f y:%f, z:%f"), GoalX, GoalY, GoalZ));
+
 		//ボスの出現位置を設定
 		BossGoalLocations.Add(FVector(GoalX, GoalY, GoalZ));
 	}
@@ -1117,6 +1120,9 @@ void ABossEnemy::ProcessJustForFirst_Move()
 	float GoalY = (PlayerLocation_BossRoom.Y + 500) * FMath::Cos(GoalRadians);
 	float GoalZ = CurrentLocation.Z;
 
+	//デバッグ用
+	GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, FString::Printf(TEXT("x:%f y:%f, z:%f"), GoalX, GoalY, GoalZ));
+
 	//ボスの出現位置を設定
 	BossGoalLocation = FVector(GoalX, GoalY, GoalZ);
 
@@ -1240,7 +1246,7 @@ void ABossEnemy::ProcessAtDestroy()
 	}
 	else
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Spawner Null"));
+		/*GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Spawner Null"));*/
 	}
 
 	//消滅させる
