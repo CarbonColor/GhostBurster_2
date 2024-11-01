@@ -89,7 +89,7 @@ ARedEnemy::ARedEnemy()
 	this->AttackAnim = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Ghost/Anim_Attack"));	// 攻撃状態のアニメーション
 
 	//☆サウンド-------------------------------------------------------------------------------------------------------------------
-	AppearSound = LoadObject<USoundCue>(nullptr, TEXT("/Game/_TeamFolder/Sound/SE/SE_GhostAppear_2_Cue"));	//出現時の音設定
+	AppearSound = LoadObject<USoundCue>(nullptr, TEXT("/Game/_TeamFolder/Sound/SE/SE_RedEnemyAppear_Cue"));	//出現時の音設定
 	DisappearSound = LoadObject<USoundCue>(nullptr, TEXT("/Game/_TeamFolder/Sound/SE/SE_GhostDead_2_Cue"));	//消滅時の音設定
 }
 
