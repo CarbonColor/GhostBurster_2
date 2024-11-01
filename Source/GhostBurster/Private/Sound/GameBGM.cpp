@@ -48,8 +48,20 @@ void AGameBGM::ChangeBGM()
 	{
 		//BGMのフェードアウト
 		AudioComponent->FadeOut(FadeTime, 0.0f);
-		//2秒後にBGMの切り替え
-		GetWorld()->GetTimerManager().SetTimer(FadeEndHandle, this, &AGameBGM::NextBGM, FadeTime, false);
+	
+		//Boss直前なら長い間音を止める
+		if (BGMIndex == 5)
+		{
+			//-----------------------------------------------------------------
+			//5ステージ目終了～ボスバトル開始までの時間を計測
+			//-----------------------------------------------------------------
+			GetWorld()->GetTimerManager().SetTimer(FadeEndHandle, this, &AGameBGM::NextBGM, 30.0f, false);
+		}
+		else
+		{
+			//2秒後にBGMの切り替え
+			GetWorld()->GetTimerManager().SetTimer(FadeEndHandle, this, &AGameBGM::NextBGM, FadeTime, false);
+		}
 	
 		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Silver, TEXT("TimerHandle Called"));
 	}
