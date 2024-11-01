@@ -91,7 +91,8 @@ void ASettingPlayer::BeginPlay()
 	CalibrationWidgetComponent->InitWidget();
 	TextWidget = CalibrationWidgetComponent->GetUserWidgetObject();
 
-	EventText = Cast<UTextBlock>(TextWidget->GetWidgetFromName(TEXT("EventText")));
+	EventText_JPN = Cast<UTextBlock>(TextWidget->GetWidgetFromName(TEXT("EventText_JPN")));
+	EventText_Eng = Cast<UTextBlock>(TextWidget->GetWidgetFromName(TEXT("EventText_Eng")));
 	SencerText = Cast<UTextBlock>(TextWidget->GetWidgetFromName(TEXT("Sencer")));
 	NormalText = Cast<UTextBlock>(TextWidget->GetWidgetFromName(TEXT("NormalFinger")));
 	StaticNormalText = Cast<UTextBlock>(TextWidget->GetWidgetFromName(TEXT("Static_NormalFinger")));
@@ -103,7 +104,8 @@ void ASettingPlayer::BeginPlay()
 	StaticBorderText = Cast<UTextBlock>(TextWidget->GetWidgetFromName(TEXT("Static_Border")));
 
 	//初期化
-	EventText->SetText(FText::FromString("Device Setting"));
+	EventText_JPN->SetText(FText::FromString(TEXT("デバイスの調整")));
+	EventText_Eng->SetText(FText::FromString(TEXT("Device Setting")));
 	UpdateText(NormalText, NormalFinger);
 	UpdateText(FoxText, FoxFinger);
 	UpdateText(GunText, GunFinger);
@@ -154,27 +156,30 @@ void ASettingPlayer::NormalFingerSetting()
 	//テキストの表示
 	StaticNormalText->SetVisibility(ESlateVisibility::Visible);
 	NormalText->SetVisibility(ESlateVisibility::Visible);
-	EventText->SetText(FText::FromString("1_Default Hand"));
+	EventText_JPN->SetText(FText::FromString(TEXT("左手を開いたら親指のボタンを押してください")));
+	EventText_Eng->SetText(FText::FromString(TEXT("Please open your left hand and press the thumb button.")));
 	//2秒後にボタンを押せるようにする
-	GetWorld()->GetTimerManager().SetTimer(EventTimerHandle, this, &ASettingPlayer::CanPushButton, 2.0f, false);
+	GetWorld()->GetTimerManager().SetTimer(EventTimerHandle, this, &ASettingPlayer::CanPushButton, 1.5f, false);
 }
 void ASettingPlayer::FoxFingerSetting()
 {
 	//テキストの表示
 	StaticFoxText->SetVisibility(ESlateVisibility::Visible);
 	FoxText->SetVisibility(ESlateVisibility::Visible);
-	EventText->SetText(FText::FromString("2_Fox Hand"));
+	EventText_JPN->SetText(FText::FromString(TEXT("左手で狐の形を作ったら親指のボタンを押してください")));
+	EventText_Eng->SetText(FText::FromString(TEXT("Please make a fox shape with your left hand and press the thumb button.")));
 	//2秒後にボタンを押せるようにする
-	GetWorld()->GetTimerManager().SetTimer(EventTimerHandle, this, &ASettingPlayer::CanPushButton, 2.0f, false);
+	GetWorld()->GetTimerManager().SetTimer(EventTimerHandle, this, &ASettingPlayer::CanPushButton, 1.5f, false);
 }
 void ASettingPlayer::GunFingerSetting()
 {
 	//テキストの表示
 	StaticGunText->SetVisibility(ESlateVisibility::Visible);
 	GunText->SetVisibility(ESlateVisibility::Visible);
-	EventText->SetText(FText::FromString("3_Gun Hand"));
+	EventText_JPN->SetText(FText::FromString(TEXT("左手で銃の形を作ったら親指のボタンを押してください")));
+	EventText_Eng->SetText(FText::FromString(TEXT("Please make a gun shape with your left hand and press the thumb button.")));
 	//2秒後にボタンを押せるようにする
-	GetWorld()->GetTimerManager().SetTimer(EventTimerHandle, this, &ASettingPlayer::CanPushButton, 2.0f, false);
+	GetWorld()->GetTimerManager().SetTimer(EventTimerHandle, this, &ASettingPlayer::CanPushButton, 1.5f, false);
 }
 void ASettingPlayer::CheckBorder()
 {
@@ -186,9 +191,10 @@ void ASettingPlayer::CheckBorder()
 	SencerText->SetVisibility(ESlateVisibility::Hidden);
 	StaticBorderText->SetVisibility(ESlateVisibility::Visible);
 	BorderText->SetVisibility(ESlateVisibility::Visible);
-	EventText->SetText(FText::FromString("Setting Success !"));
+	EventText_JPN->SetText(FText::FromString(TEXT("調整完了！")));
+	EventText_Eng->SetText(FText::FromString(TEXT("Adjustment complete!")));
 	//2秒後にボタンを押せるようにする
-	GetWorld()->GetTimerManager().SetTimer(EventTimerHandle, this, &ASettingPlayer::CanPushButton, 2.0f, false);
+	GetWorld()->GetTimerManager().SetTimer(EventTimerHandle, this, &ASettingPlayer::CanPushButton, 1.5f, false);
 }
 void ASettingPlayer::GoToTitle()
 {
@@ -197,7 +203,8 @@ void ASettingPlayer::GoToTitle()
 
 void ASettingPlayer::Measuring()
 {
-	EventText->SetText(FText::FromString("Measuring......"));
+	EventText_JPN->SetText(FText::FromString(TEXT("計測中・・・")));
+	EventText_Eng->SetText(FText::FromString(TEXT("Measuring...")));
 	bIsMeasuring = true;
 	//5秒後に測定を止める
 	GetWorld()->GetTimerManager().SetTimer(EventTimerHandle, this, &ASettingPlayer::StopMeasuring, 5.0f, false);
@@ -206,10 +213,11 @@ void ASettingPlayer::Measuring()
 void ASettingPlayer::StopMeasuring()
 {
 	bIsMeasuring = false;
-	EventText->SetText(FText::FromString("Success!"));
+	EventText_JPN->SetText(FText::FromString(TEXT("計測完了！")));
+	EventText_Eng->SetText(FText::FromString(TEXT("Measurement complete!")));
 	//2秒後にNextEventを呼び出す
 	GetWorld()->GetTimerManager().ClearTimer(EventTimerHandle);
-	GetWorld()->GetTimerManager().SetTimer(EventTimerHandle, this, &ASettingPlayer::NextEvent, 2.0f, false);
+	GetWorld()->GetTimerManager().SetTimer(EventTimerHandle, this, &ASettingPlayer::NextEvent, 1.5f, false);
 }
 
 //ボタンを押せるようにするメソッド
@@ -437,7 +445,6 @@ void ASettingPlayer::PushButton(const FInputActionValue& Value)
 	{
 		return;
 	}
-
 
 	bCanPushButton = false;
 
