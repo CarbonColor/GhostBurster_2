@@ -167,8 +167,8 @@ protected:
 	bool	bIsEscaped;							// 逃走したか
 
 	//☆関数
-	void	EnemyDead();				// HPが0になったら消滅させる
-	void	ProcessDoOnce_EnemyDead();	// EnemyDeadで一度だけ行う処理
+	virtual void	EnemyDead();				// HPが0になったら消滅させる
+	void			ProcessDoOnce_EnemyDead();	// EnemyDeadで一度だけ行う処理
 
 	//出現関係---------------------------------------------------------------------------------------------------------------------
 	//☆変数 

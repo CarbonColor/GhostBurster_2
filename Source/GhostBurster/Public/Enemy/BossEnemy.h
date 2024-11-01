@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "Enemy/Enemys.h"
 #include "Components/SphereComponent.h"
+#include "TimerManager.h"
+
 #include "BossEnemy.generated.h"
 
 /**
@@ -172,8 +174,16 @@ private:
 	virtual bool	Move() override;						// 移動
 
 	//死亡関係-----------------------------------------------------------------------------------------------
+	//☆変数
+	FTimerHandle	DestroyTimerHundle;						// アクター消滅と同時に行う処理を起動するためのタイマーハンドル
+	float			InRate_Destroy;							// 消滅時処理を行うまでの時間(秒)
+	
 	//☆関数
+	virtual void	EnemyDead() override;					// HPが0になったら消滅させる
 	virtual bool	Transparentize_Dead() override;			// 死亡時の徐々に透明にする処理
+	void			ProcessAtDestroy();						// 消滅時に行う処理
+	
+
 
 protected:
 	virtual void BeginPlay() override;
