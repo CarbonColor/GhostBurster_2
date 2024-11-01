@@ -168,9 +168,11 @@ private:
 	TArray<FVector> BossGoalLocations;						// ボスの複数箇所の目的座標
 	FVector			BossGoalLocation;						// ボスの目的座標
 	bool			bHasEndedTeleportation;					// 瞬間移動が終わったらtrue 
-	float			DegreeLimit_Min;						// ランダムで角度を取得する時の最小値
-	float			DegreeLimit_Max;						// ランダムで角度を取得する時の最大値
+	int				AngleRate_Min;							// ランダムで角度を取得する時の最小値の割合
+	int				AngleRate_Max;							// ランダムで角度を取得する時の最大値の割合
+	int				AngleValueAsBase;						// 基準となる角度の値
 	float			RadiusFromPlayer;						// プレイヤーからどれだけ離れた位置か
+	float			PreAngleRate;							// 前の移動位置を決めた角度の割合
 
 	//☆関数
 	virtual void	ProcessJustForFirst_Move() override;	// 状態Move遷移時にのみ行う処理

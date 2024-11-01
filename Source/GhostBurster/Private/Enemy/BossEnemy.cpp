@@ -35,7 +35,7 @@ ABossEnemy::ABossEnemy()
 	//通常敵の討伐後関係
 	bHasEndedAfterEnemyExpedition(false),
 	//移動関係
-	BossGoalLocation(FVector(0.f, 0.f, 0.f)), bHasEndedTeleportation(false), DegreeLimit_Min(-60), DegreeLimit_Max(60), RadiusFromPlayer(650.f),
+	BossGoalLocation(FVector(0.f, 0.f, 0.f)), bHasEndedTeleportation(false), AngleRate_Min(-3), AngleRate_Max(3), AngleValueAsBase(60), RadiusFromPlayer(650.f), PreAngleRate(0),
 	//死亡関係
 	InRate_Destroy(1.5f)
 {
@@ -731,8 +731,20 @@ void ABossEnemy::ProcessJustForFirst_Charge()
 	for (int i = 0; i < CountUpToAttack; ++i)
 	{
 		//ボスの移動位置を決めるラジアンの値を設定
-		float GoalDegrees = PlayerRotation_Z_BossRoom + FMath::FRandRange(DegreeLimit_Min, DegreeLimit_Max);	// 何度にするか計算
-		float GoalRadians = FMath::DegreesToRadians(GoalDegrees);												// ラジアンに変換
+		int AngleRate;	// 角度の割合
+		while (true)
+		{
+			AngleRate = FMath::RandRange(AngleRate_Min, AngleRate_Max); // 何度にするかの割合を決定
+			
+			//AngleRateが前回のAngleRateの+-1以上になったら計算を終える
+			if (AngleRate >= PreAngleRate + 1 || AngleRate <= PreAngleRate - 1)
+			{
+				PreAngleRate = AngleRate;	// 次の計算のために移動先を決める度数の割合を代入
+				break;
+			}
+		}
+		float GoalDegrees = PlayerRotation_Z_BossRoom + AngleRate * (AngleValueAsBase / AngleRate_Max); // 何度になるか計算
+		float GoalRadians = FMath::DegreesToRadians(GoalDegrees); // ラジアンに変換
 
 		//ボスの移動位置を決める
 		float GoalX = PlayerLocation_BossRoom.X + (RadiusFromPlayer * FMath::Cos(GoalRadians));
@@ -740,7 +752,7 @@ void ABossEnemy::ProcessJustForFirst_Charge()
 		float GoalZ = CurrentLocation.Z;
 
 		//デバッグ用
-		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, FString::Printf(TEXT("x:%f y:%f, z:%f"), GoalX, GoalY, GoalZ));
+		/*GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, FString::Printf(TEXT("x:%f y:%f, z:%f"), GoalX, GoalY, GoalZ));*/
 
 		//ボスの出現位置を設定
 		BossGoalLocations.Add(FVector(GoalX, GoalY, GoalZ));
@@ -1110,10 +1122,22 @@ void ABossEnemy::ProcessJustForFirst_Move()
 	//現在位置を取得
 	this->CurrentLocation = GetActorLocation();
 
-	//ボスの瞬間移動する座標を設定する
+	//☆ボスの瞬間移動する座標を設定する
 	//ボスの移動位置を決めるラジアンの値を設定
-	float GoalDegrees = PlayerRotation_Z_BossRoom + FMath::FRandRange(DegreeLimit_Min, DegreeLimit_Max);	// 何度にするか計算
-	float GoalRadians = FMath::DegreesToRadians(GoalDegrees);						// ラジアンに変換
+	int AngleRate;	// 角度の割合
+	while (true)
+	{
+		AngleRate = FMath::RandRange(AngleRate_Min, AngleRate_Max); // 何度にするかの割合を決定
+
+		//AngleRateが前回のAngleRateの+-1以上になったら計算を終える
+		if (AngleRate >= PreAngleRate + 1 || AngleRate <= PreAngleRate - 1)
+		{
+			PreAngleRate = AngleRate;	// 次の計算のために移動先を決める度数の割合を代入
+			break;
+		}
+	}
+	float GoalDegrees = PlayerRotation_Z_BossRoom + AngleRate * (AngleValueAsBase / AngleRate_Max); // 何度になるか計算
+	float GoalRadians = FMath::DegreesToRadians(GoalDegrees); // ラジアンに変換
 
 	//ボスの移動位置を決める
 	float GoalX = PlayerLocation_BossRoom.X + (RadiusFromPlayer * FMath::Cos(GoalRadians));
