@@ -345,6 +345,7 @@ void AEnemySpawner::SpawnEnemy(const FEnemySpawnInfo& SpawnInfo)
             {
                 Boss->GetPlayerLocationAndRotation(Player->GetActorLocation(), Player->GetActorRotation().Yaw);
                 Boss->BattleStart();
+                bIsBossBattle = true;
             }
 
             SpawnEnemies.Add(Enemy);
@@ -384,7 +385,7 @@ void AEnemySpawner::EnemyDeadFunction()
         WaveEnemyCount[Wave]--;
         LogCurrentEnemyCount(Wave);
 
-        if (WaveEnemyCount[Wave] == 0)
+        if (WaveEnemyCount[Wave] <= 0 && bIsBossBattle == false)
         {
             HandleEnemyCountZero();
         }
@@ -419,4 +420,9 @@ void AEnemySpawner::HandleEnemyCountZero()
 TArray<AEnemys*> AEnemySpawner::GetSpawnEnemies()
 {
     return SpawnEnemies;
+}
+
+void AEnemySpawner::SendSelfToPlayer()
+{
+    Player->SetNowSpawner(this);
 }
