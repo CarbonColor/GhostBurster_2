@@ -4,6 +4,7 @@
 #include "GameFramework/Actor.h"
 #include "Player/PlayerSplinePath.h"
 #include "Player/VRPlayerCharacter.h"
+#include "TimerManager.h"
 #include "Enemy/NormalEnemy.h"
 #include "Enemy/GreenEnemy.h"
 #include "Enemy/RedEnemy.h"
@@ -113,7 +114,7 @@ public:
     void SendSelfToPlayer();
 
     UFUNCTION(BlueprintCallable, Category = "Enemy Spawning")
-    void HandleEnemyCountZero(); // EnemyCountが0になったときの処理を実装するためのメソッド
+    void HandleEnemyCountZero(bool bIsBoss); // EnemyCountが0になったときの処理を実装するためのメソッド
 
 
 private:

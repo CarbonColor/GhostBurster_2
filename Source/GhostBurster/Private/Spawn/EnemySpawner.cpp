@@ -3,7 +3,6 @@
 #include "GameFramework/Actor.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
-#include "TimerManager.h"
 #include "Kismet/GameplayStatics.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogEnemySpawner, Log, All);
@@ -364,14 +363,11 @@ void AEnemySpawner::SpawnEnemy(const FEnemySpawnInfo& SpawnInfo)
     {
         LogEnemyClassNotFound(SpawnInfo.Type);
     }
-    // 最後の敵だったらステージタイマーの設定
+
+    // 最後の敵だった時の処理
     if (SpawnInfo.LastEnemy)
     {
-        if (WaveTime.Num() != 0 && WaveTime[SpawnInfo.Wave - 1] != -1)
-        {
-            GetWorld()->GetTimerManager().SetTimer(WaveTimerHandle, this, &AEnemySpawner::HandleEnemyCountZero, WaveTime[SpawnInfo.Wave - 1], false);
-            GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, FString::Printf(TEXT("Setting Timer : %d second"), WaveTime[SpawnInfo.Wave - 1]));
-        }
+
     }
 }
 
@@ -387,14 +383,14 @@ void AEnemySpawner::EnemyDeadFunction()
 
         if (WaveEnemyCount[Wave] <= 0 && bIsBossBattle == false)
         {
-            HandleEnemyCountZero();
+            HandleEnemyCountZero(false);
         }
     }
 }
 
-void AEnemySpawner::HandleEnemyCountZero()
+void AEnemySpawner::HandleEnemyCountZero(bool bIsBoss)
 {
-    //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Yellow, TEXT("Call Handle -EnemyZero-"));
+    GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Blue, TEXT("Call Handle -EnemyZero-"));
 
     if (PlayerSpline)
     {
@@ -405,6 +401,19 @@ void AEnemySpawner::HandleEnemyCountZero()
             Player->NextStage();
         }
     }
+
+    //ボス戦だったら
+    if (bIsBoss)
+    {
+        //取り巻きの敵を倒す
+        TArray<AActor*> BeforeEnemies;
+        UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEnemys::StaticClass(), BeforeEnemies);
+        for (int i = BeforeEnemies.Num() - 1; i >= 0; --i)
+        {
+            BeforeEnemies[i]->Destroy();
+        }
+    }
+
     // タイマーをクリア
     GetWorld()->GetTimerManager().ClearTimer(WaveTimerHandle);
 
