@@ -35,7 +35,7 @@ ABossEnemy::ABossEnemy()
 	//通常敵の討伐後関係
 	bHasEndedAfterEnemyExpedition(false),
 	//移動関係
-	BossGoalLocation(FVector(0.f, 0.f, 0.f)), bHasEndedTeleportation(false),
+	BossGoalLocation(FVector(0.f, 0.f, 0.f)), bHasEndedTeleportation(false), DegreeLimit_Min(-60), DegreeLimit_Max(60),
 	//死亡関係
 	InRate_Destroy(1.5f)
 {
@@ -259,6 +259,7 @@ void ABossEnemy::Think()
 	//通常敵の討伐待機-----------------------------------------------------------------------
 	case EBossState::EnemyExpeditionWait:
 		if (NowExistsEnemyNumber == 0) { NowState = EBossState::AfterEnemyExpedition; }	//通常敵の討伐後状態
+		if (Status.HP <= 0) { NowState = EBossState::Die; }
 		break;
 
 	//通常敵の討伐後-------------------------------------------------------------------------
@@ -723,8 +724,8 @@ void ABossEnemy::ProcessJustForFirst_Charge()
 	for (int i = 0; i < CountUpToAttack; ++i)
 	{
 		//ボスの移動位置を決めるラジアンの値を設定
-		float GoalDegrees = PlayerRotation_Z_BossRoom + FMath::FRandRange(-90.f, 90.f);	// 何度にするか計算
-		float GoalRadians = FMath::DegreesToRadians(GoalDegrees);						// ラジアンに変換
+		float GoalDegrees = PlayerRotation_Z_BossRoom + FMath::FRandRange(DegreeLimit_Min, DegreeLimit_Max);	// 何度にするか計算
+		float GoalRadians = FMath::DegreesToRadians(GoalDegrees);												// ラジアンに変換
 
 		//ボスの移動位置を決める
 		float GoalX = (PlayerLocation_BossRoom.X + 500) * FMath::Cos(GoalRadians);
@@ -1101,7 +1102,7 @@ void ABossEnemy::ProcessJustForFirst_Move()
 
 	//ボスの瞬間移動する座標を設定する
 	//ボスの移動位置を決めるラジアンの値を設定
-	float GoalDegrees = PlayerRotation_Z_BossRoom + FMath::FRandRange(-90.f, 90.f);	// 何度にするか計算
+	float GoalDegrees = PlayerRotation_Z_BossRoom + FMath::FRandRange(DegreeLimit_Min, DegreeLimit_Max);	// 何度にするか計算
 	float GoalRadians = FMath::DegreesToRadians(GoalDegrees);						// ラジアンに変換
 
 	//ボスの移動位置を決める
@@ -1156,8 +1157,14 @@ void ABossEnemy::EnemyDead()
 	//敵を消滅させる
 	if (bIsDestroy)
 	{
-		//死亡後n秒遅らせてからアクターの消滅とそれと同時に行う処理をさせる
-		GetWorld()->GetTimerManager().SetTimer(DestroyTimerHundle, this, &ABossEnemy::ProcessAtDestroy, InRate_Destroy);
+		if (FinishCount == 0)
+		{
+			//セットタイマー関数を2度通らないようにする
+			FinishCount++;
+
+			//死亡後n秒遅らせてからアクターの消滅とそれと同時に行う処理をさせる
+			GetWorld()->GetTimerManager().SetTimer(DestroyTimerHundle, this, &ABossEnemy::ProcessAtDestroy, InRate_Destroy);
+		}
 	}
 }
 
@@ -1198,7 +1205,7 @@ bool ABossEnemy::Transparentize_Dead()
 				GhostCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 			}
 
-			//この関数が呼ばれないようにする
+			//次の関数が呼ばれるようにする
 			return true;
 		}
 
@@ -1215,6 +1222,7 @@ bool ABossEnemy::Transparentize_Dead()
 // 消滅時に行う処理
 void ABossEnemy::ProcessAtDestroy()
 {
+	//スポナーを取得
 	TObjectPtr<AEnemySpawner> Spawner = Cast<AEnemySpawner>(UGameplayStatics::GetActorOfClass(GetWorld(), AEnemySpawner::StaticClass()));
 	if (Spawner)
 	{
