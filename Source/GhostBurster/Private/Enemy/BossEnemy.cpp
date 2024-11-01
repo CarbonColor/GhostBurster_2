@@ -142,7 +142,11 @@ ABossEnemy::ABossEnemy()
 	SummonAnim = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Boss/ghost_boss_summon_Anim"));			// 敵呼び時のアニメーション								ループ再生しない
 	WarpAnim = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/_TeamFolder/CG/CG_Model/Boss/ghost_boss_warp_Anim"));				// 瞬間移動時のアニメ－ション							ループ再生しない
 
-	//☆ボス敵の設定-----------------------------------------------------------------------------------------------
+	//☆サウンド-------------------------------------------------------------------------------------------------------------------
+	AppearSound = LoadObject<USoundCue>(nullptr, TEXT("/Game/_TeamFolder/Sound/SE/SE_BossAppear_Cue"));		//出現時の音設定
+	DisappearSound = LoadObject<USoundCue>(nullptr, TEXT("/Game/_TeamFolder/Sound/SE/SE_BossDead_Cue"));	//消滅時の音設定
+
+	//☆ボス敵の設定---------------------------------------------------------------------------------------------------------------
 	this->EnemyColor = EEnemyColor::BossColor;	// 初期の色設定
 	this->AttackTiming = 85;					// 攻撃判定のタイミング設定(フレーム数)
 	this->Status.Score = 1000;
@@ -162,6 +166,8 @@ void ABossEnemy::BeginPlay()
 void ABossEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	this->FacePlayerHowTo(); // プレイヤーの方向を向く
 
 	//戦闘を開始したら処理を始める
 	if (bIsBattleStarted)
@@ -286,6 +292,7 @@ void ABossEnemy::UpdateState(EBossState NowState)
 		this->BossState = NowState;
 		this->MoveCount = 0;
 		this->bShouldBeenProcessWhenFirstStateTransition = false;
+		FinishCount = 0;
 
 		//状態変化時のアニメーション変更
 		AnimationChangeAtStateChange(NowState);
@@ -388,9 +395,6 @@ void ABossEnemy::ActProcess()
 		EnemyDead();
 		break;
 	}
-
-	//状態関係なく行う処理--------------------------------------------------
-	this->FacePlayerHowTo(); // プレイヤーの方向を向く
 }
 
 //プレイヤーがボス部屋で止まった時、位置と回転を取得する
@@ -701,6 +705,9 @@ bool ABossEnemy::Show(const float DeltaTime)
 void ABossEnemy::BattleStart()
 {
 	bIsBattleStarted = true;
+
+	//戦闘開始の声を鳴らす
+	PlayAppearSound();
 }
 
 //☆状態：Chargeの処理------------------------------------------------------------------------------------------- 
