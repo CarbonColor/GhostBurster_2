@@ -8,6 +8,7 @@
 #include "Enemy/GreenEnemy.h"
 #include "Enemy/RedEnemy.h"
 #include "Enemy/BlueEnemy.h"
+#include "Spawn/EnemySpawner.h"
 
 ABossEnemy::ABossEnemy()
 	:
@@ -34,7 +35,9 @@ ABossEnemy::ABossEnemy()
 	//通常敵の討伐後関係
 	bHasEndedAfterEnemyExpedition(false),
 	//移動関係
-	BossGoalLocation(FVector(0.f, 0.f, 0.f)), bHasEndedTeleportation(false)
+	BossGoalLocation(FVector(0.f, 0.f, 0.f)), bHasEndedTeleportation(false),
+	//死亡関係
+	InRate_Destroy(1.5f)
 {
 	//Tickを有効にする
 	PrimaryActorTick.bCanEverTick = true;
@@ -1139,6 +1142,26 @@ bool ABossEnemy::Move()
 
 //☆死亡関係-----------------------------------------------------------------------------------------------
 //死亡時の徐々に透明にする処理
+void ABossEnemy::EnemyDead()
+{
+	//EnemyDeadで一度だけ行う処理
+	if (bOnceDoProcessBeenIs == false)
+	{
+		ProcessDoOnce_EnemyDead();
+	}
+
+	//徐々に透明にする
+	bIsDestroy = Transparentize_Dead();
+
+	//敵を消滅させる
+	if (bIsDestroy)
+	{
+		//死亡後n秒遅らせてからアクターの消滅とそれと同時に行う処理をさせる
+		GetWorld()->GetTimerManager().SetTimer(DestroyTimerHundle, this, &ABossEnemy::ProcessAtDestroy, InRate_Destroy);
+	}
+}
+
+//死亡時の徐々に透明にする処理
 bool ABossEnemy::Transparentize_Dead()
 {
 	//DeltaTimeの取得
@@ -1187,6 +1210,19 @@ bool ABossEnemy::Transparentize_Dead()
 
 	//もう一度この関数を呼ぶ
 	return false;
+}
+
+// 消滅時に行う処理
+void ABossEnemy::ProcessAtDestroy()
+{
+	TObjectPtr<AEnemySpawner> Spawner = Cast<AEnemySpawner>(UGameplayStatics::GetActorOfClass(GetWorld(), AEnemySpawner::StaticClass()));
+	if (Spawner)
+	{
+		Spawner->HandleEnemyCountZero();
+	}
+
+	//消滅させる
+	this->Destroy();
 }
 
 //ダメージを受ける処理、引数でもらった攻撃力分体力を減らす
