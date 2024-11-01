@@ -170,6 +170,7 @@ private:
 	bool			bHasEndedTeleportation;					// 瞬間移動が終わったらtrue 
 	float			DegreeLimit_Min;						// ランダムで角度を取得する時の最小値
 	float			DegreeLimit_Max;						// ランダムで角度を取得する時の最大値
+	float			RadiusFromPlayer;						// プレイヤーからどれだけ離れた位置か
 
 	//☆関数
 	virtual void	ProcessJustForFirst_Move() override;	// 状態Move遷移時にのみ行う処理
