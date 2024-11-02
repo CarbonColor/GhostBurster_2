@@ -55,7 +55,7 @@ void AGameBGM::ChangeBGM()
 			//-----------------------------------------------------------------
 			//5ステージ目終了～ボスバトル開始までの時間を計測
 			//-----------------------------------------------------------------
-			GetWorld()->GetTimerManager().SetTimer(FadeEndHandle, this, &AGameBGM::NextBGM, 30.0f, false);
+			GetWorld()->GetTimerManager().SetTimer(FadeEndHandle, this, &AGameBGM::NextBGM, 22.0f, false);
 		}
 		else
 		{

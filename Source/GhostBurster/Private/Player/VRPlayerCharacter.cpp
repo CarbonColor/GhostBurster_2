@@ -942,7 +942,8 @@ void AVRPlayerCharacter::UpdateViewOutEnemySound()
     bool bRightEnemyDetected = false;
 
     // ‘S‚Ä‚Ì“G‚ðŽæ“¾
-    TArray<AEnemys*> AllEnemies = Spawner->GetSpawnEnemies();
+    TArray<AActor*> AllEnemies; 
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEnemys::StaticClass(), AllEnemies);
     for (AActor* Enemy : AllEnemies)
     {
         if (!Enemy) continue;
