@@ -21,7 +21,7 @@ private:
 
 	// ------------------------------------------------------------------------------------	
 	//ダメージのスコア
-	const int32 DamageScore = -100;
+	const int32 DamageScore = -200;
 	//タイムのスコア
 	const int32 DefaultClearTime = 210;
 	const int32 TimeMaxScore = 3000;
