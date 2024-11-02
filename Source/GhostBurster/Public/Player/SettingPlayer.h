@@ -61,8 +61,6 @@ protected:
 	void Reset();
 
 public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 
 	//狐の霊のメッシュ
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Blueprint")
@@ -172,6 +170,7 @@ private:
 
 	//テキストアップデート
 	void UpdateText(UTextBlock* TextBlock, const TArray<int32> Array);
+	void CallJPNTextChange(bool bIsEnd);
 
 	//ボタンの制御
 	bool bCanPushButton;

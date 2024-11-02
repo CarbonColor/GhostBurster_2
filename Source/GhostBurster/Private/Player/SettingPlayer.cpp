@@ -104,7 +104,7 @@ void ASettingPlayer::BeginPlay()
 	StaticBorderText = Cast<UTextBlock>(TextWidget->GetWidgetFromName(TEXT("Static_Border")));
 
 	//初期化
-	//EventText_JPN->SetText(FText::FromString(TEXT("デバイスの調整")));
+	CallJPNTextChange(false);	//０番
 	EventText_Eng->SetText(FText::FromString(TEXT("Device Setting")));
 	UpdateText(NormalText, NormalFinger);
 	UpdateText(FoxText, FoxFinger);
@@ -129,13 +129,6 @@ void ASettingPlayer::BeginPlay()
 
 }
 
-// Called every frame
-void ASettingPlayer::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
-
 // Called to bind functionality to input
 void ASettingPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -156,7 +149,7 @@ void ASettingPlayer::NormalFingerSetting()
 	//テキストの表示
 	StaticNormalText->SetVisibility(ESlateVisibility::Visible);
 	NormalText->SetVisibility(ESlateVisibility::Visible);
-	//EventText_JPN->SetText(FText::FromString(TEXT("左手を開いたら親指のボタンを押してください")));
+	CallJPNTextChange(false);	//１番
 	EventText_Eng->SetText(FText::FromString(TEXT("Please open your left hand and press the thumb button.")));
 	//2秒後にボタンを押せるようにする
 	GetWorld()->GetTimerManager().SetTimer(EventTimerHandle, this, &ASettingPlayer::CanPushButton, 1.5f, false);
@@ -166,7 +159,7 @@ void ASettingPlayer::FoxFingerSetting()
 	//テキストの表示
 	StaticFoxText->SetVisibility(ESlateVisibility::Visible);
 	FoxText->SetVisibility(ESlateVisibility::Visible);
-	//EventText_JPN->SetText(FText::FromString(TEXT("左手で狐の形を作ったら親指のボタンを押してください")));
+	CallJPNTextChange(false);	//３番
 	EventText_Eng->SetText(FText::FromString(TEXT("Please make a fox shape with your left hand and press the thumb button.")));
 	//2秒後にボタンを押せるようにする
 	GetWorld()->GetTimerManager().SetTimer(EventTimerHandle, this, &ASettingPlayer::CanPushButton, 1.5f, false);
@@ -176,7 +169,7 @@ void ASettingPlayer::GunFingerSetting()
 	//テキストの表示
 	StaticGunText->SetVisibility(ESlateVisibility::Visible);
 	GunText->SetVisibility(ESlateVisibility::Visible);
-	//EventText_JPN->SetText(FText::FromString(TEXT("左手で銃の形を作ったら親指のボタンを押してください")));
+	CallJPNTextChange(false);	//５番
 	EventText_Eng->SetText(FText::FromString(TEXT("Please make a gun shape with your left hand and press the thumb button.")));
 	//2秒後にボタンを押せるようにする
 	GetWorld()->GetTimerManager().SetTimer(EventTimerHandle, this, &ASettingPlayer::CanPushButton, 1.5f, false);
@@ -191,8 +184,8 @@ void ASettingPlayer::CheckBorder()
 	SencerText->SetVisibility(ESlateVisibility::Hidden);
 	StaticBorderText->SetVisibility(ESlateVisibility::Visible);
 	BorderText->SetVisibility(ESlateVisibility::Visible);
-	//EventText_JPN->SetText(FText::FromString(TEXT("調整完了！")));
-	EventText_Eng->SetText(FText::FromString(TEXT("Adjustment complete!")));
+	CallJPNTextChange(false);	//７番
+	EventText_Eng->SetText(FText::FromString(TEXT("Adjustment complete! Please check the operation.")));
 	//2秒後にボタンを押せるようにする
 	GetWorld()->GetTimerManager().SetTimer(EventTimerHandle, this, &ASettingPlayer::CanPushButton, 1.5f, false);
 }
@@ -203,7 +196,7 @@ void ASettingPlayer::GoToTitle()
 
 void ASettingPlayer::Measuring()
 {
-	//EventText_JPN->SetText(FText::FromString(TEXT("計測中・・・")));
+	CallJPNTextChange(false);	//２・４・６番
 	EventText_Eng->SetText(FText::FromString(TEXT("Measuring...")));
 	bIsMeasuring = true;
 	//5秒後に測定を止める
@@ -213,7 +206,7 @@ void ASettingPlayer::Measuring()
 void ASettingPlayer::StopMeasuring()
 {
 	bIsMeasuring = false;
-	//EventText_JPN->SetText(FText::FromString(TEXT("計測完了！")));
+	CallJPNTextChange(true);	//２・４・６番
 	EventText_Eng->SetText(FText::FromString(TEXT("Measurement complete!")));
 	//2秒後にNextEventを呼び出す
 	GetWorld()->GetTimerManager().ClearTimer(EventTimerHandle);
@@ -375,7 +368,6 @@ void ASettingPlayer::UseItem_Buff()
 	GetWorld()->GetTimerManager().SetTimer(ItemCoolTimeHandle, this, &ASettingPlayer::ItemCoolTimeFunction, 5.0f, false);
 
 }
-
 void ASettingPlayer::UseItem_Attack()
 {
 	//アイテムの制御
@@ -491,6 +483,29 @@ void ASettingPlayer::NextEvent()
 
 	default:
 		break;
+	}
+}
+
+void ASettingPlayer::CallJPNTextChange(bool bIsEnd)
+{
+	// 関数名を指定してBlueprint関数を取得
+	FName FunctionName(TEXT("SetJPNText"));
+	UFunction* Function = TextWidget->FindFunction(FunctionName);
+
+	if (Function)
+	{
+		// 引数を構造体で設定
+		struct
+		{
+			int32 Id;
+			bool bIsEnd;
+		} Params;
+
+		Params.Id = EventNumber;
+		Params.bIsEnd = bIsEnd;
+
+		// Blueprintのメソッドを呼び出し
+		TextWidget->ProcessEvent(Function, &Params);
 	}
 }
 

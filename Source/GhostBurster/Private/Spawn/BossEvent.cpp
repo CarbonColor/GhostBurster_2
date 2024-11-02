@@ -5,6 +5,7 @@
 #include "TimerManager.h"
 #include "Kismet/GameplayStatics.h"
 #include "UObject/ConstructorHelpers.h"
+#include "Player/VRPlayerCharacter.h"
 
 // Sets default values
 ABossEvent::ABossEvent()
@@ -98,7 +99,14 @@ void ABossEvent::IncreaseLightIntensity()
 		GetWorld()->GetTimerManager().SetTimer(LightHandle, this, &ABossEvent::UpdateIntensity, 0.1f, false);
 	}
 
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, [this]() {BossEnemy->BattleStart(); }, 1.5f, false);
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, [this]() 
+		{
+			BossEnemy->BattleStart(); 
+			//ƒvƒŒƒCƒ„[‚Ìæ“¾
+			AVRPlayerCharacter* Player = Cast<AVRPlayerCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
+			Player->LightControl_Play();
+			Player->ItemControl_Play();
+		}, 1.5f, false);
 }
 
 void ABossEvent::UpdateIntensity()

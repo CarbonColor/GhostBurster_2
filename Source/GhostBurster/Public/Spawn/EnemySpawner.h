@@ -147,6 +147,7 @@ private:
     // ステージ内の敵の配列
     TArray<AEnemys*> SpawnEnemies;
 
+    TObjectPtr<ABossEnemy> Boss;
     bool bIsBossBattle;
 
 };

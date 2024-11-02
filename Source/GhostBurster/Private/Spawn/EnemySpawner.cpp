@@ -329,6 +329,11 @@ void AEnemySpawner::SpawnEnemy(const FEnemySpawnInfo& SpawnInfo)
     {
         UE_LOG(LogEnemySpawner, Warning, TEXT("Spawning enemy class: %s"), *EnemyClass->GetName());
 
+        if (bIsBossBattle && Boss == nullptr)
+        {
+            return;
+        }
+
         //敵の出現
         AActor* SpawnedEnemy = GetWorld()->SpawnActor<AActor>(EnemyClass, GetActorLocation() + SpawnInfo.StartLocation, FRotator::ZeroRotator);
         //出現した敵のステータス設定
@@ -340,15 +345,19 @@ void AEnemySpawner::SpawnEnemy(const FEnemySpawnInfo& SpawnInfo)
             //Enemy->SetMoveTime(SpawnInfo.MoveTime);
             //Enemy->SetAttackUpToTime(SpawnInfo.AttackTime);
 
-            if (ABossEnemy* Boss = Cast<ABossEnemy>(SpawnedEnemy))
+            if (Boss = Cast<ABossEnemy>(SpawnedEnemy))
             {
                 Boss->GetPlayerLocationAndRotation(Player->GetActorLocation(), Player->GetActorRotation().Yaw);
+                int32 BossHP = 60 * Player->GetLightAttack() * 40;
+                Boss->SetHP(BossHP);
                 bIsBossBattle = true;
 
                 //BossEventクラスのBossAppearEventを取得して呼び出す
                 ABossEvent* BossEvent = GetWorld()->SpawnActor<ABossEvent>(ABossEvent::StaticClass(), GetActorLocation() + FVector(500.0f, 0.0f, 1000.0f), FRotator::ZeroRotator);
                 if (BossEvent)
                 {
+                    Player->LightControl_Stop();
+                    Player->ItemControl_Stop();
                     BossEvent->BossAppearEvent(Boss);
                 }
             }
@@ -411,6 +420,8 @@ void AEnemySpawner::HandleEnemyCountZero(bool bIsBoss)
     //ボス戦だったら
     if (bIsBoss)
     {
+        Player->ItemControl_Stop();
+
         //取り巻きの敵を倒す
         TArray<AActor*> BeforeEnemies;
         UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEnemys::StaticClass(), BeforeEnemies);

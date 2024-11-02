@@ -172,22 +172,22 @@ void AVRPlayerCharacter::BeginPlay()
     // ------------------------------------------------------------------------------------
 
     // ライトバッテリーの秒数設定　※タイトルの時は緩くする
-    BatteryTime = 20;
+    BatteryTime = 30;
     if (LevelName == "Title")
     {
         BatteryTime *= 2;
     }
     // バッテリー秒数の増加率設定
-    AddBatteryTime = 10;
+    AddBatteryTime = 5;
     // 最大値をセット
     MaxBattery = 60 * BatteryTime;
     // ライトの攻撃力設定
     LightAttack = 10;
     // ライトの攻撃力増加率の設定
-    AddLightAttack = 6;
+    AddLightAttack = 4;
 
     // アイテムの攻撃力の設定
-    ItemAttack = 60 * LightAttack * 2.5f;
+    ItemAttack = 60 * LightAttack * 3.0f;
 
     // ------------------------------------------------------------------------------------
     // 変更不可能な初期値設定
@@ -267,7 +267,10 @@ void AVRPlayerCharacter::BeginPlay()
         TitleEvent = Cast<ATitleEventManager>(UGameplayStatics::GetActorOfClass(GetWorld(), ATitleEventManager::StaticClass()));
     }
 
-    bIsGameEnd = false;
+    bLightControl = true;
+    bItemControl = false;
+
+    GetWorld()->GetTimerManager().SetTimer(GetAllEnemyHandle, this, &AVRPlayerCharacter::UpdateAllEnemy, 1.0f, true);
 }
 
 // Called every frame
@@ -364,6 +367,12 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
         }
     }
 
+    if (bLightControl == false)
+    {
+        //ライトを切り替える(OFF化)
+        Flashlight->SetVisibility(false);
+    }
+
     // バッテリー操作
     if (bCanToggleLight == false)    //ライトがつけられないとき
     {
@@ -384,7 +393,6 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
             
             //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Battery is fill! You can't use Flashlight!"));
         }
-        UpdateBatteryUI();
     }
     else if (Flashlight->GetVisibleFlag())    //ライトON
     {
@@ -400,7 +408,6 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
             bCanToggleLight = false;
             //GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Battery is empty! You can't use Flashlight!"));
         }
-        UpdateBatteryUI();
     }
     else if (Flashlight->GetVisibleFlag() == false) //ライトOFF
     {
@@ -409,8 +416,9 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
         {
             Battery += MaxBattery / (60 * 3.5f);
         }
-        UpdateBatteryUI();
     }
+    UpdateBatteryUI();
+
 
     if (LevelName == "Title")
     {
@@ -466,7 +474,7 @@ void AVRPlayerCharacter::ToggleFlashlight_On(const FInputActionValue& value)
             return;
         }
     }
-    if (bIsGameEnd)
+    if (bLightControl == false)
     {
         return;
     }
@@ -483,7 +491,7 @@ void AVRPlayerCharacter::ToggleFlashlight_Off(const FInputActionValue& value)
             return;
         }
     }
-    if (bIsGameEnd)
+    if (bLightControl == false)
     {
         return;
     }
@@ -502,7 +510,7 @@ void AVRPlayerCharacter::ChangeColorFlashlight(const FInputActionValue& value)
             return;
         }
     }
-    if (bIsGameEnd)
+    if (bLightControl == false)
     {
         return;
     }
@@ -615,7 +623,7 @@ void AVRPlayerCharacter::CheckUsedItem(const TArray<int32> value)
 //アイテム使用メソッド
 void AVRPlayerCharacter::UseItem_Attack()
 {
-    if (bCanUseItem == false || ScoreInstance->GetPlayerItemCount() <= 0 || bIsGameEnd)
+    if (bCanUseItem == false || ScoreInstance->GetPlayerItemCount() <= 0 || bItemControl == false)
     {
         return;
     }
@@ -719,7 +727,7 @@ void AVRPlayerCharacter::AttackItemFunction()
 
 void AVRPlayerCharacter::UseItem_Buff()
 {
-    if (bCanUseItem == false || ScoreInstance->GetPlayerItemCount() <= 0 || bIsGameEnd)
+    if (bCanUseItem == false || ScoreInstance->GetPlayerItemCount() <= 0 || bItemControl == false)
     {
         return;
     }
@@ -931,6 +939,20 @@ void AVRPlayerCharacter::OnConeEndOverlap(UPrimitiveComponent* OverlappedComp, A
     }
 }
 
+void AVRPlayerCharacter::UpdateAllEnemy()
+{
+    TArray<AActor*> Actors;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEnemys::StaticClass(), Actors);
+
+    AllEnemies.Empty();
+    for (AActor* Enemy : Actors)
+    {
+        if (Enemy && Enemy->IsValidLowLevel())
+        {
+            AllEnemies.Add(Enemy);
+        }
+    }
+}
 //画面外の敵を検知するメソッド
 void AVRPlayerCharacter::UpdateViewOutEnemySound()
 {
@@ -941,9 +963,7 @@ void AVRPlayerCharacter::UpdateViewOutEnemySound()
     bool bLeftEnemyDetected = false;
     bool bRightEnemyDetected = false;
 
-    // 全ての敵を取得
-    TArray<AActor*> AllEnemies; 
-    UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEnemys::StaticClass(), AllEnemies);
+    // 全ての敵を検索
     for (AActor* Enemy : AllEnemies)
     {
         if (!Enemy) continue;
@@ -1282,9 +1302,23 @@ void AVRPlayerCharacter::ChangeScore_Step()
     }
 }
 
-void AVRPlayerCharacter::GameEndSet()
+void AVRPlayerCharacter::ItemControl_Stop()
 {
-    bIsGameEnd = true;
-    Flashlight->SetVisibility(false);
-    PlayerStatusWidgetComponent->SetHiddenInGame(true);
+    bItemControl = false;
+}
+void AVRPlayerCharacter::ItemControl_Play()
+{
+    bItemControl = true;
+}
+void AVRPlayerCharacter::LightControl_Stop()
+{
+    bLightControl = false;
+}
+void AVRPlayerCharacter::LightControl_Play()
+{
+    bLightControl = true;
+}
+int32 AVRPlayerCharacter::GetLightAttack()
+{
+    return LightAttack;
 }
