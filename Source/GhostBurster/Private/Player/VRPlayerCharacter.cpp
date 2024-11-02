@@ -422,11 +422,11 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
         }
     }
 
-    //画面外の敵のSEの更新メソッド（移動していないとき -> ステージ内）
-    if (Spawner != nullptr)
-    {
-        UpdateViewOutEnemySound();
-    }
+    ////画面外の敵のSEの更新メソッド（移動していないとき -> ステージ内）
+    //if (Spawner != nullptr)
+    //{
+    //    UpdateViewOutEnemySound();
+    //}
 
 
     ////画面外の敵を表示するUIの更新
