@@ -223,6 +223,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Stage")
 		int32 GetStageNumber();
 
+	//ライトの攻撃力を取得する
+	UFUNCTION(BlueprintCallable, Category = "Player Status")
+		int32 GetLightAttack();
+
 	//SE
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SE")
 		TObjectPtr<USoundCue> EnemyHitSound;
@@ -245,8 +249,16 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SE")
 	TObjectPtr<USoundCue> OutViewEnemySound;
 
-	UFUNCTION(BlueprintCallable, Category = "GameEndTrigger")
-	void GameEndSet();
+	UFUNCTION(BlueprintCallable, Category = "Item Control")
+	void ItemControl_Stop();
+	UFUNCTION(BlueprintCallable, Category = "Item Control")
+	void ItemControl_Play();
+
+	UFUNCTION(BlueprintCallable, Category = "Light Control")
+	void LightControl_Stop();
+	UFUNCTION(BlueprintCallable, Category = "Light Control")
+	void LightControl_Play();
+
 
 private:
 	
@@ -406,5 +418,10 @@ private:
 	//現在のワールド名
 	FString LevelName;
 
-	bool bIsGameEnd;
+	bool bLightControl;
+	bool bItemControl;
+
+	TArray<AActor*> AllEnemies;
+	FTimerHandle GetAllEnemyHandle;
+	void UpdateAllEnemy();
 };
