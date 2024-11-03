@@ -329,11 +329,6 @@ void AEnemySpawner::SpawnEnemy(const FEnemySpawnInfo& SpawnInfo)
     {
         UE_LOG(LogEnemySpawner, Warning, TEXT("Spawning enemy class: %s"), *EnemyClass->GetName());
 
-        if (bIsBossBattle && Boss == nullptr)
-        {
-            return;
-        }
-
         //敵の出現
         AActor* SpawnedEnemy = GetWorld()->SpawnActor<AActor>(EnemyClass, GetActorLocation() + SpawnInfo.StartLocation, FRotator::ZeroRotator);
         //出現した敵のステータス設定

@@ -57,11 +57,11 @@ AVRPlayerCharacter::AVRPlayerCharacter()
     //左耳のオーディオコンポーネント
     LeftEarComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("LeftEarAudioComponent"));
     LeftEarComponent->SetupAttachment(CameraComponent);
-    LeftEarComponent->SetRelativeLocation(FVector(0, -15, 0));
+    LeftEarComponent->SetRelativeLocation(FVector(-30, -100, 0));
     //右耳のオーディオコンポーネント
     RightEarComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("RightEarAudioComponent"));
     RightEarComponent->SetupAttachment(CameraComponent);
-    RightEarComponent->SetRelativeLocation(FVector(0, 15, 0));
+    RightEarComponent->SetRelativeLocation(FVector(-30, 100, 0));
 
     // モーションコントローラーコンポーネント(右手)を作る
     MotionController_Right = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("MotionController_Right"));
@@ -270,7 +270,7 @@ void AVRPlayerCharacter::BeginPlay()
     bLightControl = true;
     bItemControl = false;
 
-    GetWorld()->GetTimerManager().SetTimer(GetAllEnemyHandle, this, &AVRPlayerCharacter::UpdateAllEnemy, 1.0f, true);
+    GetWorld()->GetTimerManager().SetTimer(GetAllEnemyHandle, this, &AVRPlayerCharacter::UpdateAllEnemy, 0.3f, true);
 }
 
 // Called every frame
@@ -430,11 +430,11 @@ void AVRPlayerCharacter::Tick(float DeltaTime)
         }
     }
 
-    ////画面外の敵のSEの更新メソッド（移動していないとき -> ステージ内）
-    //if (Spawner != nullptr)
-    //{
-    //    UpdateViewOutEnemySound();
-    //}
+    //画面外の敵のSEの更新メソッド（移動していないとき -> ステージ内）
+    if (Spawner != nullptr)
+    {
+        UpdateViewOutEnemySound();
+    }
 
 
     ////画面外の敵を表示するUIの更新
