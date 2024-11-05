@@ -264,11 +264,15 @@ void AVRPlayerCharacter::BeginPlay()
 
     if (LevelName == "Title")
     {
+        bLightControl = true;
+        bItemControl = true;
         TitleEvent = Cast<ATitleEventManager>(UGameplayStatics::GetActorOfClass(GetWorld(), ATitleEventManager::StaticClass()));
     }
-
-    bLightControl = true;
-    bItemControl = false;
+    else if (LevelName == "MainLevel")
+    {
+        bLightControl = true;
+        bItemControl = false;
+    }
 
     GetWorld()->GetTimerManager().SetTimer(GetAllEnemyHandle, this, &AVRPlayerCharacter::UpdateAllEnemy, 0.3f, true);
 }
