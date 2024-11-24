@@ -167,7 +167,7 @@ void AEnemys::EnemyDead()
 //EnemyDeadで一度だけ行う処理
 void AEnemys::ProcessDoOnce_EnemyDead()
 {
-	//親子関係がある時、親に死亡したことを伝える
+	//ボスに召喚された時、ボスに死亡したことを伝える
 	TObjectPtr<ABossEnemy> Parent = Cast<ABossEnemy>(GetAttachParentActor());
 	if (Parent)
 	{
